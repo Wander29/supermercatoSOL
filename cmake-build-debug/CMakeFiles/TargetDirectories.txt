@@ -1,0 +1,3 @@
+/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir
