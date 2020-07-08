@@ -1,4 +1,5 @@
 #include <mypoll.h>
+#include <poll.h>
 
 static unsigned size = START_SIZE;
 
@@ -59,6 +60,10 @@ int pollfd_remove(struct pollfd *v, const int j, int *actual_len) {
     }
 
     (*actual_len)--;
+    v[*actual_len].fd = -1;
+    v[*actual_len].events = 0;
+    v[*actual_len].revents = 0;
+
     return 0;
 }
 

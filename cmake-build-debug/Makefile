@@ -231,32 +231,86 @@ lib/lib-src/parser_config.c.s:
 	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.s
 .PHONY : lib/lib-src/parser_config.c.s
 
-lib/lib-src/threadpool.o: lib/lib-src/threadpool.c.o
+lib/lib-src/pool.o: lib/lib-src/pool.c.o
 
-.PHONY : lib/lib-src/threadpool.o
+.PHONY : lib/lib-src/pool.o
 
 # target to build an object file
-lib/lib-src/threadpool.c.o:
-	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o
-.PHONY : lib/lib-src/threadpool.c.o
+lib/lib-src/pool.c.o:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o
+.PHONY : lib/lib-src/pool.c.o
 
-lib/lib-src/threadpool.i: lib/lib-src/threadpool.c.i
+lib/lib-src/pool.i: lib/lib-src/pool.c.i
 
-.PHONY : lib/lib-src/threadpool.i
+.PHONY : lib/lib-src/pool.i
 
 # target to preprocess a source file
-lib/lib-src/threadpool.c.i:
-	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.i
-.PHONY : lib/lib-src/threadpool.c.i
+lib/lib-src/pool.c.i:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.i
+.PHONY : lib/lib-src/pool.c.i
 
-lib/lib-src/threadpool.s: lib/lib-src/threadpool.c.s
+lib/lib-src/pool.s: lib/lib-src/pool.c.s
 
-.PHONY : lib/lib-src/threadpool.s
+.PHONY : lib/lib-src/pool.s
 
 # target to generate assembly for a file
-lib/lib-src/threadpool.c.s:
-	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.s
-.PHONY : lib/lib-src/threadpool.c.s
+lib/lib-src/pool.c.s:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.s
+.PHONY : lib/lib-src/pool.c.s
+
+lib/lib-src/protocollo.o: lib/lib-src/protocollo.c.o
+
+.PHONY : lib/lib-src/protocollo.o
+
+# target to build an object file
+lib/lib-src/protocollo.c.o:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o
+.PHONY : lib/lib-src/protocollo.c.o
+
+lib/lib-src/protocollo.i: lib/lib-src/protocollo.c.i
+
+.PHONY : lib/lib-src/protocollo.i
+
+# target to preprocess a source file
+lib/lib-src/protocollo.c.i:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.i
+.PHONY : lib/lib-src/protocollo.c.i
+
+lib/lib-src/protocollo.s: lib/lib-src/protocollo.c.s
+
+.PHONY : lib/lib-src/protocollo.s
+
+# target to generate assembly for a file
+lib/lib-src/protocollo.c.s:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.s
+.PHONY : lib/lib-src/protocollo.c.s
+
+src/direttore.o: src/direttore.c.o
+
+.PHONY : src/direttore.o
+
+# target to build an object file
+src/direttore.c.o:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/direttore.c.o
+.PHONY : src/direttore.c.o
+
+src/direttore.i: src/direttore.c.i
+
+.PHONY : src/direttore.i
+
+# target to preprocess a source file
+src/direttore.c.i:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/direttore.c.i
+.PHONY : src/direttore.c.i
+
+src/direttore.s: src/direttore.c.s
+
+.PHONY : src/direttore.s
+
+# target to generate assembly for a file
+src/direttore.c.s:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/direttore.c.s
+.PHONY : src/direttore.c.s
 
 src/supermercato.o: src/supermercato.c.o
 
@@ -306,9 +360,15 @@ help:
 	@echo "... lib/lib-src/parser_config.o"
 	@echo "... lib/lib-src/parser_config.i"
 	@echo "... lib/lib-src/parser_config.s"
-	@echo "... lib/lib-src/threadpool.o"
-	@echo "... lib/lib-src/threadpool.i"
-	@echo "... lib/lib-src/threadpool.s"
+	@echo "... lib/lib-src/pool.o"
+	@echo "... lib/lib-src/pool.i"
+	@echo "... lib/lib-src/pool.s"
+	@echo "... lib/lib-src/protocollo.o"
+	@echo "... lib/lib-src/protocollo.i"
+	@echo "... lib/lib-src/protocollo.s"
+	@echo "... src/direttore.o"
+	@echo "... src/direttore.i"
+	@echo "... src/direttore.s"
 	@echo "... src/supermercato.o"
 	@echo "... src/supermercato.i"
 	@echo "... src/supermercato.s"

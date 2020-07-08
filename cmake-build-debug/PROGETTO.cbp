@@ -94,6 +94,12 @@
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/parser_config.h">
 			<Option target="PROGETTO"/>
 		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/pool.h">
+			<Option target="PROGETTO"/>
+		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/protocollo.h">
+			<Option target="PROGETTO"/>
+		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/concurrent_queue.c">
 			<Option target="PROGETTO"/>
 		</Unit>
@@ -106,10 +112,13 @@
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/parser_config.c">
 			<Option target="PROGETTO"/>
 		</Unit>
-		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/threadpool.c">
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/pool.c">
 			<Option target="PROGETTO"/>
 		</Unit>
-		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/threadpool.h">
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c">
+			<Option target="PROGETTO"/>
+		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c">
 			<Option target="PROGETTO"/>
 		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/supermercato.c">

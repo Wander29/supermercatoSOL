@@ -74,12 +74,12 @@ clean: CMakeFiles/PROGETTO.dir/clean
 CMakeFiles/PROGETTO.dir/all:
 	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/depend
 	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target PROGETTO"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target PROGETTO"
 .PHONY : CMakeFiles/PROGETTO.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/PROGETTO.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles 9
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/PROGETTO.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles 0
 .PHONY : CMakeFiles/PROGETTO.dir/rule

@@ -122,18 +122,44 @@ CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/parser_config.c -o CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.s
 
-CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o: CMakeFiles/PROGETTO.dir/flags.make
-CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o: ../lib/lib-src/threadpool.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o   -c /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/threadpool.c
+CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o: CMakeFiles/PROGETTO.dir/flags.make
+CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o: ../lib/lib-src/pool.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o   -c /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/pool.c
 
-CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/threadpool.c > CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.i
+CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/pool.c > CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.i
 
-CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/threadpool.c -o CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.s
+CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/pool.c -o CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.s
+
+CMakeFiles/PROGETTO.dir/src/direttore.c.o: CMakeFiles/PROGETTO.dir/flags.make
+CMakeFiles/PROGETTO.dir/src/direttore.c.o: ../src/direttore.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/PROGETTO.dir/src/direttore.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/PROGETTO.dir/src/direttore.c.o   -c /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c
+
+CMakeFiles/PROGETTO.dir/src/direttore.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/PROGETTO.dir/src/direttore.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c > CMakeFiles/PROGETTO.dir/src/direttore.c.i
+
+CMakeFiles/PROGETTO.dir/src/direttore.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/PROGETTO.dir/src/direttore.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c -o CMakeFiles/PROGETTO.dir/src/direttore.c.s
+
+CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o: CMakeFiles/PROGETTO.dir/flags.make
+CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o: ../lib/lib-src/protocollo.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o   -c /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c
+
+CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c > CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.i
+
+CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c -o CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.s
 
 # Object files for target PROGETTO
 PROGETTO_OBJECTS = \
@@ -142,7 +168,9 @@ PROGETTO_OBJECTS = \
 "CMakeFiles/PROGETTO.dir/lib/lib-src/mypoll.c.o" \
 "CMakeFiles/PROGETTO.dir/src/supermercato.c.o" \
 "CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.o" \
-"CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o"
+"CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o" \
+"CMakeFiles/PROGETTO.dir/src/direttore.c.o" \
+"CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o"
 
 # External object files for target PROGETTO
 PROGETTO_EXTERNAL_OBJECTS =
@@ -152,10 +180,12 @@ PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/concurrent_queue.c.o
 PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/mypoll.c.o
 PROGETTO: CMakeFiles/PROGETTO.dir/src/supermercato.c.o
 PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.o
-PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/threadpool.c.o
+PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o
+PROGETTO: CMakeFiles/PROGETTO.dir/src/direttore.c.o
+PROGETTO: CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o
 PROGETTO: CMakeFiles/PROGETTO.dir/build.make
 PROGETTO: CMakeFiles/PROGETTO.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking C executable PROGETTO"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C executable PROGETTO"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/PROGETTO.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
