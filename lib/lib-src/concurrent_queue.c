@@ -28,7 +28,8 @@ int start_queue(queue_t **Q) {
  * @RETURNS     0               successo
  *              -1              errore nell'allocazione dinamica di memoria
  */
-static int insert_into_queue(queue_t *Q, void *new_elem) {
+int insert_into_queue(queue_t *Q, void *new_elem) {
+    QUEUENULL(Q, -1)
     node_t *new_node = calloc(1, sizeof(node_t));
     if(new_node == NULL) {
         return -1;
@@ -54,7 +55,8 @@ static int insert_into_queue(queue_t *Q, void *new_elem) {
  * @RETURNS     val             valore del nodo in testa
  *              NULL            coda vuota
  */
-static void *get_from_queue(queue_t *Q) {
+void *get_from_queue(queue_t *Q) {
+    QUEUENULL(Q, NULL)
     if(Q->nelems == 0) {
         return NULL;
     }

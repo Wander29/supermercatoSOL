@@ -1,5 +1,8 @@
 CC          =   gcc
-CFLAGS      =   -std=c99 -g -Wall
+CFLAGS      =   -std=c99 -g -Wall -pedantic -Wextra \
+				   -Wformat=2 -Wno-unused-parameter -Wshadow \
+				   -Wwrite-strings -Wstrict-prototypes -Wold-style-definition \
+				   -Wredundant-decls -Wnested-externs -Wmissing-include-dirs
 .PHONY      =   clean
 SRCDIR      =   src/
 LIBDIR      =   lib/
@@ -72,6 +75,11 @@ $(LIBDIR)libprotocollo.a: $(LIBSRC)protocollo.c $(INCDIR)protocollo.h
 	rm -f protocollo.o
 
 clean:
+	-rm -f *.o
+	-rm -f *.socket
+	-rm -f ~*
+
+cleanall:
 	-rm -f *.o
 	-rm -f $(TARGETS)
 	-rm -f $(LIBDIR)*.so

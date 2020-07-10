@@ -3,50 +3,56 @@
 #include <mypthread.h>
 #include <mysocket.h>
 #include <mypoll.h>
+#include <parser_config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 #include "../include/protocollo.h"
-
-#define DEBUG
+#include "../include/parser_config.h"
 
 /** var. globali */
-static int pipefd[2];           /* pipe di comunicazione fra signal handler e main */
+static int pipefd_dir[2];       /* pipe di comunicazione fra signal handler e main */
 static int listen_ssfd = -1;    /* listen server socket fd */
 static int smfd = -1;           /* supermercato fd*/
-
-// struct sockaddr_un listen_server_addr; definita in protocollo.h (è l'indirizzo del server)
 
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
  * - aspetta la ricezione di segnali specificati da una maschera
  * - una volta ricevuto un segnale scrive sulla pipe il segnale ricevuto
  *****************************************************/
-static void *sync_signal_handler(void *arg) {
-    sigset_t *mask = (sigset_t *) arg;
+static void *sync_signal_handler(void *useless) {
+    int err;
+    sigset_t mask;
+    MENO1(sigemptyset(&mask))
+    MENO1(sigaddset(&mask, SIGINT))
+    MENO1(sigaddset(&mask, SIGQUIT))
+    MENO1(sigaddset(&mask, SIGHUP))
+    MENO1(sigaddset(&mask, SIGUSR1))
 
-    int sig_captured,           /* conterrà il segnale cattuarato dalla sigwait */
-    err;
+    PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
+
+    int sig_captured;           /* conterrà il segnale cattuarato dalla sigwait */
 
     for(;;) {
-        if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
-            break;
-
-        PTH(err, sigwait(mask, &sig_captured))
+        PTH(err, sigwait(&mask, &sig_captured))
         switch(sig_captured) {
             case SIGINT:
             case SIGQUIT:
                 sig_captured = SIGQUIT;    /* utile per gestire più segnali come SIGQUIT (ad es. SIGINT) */
             case SIGHUP:
-                MENO1(writen(pipefd[1], &sig_captured,sizeof(int)))
+                MENO1(writen(pipefd_dir[1], &sig_captured, sizeof(int)))
                 break;
-            default: ;
+            default: /* SIGUSR1 */
+                return (void *) 0;
+            ;
         }
     }
-    return (void *) NULL;
+
+    return (void *) 0;
 }
 
 static void inline usage(char *str) {
@@ -65,23 +71,26 @@ static void cleanup() {
     if(fcntl(smfd, F_GETFL) >= 0)
         MENO1(close(smfd))
 
-    if(fcntl(pipefd[0], F_GETFL) >= 0)
-        MENO1(close(pipefd[0]))
+    if(fcntl(pipefd_dir[0], F_GETFL) >= 0)
+        MENO1(close(pipefd_dir[0]))
 
-    if(fcntl(pipefd[1], F_GETFL) >= 0)
-        MENO1(close(pipefd[1]))
+    if(fcntl(pipefd_dir[1], F_GETFL) >= 0)
+        MENO1(close(pipefd_dir[1]))
 }
 
 /***********************************************************************************************
  * LOGICA DEL DIRETTORE (del supermercato)
- * - se viene passata l'opzione -s forka il supermercato
- *      altrimenti il supermercato verrà avviato separatamente e questo comunicherà
- *      il suo PID al direttore
+ * - forka il processo supermercato
  * - gestione segnali
  *      thread signal handler che scrive sulla pipe per avvisare
  * - crea un socket di comunicazione col supermercato e si mette in ascolto su:
  *         . socket di comunicazione
  *         . pipe[0]
+ * - gestisce le casse e le uscite dei clienti con 0 prodotti acquistati
+ * - quando viene ricevuto un segnale lo reinvia al supermercato
+ *      SIGHUP: rimane in attesa di altre comunicazioni dai cassieri/clienti senza acquisti
+ *      SIGQUIT: gestisce le richieste sospese
+ *  attende la terminazione del supermercato e successivamente termina
  ************************************************************************************************/
 int main(int argc, char *argv[]) {
 
@@ -93,27 +102,27 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    pid_t pid_sm = -1;          /* pid del supermercato */
-
     if (argc == 2) {
         if (argv[1][0] == '-' && argv[1][2] == '\0') {
             switch (argv[1][1]) {
+            /*
                 case 's':
                     pid_sm = fork();
                     switch (pid_sm) {
-                        case 0:     /* figlio */
+                        case 0:
                             execl(PATH_TO_SUPERMARKET, "supermercato", (char *) NULL);
-                        case -1:    /* errore */
+                        case -1:
                             perror("fork");
                             exit(EXIT_FAILURE);
                             break;
-                        default:    /* padre */
+                        default:
 #ifdef DEBUG
                             printf("[DIRETTORE] Supermercato aperto!\n");
 #endif
                             break;
                     }
                     break;
+            */
                 case 'h':
                     usage(argv[0]);
                     exit(EXIT_FAILURE);
@@ -130,28 +139,52 @@ int main(int argc, char *argv[]) {
 
     /** Variaibili di supporto */
     int err,
-            i;
+        i;
+
+    /** Parametri di configurazione */
+    param_t par;
+    MENO1(get_params_from_file(&par))
+
     /***************************************************************************************
     * Gestione segnali
      * - inizializza la pipe di comunicazione fra signal handler e main
      * - thread signal handler, gestirà SIGQUIT e SIGHUP
      *      maschero tutti i segnali nel thread main
     ****************************************************************************************/
-    MENO1(pipe(pipefd))
-
     sigset_t mask;
-    MENO1(sigemptyset(&mask))
-    MENO1(sigaddset(&mask, SIGINT))
-    MENO1(sigaddset(&mask, SIGQUIT))
-    MENO1(sigaddset(&mask, SIGHUP))
-
-    PTH(err, pthread_sigmask(SIG_BLOCK, &mask, NULL))
+    MENO1(sigfillset(&mask))
+    PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
     /*
      * thread signal handler
+     * - inizializzo coda di comunicazione
      */
+    MENO1(pipe(pipefd_dir))
+
     pthread_t tid_tsh;
     void *status_tsh;
-    PTH(err, pthread_create(&tid_tsh, NULL, sync_signal_handler, (void *) &mask))
+    PTH(err, pthread_create(&tid_tsh, NULL, sync_signal_handler, (void *) NULL))
+
+    /***************************************************************************************segnali
+    * Apertura Supermercato
+    * - fork del processo supermercato
+    ****************************************************************************************/
+    pid_t pid_sm = -1;          /* pid del supermercato */
+    int status_sm;              /* conterrà il valore di uscita del processo supermercato */
+
+    switch ( (pid_sm = fork()) ) {
+        case 0:                 /* figlio */
+            execl(PATH_TO_SUPERMARKET, "supermercato", (char *) NULL);
+        case -1:                /* errore */
+            perror("fork");
+            exit(EXIT_FAILURE);
+            break;
+        default:                /* padre */
+#ifdef DEBUG
+            printf("[DIRETTORE] Supermercato aperto!\n");
+#endif
+            break;
+    }
+
 
     /***************************************************************************************
      * Comunicazione col supermercato: creazione socket di comunicazione
@@ -179,35 +212,49 @@ int main(int argc, char *argv[]) {
      *      - uso la POLL per attendere una connessione in un certo intervallo
      *              e monitorare eventuali comunicazione del signal handler
      ***************************************************************************************/
-        struct pollfd *pollfd_v;    /* array di pollfd */
-        EQNULL(pollfd_v = start_pollfd())
-        int polled_fd = 0;          /* conterrà il numero di fd che si stanno monitorando */
-        struct pollfd tmp;          /* pollfd di supporto per gli inserimenti */
+    struct pollfd *pollfd_v;    /* array di pollfd */
+    EQNULL(pollfd_v = start_pollfd())
+    int polled_fd = 0;          /* conterrà il numero di fd che si stanno monitorando */
+    struct pollfd tmp;          /* pollfd di supporto per gli inserimenti */
 
-        tmp.fd = listen_ssfd;
-        tmp.events = POLLIN;        /* attende eventi di lettura non con alta priorità */
-        MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    tmp.fd = listen_ssfd;
+    tmp.events = POLLIN;        /* attende eventi di lettura non con alta priorità */
+    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
 
-        tmp.fd = pipefd[0];
-        tmp.events = POLLIN;
-        MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    tmp.fd = pipefd_dir[0];
+    tmp.events = POLLIN;
+    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+
+    /*
+     * gestione casse
+     */
+    int *code_casse;            /* conterrà le informazioni riguardo le code delle casse */
+    EQNULL(code_casse = malloc(par.K * sizeof(int)))
+    for(i = 0; i < par.K; i++)
+        code_casse[i] = -1;     /* -1 indica cassa chiusa */
 
     /***************************************************************************************
      * MULTIPLEXING, tramite POLL:
      *  attendo I/O su più file descriptors
      *      .smfd
      *      .pipe[0]
-     * Inizialmente attende UNA unica richiesta di connessione del supermercato
+     *  Inizialmente attende UNA unica richiesta di connessione del supermercato
      *
+     *  Può ricevere comunicazioni da:
      *
-     *  Se non si disponde del PID del supermercato, la prima cosa che si fa è richiederlo
-     *  In caso di chiusura immediata il direttore rimanda il segnale al supermercato
-     *  e aspetta la sua terminazione
-     *  In caso di chiusura soft il direttore rimane in attesa di notifiche da parte
-     *  dei cassieri, e può quindi continuare a decidere di aprire o chiudere casse
-     *  fino alla terminazione vera e propria.
-     *  In questo caso il direttore verrà informato dal supermercato che ha terminato i clienti
-     *  da servire e quindi termina.
+     *      SIGNAL HANDLER  riceve un segnale, lo rimanda al supermercato
+     *
+     *      CLIENTI         in caso di uscita senza acquisti
+     *                          li gestisce accettando la loro uscita
+     *
+     *      CASSE           riceve comunicazione riguardo il numero di clienti in coda
+     *
+     *      MANAGER         segnala l'imminente terminazione del supermercato
+     *
+     * Quando viene ricevuto un segnale lo reinvia al supermercato
+     *    SIGHUP   rimane in attesa di altre comunicazioni dai cassieri/clienti senza acquisti
+     *    SIGQUIT  gestisce le richieste sospese
+     * attende la terminazione del supermercato e successivamente termina
     ****************************************************************************************/
 #ifdef DEBUG
     printf("[DIRETTORE] In attesa di una connessione\n");
@@ -223,6 +270,9 @@ int main(int argc, char *argv[]) {
         /*
         * MULTIPLEXING: attendo I/O su vari fd
         */
+#ifdef DEBUG
+        printf("[DIRETTORE] POLL!\n");
+#endif
         if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, si blocca */
             if(errno == EINTR && get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
                 /*
@@ -245,20 +295,21 @@ int main(int argc, char *argv[]) {
             if (pollfd_v[i].revents & POLLIN) {      /* fd pronto per la lettura! */
                 int fd_curr = pollfd_v[i].fd;
 
-                if(fd_curr == pipefd[0]) {
+                if(fd_curr == pipefd_dir[0]) {
                     /*
                      * il signal handler ha ricevuto un segnale
                      */
                     int sig_captured;
-                    MENO1(readn(pipefd[0], &sig_captured, sizeof(int)))
+                    MENO1(readn(pipefd_dir[0], &sig_captured, sizeof(int)))
                     /*
                      * manda il segnale ricevuto al supermercato
                      */
 #ifdef DEBUG
-                    printf("[DIRETTORE] ricevuto segnale [%d]!\n", sig_captured);
+                    printf("\n[DIRETTORE] ricevuto Segnale [%d]!\n", sig_captured);
 #endif
-                    set_stato_supermercato(CHIUSURA_IMMEDIATA);
-                    // MENO1(kill(pid, sig_captured))
+                    // set_stato_supermercato(CHIUSURA_IMMEDIATA);
+                    MENO1(kill(pid_sm, sig_captured))
+
                 }
                 else if(fd_curr == listen_ssfd) {
                     /*
@@ -271,41 +322,126 @@ int main(int argc, char *argv[]) {
 
                     MENO1(pollfd_remove(pollfd_v, i, &polled_fd))
                     current_pollfd_array_size--;
+
+                    MENO1(shutdown(listen_ssfd, SHUT_RDWR))
                     MENO1(close(listen_ssfd))
+
                 }
                 else {
                     /*
                      * ricevuta comunicazione dal supermercato
                      */
-                    msg_code_t type_msg;
-                    MENO1(readn(smfd, &type_msg, sizeof(msg_code_t)))
+                    sock_msg_code_t type_msg = 0;        /* tipo messaggio ricevuto */
+                    int param;                       /* parametro del messaggio */
+                    MENO1(readn(smfd, &type_msg, sizeof(sock_msg_code_t)))
+#ifdef DEBUG
+                    printf("[DIRETTORE] SOCKET [%d]!\n", type_msg);
+#endif
+                    switch(type_msg) {
+                        case MANAGER_IN_CHIUSURA: {
+                                MENO1(waitpid(pid_sm, &status_sm, 0))
+#ifdef DEBUG
+                                printf("[DIRETTORE] Il supermercato è terminato!\n");
+#endif
+                                goto terminazione_direttore;
+                            }
+                        case CLIENTE_SENZA_ACQUISTI:
+                            /*
+                             * assumo che il direttore faccia SEMPRE uscire i clienti
+                             *  che non effettuano acquisti
+                             *  -leggo l'id cliente
+                             */
+                            MENO1(readn(smfd, &param, sizeof(int)))
+                            type_msg = DIRETTORE_PERMESSO_USCITA;
+                            MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
+                            MENO1(writen(smfd, &param, sizeof(int)))
 
-                    switch(type_msg){
-                        case MANAGER_PID: {
-                            MENO1(readn(smfd, &pid_sm, sizeof(pid_t)))
+#ifdef DEBUG
+                            printf("[DIRETTORE] il cliente [%d] può uscire!\n", param);
+#endif
                             break;
+                        case CASSIERE_NUM_CLIENTI: {
+                            /*
+                             * leggo l'indice della coda e il numero di clienti in coda
+                             */
+                            int ind;
+                            int sotto_soglia_S1     = 0,
+                                num_casse_aperte    = 0;
+                            MENO1(readn(smfd, &ind, sizeof(int)))
+                            MENO1(readn(smfd, &param, sizeof(int)))
+                            /* param >= 0, ind >= 0 */
+#ifdef DEBUG_CASSIERE
+                            printf("[DIRETTORE] La cassa [%d] ha [%d] clienti in coda!\n", ind, param);
+#endif
+                            if(code_casse[ind] < 0) { // era chiusa
+                                num_casse_aperte++;
+                            } else if(code_casse[ind] <= 1) { // se era sotto la soglia S1
+                                if (param > 1)
+                                    sotto_soglia_S1--;
+                            } else if(param <= 1)     // non era sotto la soglia S1, ora sì
+                                sotto_soglia_S1++;
+
+                            code_casse[ind] = param;
+/*
+ * Il direttore, sulla base delle informazioni ricevute dai cassieri, decide se aprire o
+ * chiudere casse (al massimo le casse aperte sono K, ed almeno 1 cassa deve rimanere aperta).
+ * La decisione viene presa sulla base di alcuni valori soglia S1 ed S2 definiti dallo
+ * studente nel file di configurazione. S1 stabilisce la soglia per la chiusura di
+ * una cassa, nello specifico, definisce il numero di casse con al più un cliente in coda
+ * (es. S1=2: chiude una cassa se ci sono almeno 2 casse che hanno al più un cliente).
+ * S2 stabilisce la soglia di apertura di una cassa, nello specifico, definisce il numero di
+ * clienti in coda in almeno una cassa (es. S2=10: apre una cassa (se possibile) se
+ * c’è almeno una cassa con almeno 10 clienti in coda).
+ */
+                            /*
+                             * decisione CHIUSURA casse
+                             */
+                            if(num_casse_aperte > 1) {
+                                if(sotto_soglia_S1 >= par.S1) {
+                                    type_msg = DIRETTORE_CHIUSURA_CASSA;
+                                    MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
+                                    MENO1(writen(smfd, &ind, sizeof(int)))
+#ifdef DEBUG_CASSIERE
+                                    printf("[DIRETTORE] Chiude cassa [%d]\n", ind);
+#endif
+                                    code_casse[ind] = -1;
+                                    sotto_soglia_S1--;
+                                    num_casse_aperte--;
+                                }
+                            }
+                            /*
+                             * decisione APERTURA casse
+                             */
+                            if(code_casse[ind] >= par.S2) {
+                                type_msg = DIRETTORE_APERTURA_CASSA;
+                                MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
+#ifdef DEBUG_CASSIERE
+                                printf("[DIRETTORE] Apre una cassa\n");
+#endif
+                            }
+                        }
                         default: ;
                         }
                     }
                 }
             }
         }
-    }
 
     /***************************************************************************************
      * Terminazione DIRETTORE
-    ****************************************************************************************/
+    **********************;*****************************************************************/
 
-    PTH(err, pthread_cancel(tid_tsh))
+terminazione_direttore:
+    free(code_casse);
+    pollfd_destroy(pollfd_v);
+
+    PTH(err, pthread_kill(tid_tsh, SIGUSR1))
     PTH(err, pthread_join(tid_tsh, &status_tsh))
-    if( status_tsh == PTHREAD_CANCELED ) {
+    PTHJOIN(status_tsh, "Signal Handler Direttore")
+
 #ifdef DEBUG
-        printf("Signal Handler: cancellato\n");
+    printf("[DIRETTORE] CHIUSURA CORRETTA\n");
 #endif
-    } else {
-        perror("pthread_join");
-        exit(EXIT_FAILURE);
-    }
 
     return 0;
 }

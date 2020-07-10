@@ -1,4 +1,5 @@
 #include <mypoll.h>
+#include <stdlib.h>
 #include <poll.h>
 
 static unsigned size = START_SIZE;
@@ -11,6 +12,10 @@ struct pollfd *start_pollfd() {
         return NULL;
     }
     return v;
+}
+
+void pollfd_destroy(struct pollfd *v) {
+    free(v);
 }
 
 static void realloc_pollfd(struct pollfd **v) {

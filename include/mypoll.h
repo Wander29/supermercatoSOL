@@ -15,5 +15,6 @@ struct pollfd *start_pollfd();
 int pollfd_add(struct pollfd **v, struct pollfd pfd, int *actual_len);
 int pollfd_remove(struct pollfd *v, const int j, int *actual_len);
 void print_pollfd(struct pollfd *v, int actual_len);
+void pollfd_destroy(struct pollfd *v);
 
 #endif //PROGETTO_MYPOLL_H

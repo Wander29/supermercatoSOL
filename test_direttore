@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# -ne 0 ]; then
+  SIG=SIGHUP
+else
+  SIG=SIGQUIT
+fi
+
+./direttore &
+PID_DIR=$!
+sleep 3
+kill -s ${SIG} ${PID_DIR}
+sleep 1
