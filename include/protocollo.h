@@ -9,7 +9,6 @@
 #define PATH_TO_SUPERMARKET "./supermercato"
 #define MAX_BACKLOG 2
 
-
 #define DEBUG
 #define DEBUG_CLIENTE
 #define DEBUG_CASSIERE
@@ -28,10 +27,9 @@ extern int num_clienti_in_coda;
 extern pthread_mutex_t mtx_stato_supermercato;
 
 void set_stato_supermercato(const stato_sm_t x);
-stato_sm_t get_stato_supermercato();
-int dec_num_clienti_in_coda();
-int inc_num_clienti_in_coda();
-
+stato_sm_t get_stato_supermercato(void);
+int dec_num_clienti_in_coda(void);
+int inc_num_clienti_in_coda(void);
 
 /**************************************************************************************
  * PROTOCOLLO COMUNICAZIONE supermercato - direttore
@@ -49,6 +47,7 @@ int inc_num_clienti_in_coda();
  * 1) tipo di messaggio (elencati sotto)
  * 2) (se necessario) [parametro del messaggio (tutti di tipo intero)]
  **************************************************************************************/
+
 typedef enum sock_msg_code {
 /*  1) tipo messaggio           |   2) tipo del parametro        */
     MANAGER_IN_CHIUSURA     = 0,        /* // */

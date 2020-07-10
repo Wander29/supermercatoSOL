@@ -10,6 +10,14 @@
         perror(#pth_call);								\
         pthread_exit(&r);								\
     }
+
+#define PTHLIB(r, pth_call)			                    \
+    if ( ((r) = (pth_call)) != 0) {						\
+        errno = r;									    \
+        perror(#pth_call);								\
+        return r;								\
+    }
+
 #define PTHJOIN(status, str)                            \
     if((status) == PTHREAD_CANCELED)                    \
         printf("Thread %s cancellato\n", str);          \

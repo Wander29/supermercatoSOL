@@ -76,6 +76,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/cassiere.h">
+			<Option target="PROGETTO"/>
+		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/cliente.h">
+			<Option target="PROGETTO"/>
+		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/concurrent_queue.h">
 			<Option target="PROGETTO"/>
 		</Unit>
@@ -100,6 +106,9 @@
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/protocollo.h">
 			<Option target="PROGETTO"/>
 		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/include/supermercato.h">
+			<Option target="PROGETTO"/>
+		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/concurrent_queue.c">
 			<Option target="PROGETTO"/>
 		</Unit>
@@ -116,6 +125,12 @@
 			<Option target="PROGETTO"/>
 		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c">
+			<Option target="PROGETTO"/>
+		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/cassiere.c">
+			<Option target="PROGETTO"/>
+		</Unit>
+		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/cliente.c">
 			<Option target="PROGETTO"/>
 		</Unit>
 		<Unit filename="/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c">

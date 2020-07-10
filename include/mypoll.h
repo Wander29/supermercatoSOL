@@ -11,7 +11,7 @@
 
 #define START_SIZE  16
 
-struct pollfd *start_pollfd();
+struct pollfd *start_pollfd(void);
 int pollfd_add(struct pollfd **v, struct pollfd pfd, int *actual_len);
 int pollfd_remove(struct pollfd *v, const int j, int *actual_len);
 void print_pollfd(struct pollfd *v, int actual_len);

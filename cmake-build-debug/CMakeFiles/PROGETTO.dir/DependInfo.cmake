@@ -10,6 +10,8 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/parser_config.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.o"
   "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/pool.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o"
   "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/lib/lib-src/protocollo.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o"
+  "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/cassiere.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/src/cassiere.c.o"
+  "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/cliente.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/src/cliente.c.o"
   "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/direttore.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/src/direttore.c.o"
   "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/src/supermercato.c" "/home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug/CMakeFiles/PROGETTO.dir/src/supermercato.c.o"
   )

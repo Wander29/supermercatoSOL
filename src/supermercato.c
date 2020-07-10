@@ -1,22 +1,5 @@
-#include <myutils.h>
-#include <protocollo.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <pthread.h>
-#include <mypthread.h>
-#include <mysocket.h>
-#include <mypoll.h>
-#include <parser_config.h>
-#include <pool.h>
-#include <concurrent_queue.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <time.h>
-
-#include "../include/pool.h"
-#include "../include/protocollo.h"
-#include "../include/concurrent_queue.h"
+#include "../include/supermercato.h"
+#include "../include/cassiere.h"
 
 /**********************************************************************************************************
  * LOGICA DEL SUPERMERCATO
@@ -37,134 +20,13 @@
  * - SIGHUP     terminazione soft
  *********************************************************************************************************/
 
-#define CASSA_APERTA_CHECK(Q)                               \
-    if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {    \
-        set_stato_cassa((Q), IN_TERMINAZIONE);              \
-        return 1;                                           \
-    }                                                       \
-    if(get_stato_cassa((Q)) == CHIUSA) {                    \
-        return 1;                                           \
-    }
-
-#define MAX_TEMPO_FISSO 80
-#define MIN_TEMPO_FISSO 20
-
-typedef struct cliente_arg {
-    /* comune a tutti i clienti */
-    pool_set_t *pool_set;
-
-    /* specifico per ogni cliente */
-    int index;
-    pthread_cond_t cond;
-    pthread_mutex_t mtx;
-    int permesso_uscita;
-} cliente_arg_t;
-
-typedef enum stato_cassa {
-    CHIUSA = 0,     /* IF(cassa.stato == CHIUSA && get_stato_supermerato() == CHIUS.IMM) => cliente esci */
-    APERTA,
-    IN_TERMINAZIONE
-} stato_cassa_t;
-
-typedef struct cassa_arg {
-    /* comune a tutte le casse */
-    pool_set_t *pool_set;
-
-    /* specifico per ogni cassa */
-    pthread_cond_t cond;
-    pthread_mutex_t mtx;
-    queue_t *q;
-    stato_cassa_t stato;
-    int index;
-} cassa_arg_t;
-
-typedef enum attesa {
-    ATTESA = 0,
-    SERVITO
-} attesa_t;
-
-typedef struct queue_elem {
-    int num_prodotti;
-    attesa_t stato_attesa;
-    pthread_cond_t cond_cl_q;
-    pthread_mutex_t mtx_cl_q;
-} queue_elem_t;
-
-typedef enum pipe_msg_code {
-    CLIENTE_RICHIESTA_PERMESSO = 0,
-    CLIENTI_TERMINATI,
-    SIG_CHIUSURA_IMM_RICEVUTO = 900
-} pipe_msg_code_t;
-
 /** Var. GLOBALI */
-static queue_t **Q;
 static int dfd = -1;                 /* file descriptor del socket col direttore */
 static int pipefd_sm[2];                /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
 
 /** LOCK */
 static pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
-
-static inline int pipe_write(pipe_msg_code_t *type, int *param) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&mtx_pipe))
-
-    if(writen(pipefd_sm[1], type, sizeof(pipe_msg_code_t)) == -1) {
-        perror("writen");
-        return -1;
-    }
-    if(param != NULL) {
-        if(writen(pipefd_sm[1], param, sizeof(int)) == -1) {
-            perror("writen");
-            return -1;
-        }
-    }
-
-    PTH(err, pthread_mutex_unlock(&mtx_pipe))
-
-    return 0;
-}
-
-static inline int socket_write(sock_msg_code_t *type, int *param){
-    int err;
-
-    PTH(err, pthread_mutex_lock(&mtx_socket))
-
-    if(writen(dfd, type, sizeof(sock_msg_code_t)) == -1) {
-        perror("writen");
-        return -1;
-    }
-    if(param != NULL) {
-        if(writen(dfd, param, sizeof(int)) == -1) {
-            perror("writen");
-            return -1;
-        }
-#ifdef DEBUG_SOCKET
-        printf("[SUPERMERCATO] HO scritto sul socket [%d, %d]\n", *type, *param);
-#endif
-    } else {
-#ifdef DEBUG_SOCKET
-        printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *type);
-#endif
-    }
-
-    PTH(err, pthread_mutex_unlock(&mtx_socket))
-
-    return 0;
-}
-
-static void *cassiere(void *arg);
-static void *notificatore(void *arg);
-static int cassiere_attesa_lavoro(pool_set_t *P);
-queue_elem_t *cassiere_pop_cliente(queue_t *Q);
-static stato_cassa_t get_stato_cassa(cassa_arg_t *cassa);
-static void set_stato_cassa(cassa_arg_t *cassa, const stato_cassa_t s);
-
-static void *cliente(void *arg);
-static void cliente_attendi_permesso_uscita(cliente_arg_t *t);
-static void consenti_uscita_cliente(cliente_arg_t *t);
-
 
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
@@ -204,7 +66,7 @@ static void *sync_signal_handler(void *useless) {
     return (void *) NULL;
 }
 
-void cleanup() {
+static void cleanup(void) {
     if(fcntl(dfd, F_GETFL) >= 0)
         MENO1(close(dfd))
 
@@ -215,10 +77,11 @@ void cleanup() {
         MENO1(close(pipefd_sm[1]))
 }
 
-int main() {
-#ifdef GDB
-    sleep(10);
-#endif
+int main(int argc, char* argv[]) {
+    /* TO DO
+     * lettura file config passato da exec
+     *
+     */
     /* Variabili di supporto */
     int i,                      /* indice dei cicli */
         err;                    /* conterrà i valori di ritorno di alcune chiamate (es: pthread) */
@@ -270,11 +133,6 @@ int main() {
             exit(EXIT_FAILURE);
         }
     }
-
-#ifdef DEBUG_MANAGER
-    printf("[MANAGER] connessione col Direttore accettata!\n");
-#endif
-
     /*
      * scritture del supermercato sul socket:
      *      sono concorrenti, in quanto sia clienti che
@@ -319,9 +177,6 @@ int main() {
    *  - attivo solamente J casse inizialmente
    *************************************************************/
     EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
-    for(i = 0; i < par.K; i++) {
-        start_queue(&(Q[i]));
-    }
 
     pthread_t *tid_casse;       /* tid dei cassieri*/
     EQNULL(tid_casse = calloc(par.K, sizeof(pthread_t)))
@@ -335,14 +190,18 @@ int main() {
     pool_start(&arg_cas);
     arg_cas.jobs = par.J;   /* casse attive inizialmente */
 
+    cassa_specific_t *casse_specific;
+    EQNULL(casse_specific = calloc(par.K, sizeof(cassa_specific_t)))
+
     cassa_arg_t *casse;
     EQNULL(casse = calloc(par.K, sizeof(cassa_arg_t)))
-    /* per ogni cassiere passo una struttura contenente il suo indice */
+    /* per ogni cassiere passo una struttura contenente anche il suo indice */
     for(i = 0; i < par.K; i++) {
+        casse[i].tempo_prodotto = par.L;
         casse[i].pool_set = &arg_cas;
-        casse[i].index = i;
-        casse[i].q = Q[i];
-        set_stato_cassa(casse + i, CHIUSA)
+        casse[i].cassa_set->index = i;
+        casse[i].cassa_set->q = Q[i];
+        set_stato_cassa(casse[i].cassa_set, CHIUSA);
     }
     for(i = 0; i < par.K; i++) {
         PTH(err, pthread_create((tid_casse + i), NULL, cassiere, (void *) (casse+i) ))
@@ -428,11 +287,14 @@ int main() {
 #endif
                             MENO1(socket_write(&type_msg_sock, &param))
                             break;
+
                         case CLIENTI_TERMINATI:
 #ifdef DEBUG_MANAGER
                             printf("[MANAGER] Chisura Soft && Clienti terminati! Via alle danze!\n");
 #endif
                             set_stato_supermercato(CHIUSURA_IMMEDIATA);
+                            __attribute__((fallthrough));
+
                         case SIG_CHIUSURA_IMM_RICEVUTO:
 #ifdef DEBUG_MANAGER
                             printf("[MANAGER] Tocca chiudeee\n");
@@ -524,285 +386,5 @@ terminazione_supermercato:
 #ifdef DEBUG
     fprintf(stderr, "[SUPERMERCATO] CHIUSURA CORRETTA\n");
 #endif
-    fflush(stdout);
-    return 0;
-}
-
-/**********************************************************************************************************
- * LOGICA DEL CASSIERE
- * - viene creato => aspetta che la cassa venga aperta
- * - la prima votla che viene aperta spawna un thread secondario notificatore
- * - attende che ci siano clienti
- * - se ci sono clienti in coda li serve
- *
- * - se è CHIUSA, il manager la può svegliare per:
- *          comunicazione dal direttore -> apre
- *          chiusura supermercato       -> terminazione thread
- * - se è APERTA
- *          se riceve dal direttore di chiudere -> va in attesa, va nello stato CHIUSA
- *          se CHIUSURA IMMEDIATA
- *              -> serve cliente corrente
- *                      avverte tutti i clienti in coda
-*                       termina
- *          se CHIUSURA SOFT
- *              -> serve tutti i clienti in coda, quando la coda è vuota terminerà
- *
- **********************************************************************************************************/
-static void *cassiere(void *arg) {
-    int err;
-    cassa_arg_t *C = (cassa_arg_t *) arg;
-    pool_set_t *P = C->pool_set;
-
-    PTH(err, pthread_mutex_init(&(C->mtx), NULL))
-    PTH(err, pthread_cond_init(&(C->cond), NULL))
-    
-    pthread_t tid_notificatore = -1;
-    void *status_notificatore;
-    queue_elem_t *cliente;
-    int i = C->index;
-
-    /** parametri del Cassiere */
-    unsigned seedp = 0;
-    int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
-
-    struct timespec ts = {0, tempo_fisso};
-    MENO1(nanosleep(&ts, NULL))
-
-    for(;;) {
-        /* attende il lavoro */
-        if( (err = cassiere_attesa_lavoro(P)) == 1) // termina
-            goto terminazione_cassiere;
-        else if(err < 0)
-            fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", i);
-
-        /* ha ottenuto il lavoro
-         *  - se è la prima apertura, avvia il thread notificatore associato
-         *  - apre la cassa e si mette in attesa di clienti */
-        if(tid_notificatore == (pthread_t ) -1) {
-            PTH(err, pthread_create(&tid_notificatore, NULL, notificatore, (void *) NULL))
-        }
-
-        set_stato_cassa(C, APERTA);
-
-        /********************************************************************************
-         * GESTIONE CLIENTI(cassa APERTA)
-         * - controlla che la cassa non sia stata chiusa || che il supermercato non
-         *          stia chiudendo immediatamente
-         * - se ci sono clienti, ne serve uno
-         * - aggiorna il numero di clienti in coda
-         *      SE il supermercato sta chiudendo (NON immediatamente) e il numero di clienti
-         *      in attesa di essere serviti nel supermercato è 0;
-         *      invia al Manager tale comunicazione
-         ********************************************************************************/
-        for(;;) {
-            if( (cliente = cassiere_pop_cliente()) == 1 ) {
-                stato_cassa_t stato = get_stato_cassa(C->q);
-                if(CHIUSA == stato) {
-                    // avverte i clienti di cambiare cassa
-
-                    break;
-                } else if(IN_TERMINAZIONE == stato) {
-                    // avvisa i clienti di terminare
-                    break;
-                }
-            }
-            /*
-             * cliente estratto, lo servo
-             */
-            // cassiere_servi_cliente();
-
-            /*
-             * una volta servito il clienti decremento il contatore di clienti in coda
-             */
-            if(dec_num_clienti_in_coda() == 0 && get_stato_supermercato() == CHIUSURA_SOFT) {
-                pipe_msg_code_t msg = CLIENTI_TERMINATI;
-                pipe_write(&msg, NULL);
-            }
-        }
-    }
-
-terminazione_cassiere:
-    if(tid_notificatore != -1) {
-        PTH(err, pthread_join(tid_notificatore, &status_notificatore))
-        PTHJOIN(status_notificatore, "Notificatore cassiere")
-    }
-
-    PTH(err, pthread_mutex_destroy(&(C->mtx)))
-    PTH(err, pthread_cond_destroy(&(C->cond)))
-
-
-    return (void *) 0;
-}
-
-static stato_cassa_t get_stato_cassa(cassa_arg_t *cassa) {
-    int err;
-    stato_cassa_t stato;
-
-    PTH(err, pthread_mutex_lock(&(cassa->mtx))) {
-        stato = cassa->stato;
-    } PTH(err, pthread_mutex_unlock(&(cassa->mtx)))
-
-    return stato;
-}
-
-static void set_stato_cassa(cassa_arg_t *cassa, const stato_cassa_t s) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(cassa->mtx))) {
-        cassa->stato = s;
-    } PTH(err, pthread_mutex_unlock(&(cassa->mtx)))
-
-}
-
-static int cassiere_attesa_lavoro(pool_set_t *P) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(P->mtx))) {
-        while(P->jobs == 0){
-            PTH(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
-            /*
-             * SE la cassa era chiusa, e viene svegliata dal Manager
-             * per la chiusura del supermercato => termina
-             */
-            PTH(err, pthread_mutex_unlock(&(P->mtx)))
-            if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
-                return 1;
-            }
-            PTH(err, pthread_mutex_lock(&(P->mtx)))
-        }
-        P->jobs--;
-    } PTH(err, pthread_mutex_unlock(&(P->mtx)))
-
-    return 0;
-}
-
-static void *notificatore(void *arg) {
-#ifdef DEBUG_CLIENTE
-    printf("[NOTIFICATORE] sono nato!\n");
-#endif
-    return (void *) NULL;
-}
-
-queue_elem_t *cassiere_pop_cliente(queue_t *Q) {
-    CASSA_APERTA_CHECK(Q)
-    int err;          // retval, per errori
-    queue_elem_t *val;
-
-    PTH(err, pthread_mutex_lock(&(Q->mtx))) {
-        while(Q->nelems == 0) {
-            PTH(err, pthread_cond_wait(&(Q->cond_read), &(Q->mtx)))
-            PTH(err, pthread_mutex_unlock(&(Q->mtx)))
-
-            CASSA_APERTA_CHECK(Q)
-        }
-        val = (queue_elem_t *) get_from_queue(Q);
-        if(val == NULL)
-            fprintf(stderr, "NO elements in Queue: %s\n", __func__);
-
-    } PTH(err, pthread_mutex_unlock(&(Q->mtx)))
-
-    return val;
-}
-
-static void *cliente(void *arg) {
-    cliente_arg_t *C = (cliente_arg_t *) arg;
-    pool_set_t *P = C->pool_set;
-
-#ifdef DEBUG_CLIENTE
-    printf("[CLIENTE %d] sono nato!\n", C->index);
-#endif
-
-    int p = 0,
-        t,
-        err;
-
-    PTH(err, pthread_mutex_init(&(C->mtx), NULL))
-    PTH(err, pthread_cond_init(&(C->cond), NULL))
-
-    pipe_msg_code_t type_msg;
-
-    // while(get_stato_supermercato() == APERTO) {
-        PTH(err, pthread_mutex_lock(&(P->mtx)))
-        while(P->jobs == 0) {
-            PTH(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
-            /*
-             * viene svegliato: si deve controllare se si deve terminare;
-             * lascia la mutex per non avere due risorse lockate
-             */
-            PTH(err, pthread_mutex_unlock(&(P->mtx)))
-            if(get_stato_supermercato() != APERTO) {
-                pthread_exit((void *) NULL);
-            }
-            PTH(err, pthread_mutex_lock(&(P->mtx)))
-        }
-        P->jobs--;
-        C->permesso_uscita = 0;
-        PTH(err, pthread_mutex_unlock(&(P->mtx)))
-        /*
-         * fa acquisti
-         */
-        if(p == 0) {
-            /*
-             * vuole comunicare al direttore di voler uscire:
-             *      scrive sulla pipe in mutua esclusione la sua richiesta, completa di indice cliente
-             *      e si mette in attesa di una risposta
-             */
-#ifdef DEBUG_CLIENTE
-            printf("[CLIENTE %d] fateme uscìììììì!\n", C->index);
-#endif
-            type_msg = CLIENTE_RICHIESTA_PERMESSO;
-            MENO1(pipe_write(&type_msg, &(C->index)))
-            cliente_attendi_permesso_uscita(C);
-        } else {
-            /*
-            * si mette in fila in una cassa
-            */
-            queue_elem_t elem;
-            elem.num_prodotti = p;
-        }
-    //}
-
-    PTH(err, pthread_mutex_destroy(&(C->mtx)))
-    PTH(err, pthread_cond_destroy(&(C->cond)))
-
-    pthread_exit((void *)NULL);
-}
-
-static void cliente_attendi_permesso_uscita(cliente_arg_t *t) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(t->mtx))) {
-        while(t->permesso_uscita == 0)
-            PTH(err, pthread_cond_wait(&(t->cond), &(t->mtx)))
-
-#ifdef DEBUG_CLIENTE
-        printf("[CLIENTE %d] Permesso di uscita ricevuto!\n", t->index);
-#endif
-    } PTH(err, pthread_mutex_unlock(&(t->mtx)))
-}
-
-static void consenti_uscita_cliente(cliente_arg_t *t) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(t->mtx))) {
-        t->permesso_uscita = 1;
-        PTH(err, pthread_cond_signal(&(t->cond)))
-    } PTH(err, pthread_mutex_unlock(&(t->mtx)))
-}
-
-int cliente_push(queue_t *Q, queue_elem_t *new_elem) {
-    int r;          // retval, per errori
-
-    PTH(r, pthread_mutex_lock(&(Q->mtx))) {
-        if(insert_into_queue(Q, (void *) new_elem) == -1) {
-            PTH(r, pthread_mutex_unlock(&(Q->mtx)))
-            // fprintf(stderr, "CALLOC fallita: %s\n", __func__);
-            return -1;
-        }
-        PTH(r, pthread_mutex_unlock(&(Q->mtx)))
-        inc_num_clienti_in_coda();
-        PTH(r, pthread_cond_signal(&(Q->cond_read)))
-    } PTH(r, pthread_mutex_unlock(&(Q->mtx)))
-
     return 0;
 }

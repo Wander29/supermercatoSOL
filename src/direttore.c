@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include "../include/protocollo.h"
 #include "../include/parser_config.h"
+#include "../include/mypoll.h"
 
 /** var. globali */
 static int pipefd_dir[2];       /* pipe di comunicazione fra signal handler e main */
@@ -40,26 +41,26 @@ static void *sync_signal_handler(void *useless) {
     for(;;) {
         PTH(err, sigwait(&mask, &sig_captured))
         switch(sig_captured) {
-            case SIGINT:
+            // case SIGINT:
+                // sig_captured = SIGQUIT;    /* utile per gestire più segnali come SIGQUIT (ad es. SIGINT) */
+                   // __attribute__((fallthrough));
             case SIGQUIT:
-                sig_captured = SIGQUIT;    /* utile per gestire più segnali come SIGQUIT (ad es. SIGINT) */
             case SIGHUP:
                 MENO1(writen(pipefd_dir[1], &sig_captured, sizeof(int)))
                 break;
             default: /* SIGUSR1 */
                 return (void *) 0;
-            ;
         }
     }
 
     return (void *) 0;
 }
 
-static void inline usage(char *str) {
+inline static void usage(char *str) {
     printf("Usage: %s [-<OPTION>]\nOPTION:\n-s\tavvia il processo supermercato\n-h\thelp\n", str);
 }
 
-static void cleanup() {
+static void cleanup(void) {
     MENO1(unlink(SOCKET_SERVER_NAME))
     /*
      * provo ad ottenere i flag del fd: se li ottengo vuol dire che il fd è attivo,
@@ -174,6 +175,9 @@ int main(int argc, char *argv[]) {
     switch ( (pid_sm = fork()) ) {
         case 0:                 /* figlio */
             execl(PATH_TO_SUPERMARKET, "supermercato", (char *) NULL);
+            perror("exec");
+            exit(EXIT_FAILURE);
+            break;
         case -1:                /* errore */
             perror("fork");
             exit(EXIT_FAILURE);

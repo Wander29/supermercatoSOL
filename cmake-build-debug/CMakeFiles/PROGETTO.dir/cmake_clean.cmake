@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/PROGETTO.dir/lib/lib-src/parser_config.c.o"
   "CMakeFiles/PROGETTO.dir/lib/lib-src/pool.c.o"
   "CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.o"
+  "CMakeFiles/PROGETTO.dir/src/cassiere.c.o"
+  "CMakeFiles/PROGETTO.dir/src/cliente.c.o"
   "CMakeFiles/PROGETTO.dir/src/direttore.c.o"
   "CMakeFiles/PROGETTO.dir/src/supermercato.c.o"
   "PROGETTO"

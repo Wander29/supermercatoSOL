@@ -13,6 +13,9 @@
 #define MENO1(v) \
     if( (v) == -1 ) { perror(#v); exit(EXIT_FAILURE); }
 
+#define MENO1LIB(v) \
+    if( (v) == -1 ) { fprintf(stderr, "ERROR: %s\n" #v); return -1; }
+
 #define LT0(v) /* LT0 == less than 0 */         \
     if( (v) < 0 )       { perror(#v); exit(EXIT_FAILURE); }
 
@@ -21,6 +24,9 @@
 
 #define EQNULL(v) \
     if( (v) == NULL )   { perror(#v); exit(EXIT_FAILURE); }
+
+#define EQNULLLIB(v) \
+    if( (v) == NULL )   { perror(#v); return -1; }
 
 /* se la syscall è interrotta da un segnale (e l'handler ritorna) */
 #define INTSYSC(call, cond_term, label_term)    \

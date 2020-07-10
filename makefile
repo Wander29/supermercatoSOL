@@ -10,9 +10,15 @@ LIBSRC		= 	$(LIBDIR)lib-src/
 LIBS        =	-lprotocollo -lconcurrent_queue -lpthread -lmyutils -lmypoll -lparser_config -lpool
 LDFLAGS     = 	-Wl,-rpath,$(LIBDIR)
 INCDIR      =   include/
+LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libconcurrent_queue.so $(LIBDIR)libmypoll.so \
+				$(LIBDIR)libpool.so $(LIBDIR)libprotocollo.a $(LIBDIR)libparser_config.so
+INCUSED		=	$(INCDIR)mysocket.h $(INCDIR)mypthread.h $(INCDIR)protocollo.h
+OBJDIR		=	obj/
+OBJS		=	$(OBJDIR)cliente.o $(OBJDIR)cassiere.o
+BINDIR		=	bin/
 
-TARGETS     =  	supermercato					\
-				direttore
+TARGETS     =  	$(BINDIR)direttore
+
 .PHONY: all clean
 .SUFFIXES: .c .o .h
 
@@ -21,22 +27,18 @@ all: $(TARGETS)
 %: %.c
 	$(CC) $(CFLAGS) -I $(INCDIR) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS)
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) $(CFLAGS) -I $(INCDIR) -c -o $@ $<
 
-direttore: 		$(SRCDIR)direttore.c \
-				$(LIBDIR)libmyutils.so $(LIBDIR)libmypoll.so $(LIBDIR)libprotocollo.a \
-				$(LIBDIR)libparser_config.so \
-				$(INCDIR)parser_config.h $(INCDIR)mysocket.h $(INCDIR)mypthread.h
-
+$(BINDIR)direttore: $(SRCDIR)direttore.c supermercato
 	$(CC) $(CFLAGS) -I $(INCDIR) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS)
 
-supermercato: 	$(SRCDIR)supermercato.c \
-				$(LIBDIR)libmyutils.so $(LIBDIR)libconcurrent_queue.so $(LIBDIR)libmypoll.so \
-				$(LIBDIR)libpool.so $(LIBDIR)libprotocollo.a $(LIBDIR)libparser_config.so \
-				$(INCDIR)parser_config.h $(INCDIR)mysocket.h $(INCDIR)mypthread.h
+supermercato: 	$(SRCDIR)supermercato.c $(INCDIR)supermercato.h $(LIBUSED) $(INCUSED) $(OBJDIR)cliente.o $(OBJDIR)cassiere.o
+	$(CC) $(CFLAGS) -I $(INCDIR) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS) $(OBJS)
 
-	$(CC) $(CFLAGS) -I $(INCDIR) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS)
+$(OBJDIR)cliente.o: $(SRCDIR)cliente.c $(INCDIR)cliente.h
+
+$(OBJDIR)cassiere.o: $(SRCDIR)cassiere.c $(INCDIR)cassiere.h
 
 $(LIBDIR)libmyutils.so: $(LIBSRC)myutils.c $(INCDIR)myutils.h
 	-rm -f myutils.o
@@ -79,8 +81,8 @@ clean:
 	-rm -f *.socket
 	-rm -f ~*
 
-cleanall:
-	-rm -f *.o
+cleanall: clean
 	-rm -f $(TARGETS)
 	-rm -f $(LIBDIR)*.so
 	-rm -f $(LIBDIR)*.a
+	-rm -f $(OBJS)

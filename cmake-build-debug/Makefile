@@ -285,6 +285,60 @@ lib/lib-src/protocollo.c.s:
 	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/lib/lib-src/protocollo.c.s
 .PHONY : lib/lib-src/protocollo.c.s
 
+src/cassiere.o: src/cassiere.c.o
+
+.PHONY : src/cassiere.o
+
+# target to build an object file
+src/cassiere.c.o:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cassiere.c.o
+.PHONY : src/cassiere.c.o
+
+src/cassiere.i: src/cassiere.c.i
+
+.PHONY : src/cassiere.i
+
+# target to preprocess a source file
+src/cassiere.c.i:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cassiere.c.i
+.PHONY : src/cassiere.c.i
+
+src/cassiere.s: src/cassiere.c.s
+
+.PHONY : src/cassiere.s
+
+# target to generate assembly for a file
+src/cassiere.c.s:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cassiere.c.s
+.PHONY : src/cassiere.c.s
+
+src/cliente.o: src/cliente.c.o
+
+.PHONY : src/cliente.o
+
+# target to build an object file
+src/cliente.c.o:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cliente.c.o
+.PHONY : src/cliente.c.o
+
+src/cliente.i: src/cliente.c.i
+
+.PHONY : src/cliente.i
+
+# target to preprocess a source file
+src/cliente.c.i:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cliente.c.i
+.PHONY : src/cliente.c.i
+
+src/cliente.s: src/cliente.c.s
+
+.PHONY : src/cliente.s
+
+# target to generate assembly for a file
+src/cliente.c.s:
+	$(MAKE) -f CMakeFiles/PROGETTO.dir/build.make CMakeFiles/PROGETTO.dir/src/cliente.c.s
+.PHONY : src/cliente.c.s
+
 src/direttore.o: src/direttore.c.o
 
 .PHONY : src/direttore.o
@@ -366,6 +420,12 @@ help:
 	@echo "... lib/lib-src/protocollo.o"
 	@echo "... lib/lib-src/protocollo.i"
 	@echo "... lib/lib-src/protocollo.s"
+	@echo "... src/cassiere.o"
+	@echo "... src/cassiere.i"
+	@echo "... src/cassiere.s"
+	@echo "... src/cliente.o"
+	@echo "... src/cliente.i"
+	@echo "... src/cliente.s"
 	@echo "... src/direttore.o"
 	@echo "... src/direttore.i"
 	@echo "... src/direttore.s"
