@@ -81,6 +81,7 @@ clean:
 	-rm -f *.o
 	-rm -f *.socket
 	-rm -f ~*
+	-rm -f vgcore*
 
 cleanall: clean
 	-rm -f $(TARGETS)
