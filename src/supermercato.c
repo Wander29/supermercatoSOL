@@ -43,7 +43,7 @@ static void *sync_signal_handler(void *useless) {
 
     PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
     int sig_captured;
-    pipe_msg_code_t msg = SIG_CHIUSURA_IMM_RICEVUTO;
+    pipe_msg_code_t msg = SIG_RICEVUTO;
 
     for(;;) {
         PTH(err, sigwait(&mask, &sig_captured))
@@ -51,13 +51,12 @@ static void *sync_signal_handler(void *useless) {
             case SIGQUIT: /* chiusura immediata */
                 puts("SIGQUIT");
                 set_stato_supermercato(CHIUSURA_IMMEDIATA);
-                // MENO1(writen(pipefd_sm[1], &msg, sizeof(pipe_msg_code_t)))
                 MENO1LIB(pipe_write(&msg, NULL), ((void *)-1))
                 break;
             case SIGHUP:
                 puts("SIGHUP");
                 set_stato_supermercato(CHIUSURA_SOFT);
-                // MENO1(writen(pipefd_sm[1], &msg, sizeof(pipe_msg_code_t)))
+                MENO1LIB(pipe_write(&msg, NULL), ((void *)-1))
                 break;
             default: /* SIGUSR1*/
                 puts("SIGUSR1");
@@ -270,6 +269,7 @@ int main(int argc, char* argv[]) {
     printf("[MANAGER] clienti creati\n");
 #endif
 
+    int cnt_clienti_attivi = 0;
     for(;;) {
         if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
             break;
@@ -315,23 +315,41 @@ int main(int argc, char* argv[]) {
                             MENO1(socket_write(&type_msg_sock, &param))
                             break;
 
-                        case CLIENTI_TERMINATI:
-#ifdef DEBUG_MANAGER
-                            printf("[MANAGER] Chisura Soft && Clienti terminati! Via alle danze!\n");
+                        case CLIENTE_ENTRATA:
+                            cnt_clienti_attivi++;
+#ifdef DEBUG_CLIENTE
+                            printf("[MANAGER] clienti attivi [%d]\n", cnt_clienti_attivi);
 #endif
-                            set_stato_supermercato(CHIUSURA_IMMEDIATA);
-                            __attribute__((fallthrough));
+                            break;
 
-                        case SIG_CHIUSURA_IMM_RICEVUTO:
-#ifdef DEBUG_MANAGER
-                            printf("[MANAGER] Tocca chiudeee\n");
-#endif
-                            if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+                        case CLIENTE_USCITA:
+                            cnt_clienti_attivi--;
+                            if(get_stato_supermercato() != APERTO && cnt_clienti_attivi == 0) {
+                                set_stato_supermercato(CHIUSURA_IMMEDIATA);
+                                type_msg_sock = MANAGER_IN_CHIUSURA;
+                                MENO1(socket_write(&type_msg_sock, NULL))
+                                goto terminazione_supermercato;
+                            }
+                            if(par.C - cnt_clienti_attivi == par.E) {
+                                NOTZERO(ch_jobs(&arg_cl, par.E))
+                                for(i = 0; i < par.E; i++) {
+                                    PTH(err, pthread_cond_signal(&(arg_cl.cond)))
+                                }
+                            }
+                            break;
+
+                        case SIG_RICEVUTO:
+                            if(get_stato_supermercato() == CHIUSURA_SOFT) {
+                                PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
+                            }
+                            else if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+                                PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
                                 MENO1(socket_write(&type_msg_sock, NULL))
                                 goto terminazione_supermercato;
                             }
                             break;
+
                         default:;
                     }
                 }
@@ -350,6 +368,24 @@ int main(int argc, char* argv[]) {
                             PTH(err, pthread_cond_signal(&(clienti[param].cond)))
 
                             break;
+
+                        case DIRETTORE_APERTURA_CASSA:
+                            ch_jobs(&arg_cas, +1);
+                            PTH(err, pthread_cond_signal(&(arg_cas.cond)))
+#ifdef DEBUG_MANAGER
+                            printf("[MANAGER] 1 cassa aperta!\n");
+#endif
+                            break;
+
+                        case DIRETTORE_CHIUSURA_CASSA:
+                            MENO1(readn(dfd, &param, sizeof(int)))
+#ifdef DEBUG_MANAGER
+                            printf("[MANAGER] cassa [%d] da chiudere!\n", param);
+#endif
+                            NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
+                            PTH(err, pthread_cond_signal(&(casse_specific[param].q->cond_read)))
+                            break;
+
                         default: ;
                     }
                 }

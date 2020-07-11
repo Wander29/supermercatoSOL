@@ -50,7 +50,8 @@ void *cassiere(void *arg) {
     int i = C->index;
 
     /** parametri del Cassiere */
-    unsigned seedp = 0;
+    unsigned seedp = C->index;
+
     int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
     int tempo_servizio;
     struct timespec ts = {0, 0};
@@ -100,7 +101,7 @@ void *cassiere(void *arg) {
 #ifdef DEBUG
                     printf("[CASSA %d] esco, ero sulla COND_READ!\n", C->index);
 #endif
-                    cassiere_sveglia_clienti(C->q, SUPERMERCATO_IN_CHIUSURA);
+                    cassiere_sveglia_clienti(C->q, SM_IN_CHIUSURA);
                     goto terminazione_cassiere;
                 }
             } else if(cliente == (queue_elem_t *) -1) {
@@ -117,9 +118,9 @@ void *cassiere(void *arg) {
              *      - decremento il numero di clienti in coda nel supermercato
              **************************************************/
             tempo_servizio = tempo_fisso + cliente->num_prodotti * Cassa_args->tempo_prodotto;
-            ts.tv_nsec = 1000000 * tempo_servizio;
+            ts.tv_nsec = nsTOmsMULT * tempo_servizio;
 #ifdef DEBUG
-            printf("[CASSA %d] sto per aspettare [%ld]ns!\n", C->index, ts.tv_nsec);
+            printf("[CASSA %d] sto per aspettare [%d]ms!\n", C->index, tempo_servizio);
 #endif
             MENO1(nanosleep(&ts, NULL))
 #ifdef DEBUG
@@ -127,11 +128,6 @@ void *cassiere(void *arg) {
 #endif
             cliente->stato_attesa = SERVITO;
             PTH(err, pthread_cond_signal(&(cliente->cond_cl_q)))
-
-            if(dec_num_clienti_in_coda() == 0 && get_stato_supermercato() == CHIUSURA_SOFT) {
-                pipe_msg_code_t msg = CLIENTI_TERMINATI;
-                pipe_write(&msg, NULL);
-            }
         }
 #ifdef DEBUG
         printf("[CASSA %d] ucito dal FOR dei clienti!\n", C->index);
@@ -164,13 +160,14 @@ stato_cassa_t get_stato_cassa(cassa_specific_t *cassa) {
     return stato;
 }
 
-void set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s) {
+int set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s) {
     int err;
 
-    PTH(err, pthread_mutex_lock(&(cassa->mtx))) {
+    PTHLIB(err, pthread_mutex_lock(&(cassa->mtx))) {
         cassa->stato = s;
-    } PTH(err, pthread_mutex_unlock(&(cassa->mtx)))
+    } PTHLIB(err, pthread_mutex_unlock(&(cassa->mtx)))
 
+    return 0;
 }
 
 static int cassiere_attesa_lavoro(pool_set_t *P) {
@@ -234,14 +231,16 @@ queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C) {
 static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
     int err;
 
-    node_t *ptr = q->head;
-    queue_elem_t *curr;
+    PTHLIB(err, pthread_mutex_lock(&(q->mtx))) {
+        node_t *ptr = q->head;
+        queue_elem_t *curr;
 
-    while(ptr != NULL) {
-        curr = (queue_elem_t *) ptr->elem;
-        curr->stato_attesa = stato;
-        PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
-    }
+        while(ptr != NULL) {
+            curr = (queue_elem_t *) ptr->elem;
+            curr->stato_attesa = stato;
+            PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
+        }
+    } PTHLIB(err, pthread_mutex_unlock(&(q->mtx)))
 
     return 0;
 }

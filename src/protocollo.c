@@ -22,23 +22,3 @@ void set_stato_supermercato(const stato_sm_t x) {
     stato_supermercato = x;
     PTH(err, pthread_mutex_unlock(&mtx_stato_supermercato))
 }
-
-int dec_num_clienti_in_coda(void) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&mtx_stato_supermercato));
-    int r = --num_clienti_in_coda;
-    PTH(err, pthread_mutex_unlock(&mtx_stato_supermercato))
-
-    return r;
-}
-
-int inc_num_clienti_in_coda(void) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&mtx_stato_supermercato));
-    int r = ++num_clienti_in_coda;
-    PTH(err, pthread_mutex_unlock(&mtx_stato_supermercato))
-
-    return r;
-}

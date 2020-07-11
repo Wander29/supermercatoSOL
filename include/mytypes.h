@@ -20,11 +20,22 @@
 #include "../include/protocollo.h"
 
 /************************************
+ * PIPE: PROTOCOLLO comunicazione
+ ************************************/
+typedef enum pipe_msg_code {
+    CLIENTE_RICHIESTA_PERMESSO = 0,
+    CLIENTE_ENTRATA,
+    CLIENTE_USCITA,
+    SIG_RICEVUTO = 900
+} pipe_msg_code_t;
+
+/************************************
  * Argomento ai thread Cassieri
  ************************************/
 typedef enum stato_cassa {
     CHIUSA = 0,     /* IF(cassa.stato == CHIUSA && get_stato_supermerato() == CHIUS.IMM) => cliente esci */
-    APERTA
+    APERTA,
+    SUPERMERCATO_IN_CHIUSURA
 } stato_cassa_t;
 
 typedef struct cassa_specific {
@@ -51,7 +62,7 @@ typedef enum attesa {
     IN_ATTESA = 0,
     SERVITO,
     CASSA_IN_CHIUSURA,
-    SUPERMERCATO_IN_CHIUSURA
+    SM_IN_CHIUSURA
 } attesa_t;
 
 typedef struct queue_elem {

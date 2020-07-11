@@ -34,12 +34,6 @@ extern int pipefd_sm[2];        /* fd per la pipe, su pipefd_sm[0] lettura, su p
 extern pthread_mutex_t mtx_socket;
 extern pthread_mutex_t mtx_pipe;
 
-typedef enum pipe_msg_code {
-    CLIENTE_RICHIESTA_PERMESSO = 0,
-    CLIENTI_TERMINATI,
-    SIG_CHIUSURA_IMM_RICEVUTO = 900
-} pipe_msg_code_t;
-
 inline static int pipe_write(pipe_msg_code_t *type, int *param) {
     int err;
 

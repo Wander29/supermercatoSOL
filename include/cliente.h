@@ -29,6 +29,12 @@
 #include "../include/supermercato.h"
 #include "../include/cassiere.h"
 
+#define MIN_TEMPO_ACQUISTI 10
+
+#define CHECK_CHIUSURA_IMM(stri)                                             \
+                                           \
+}
+
 void *cliente(void *arg);
 int get_permesso_uscita(cliente_arg_t *c);
 int set_permesso_uscita(cliente_arg_t *c, const int new_perm);

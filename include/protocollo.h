@@ -9,12 +9,13 @@
 #define PATH_TO_SUPERMARKET "./bin/supermercato"
 #define MAX_BACKLOG 2
 
+/*
 #define DEBUG
 #define DEBUG_CLIENTE
 #define DEBUG_CASSIERE
 #define DEBUG_MANAGER
 #define DEBUG_SOCKET
-
+*/
 typedef enum stato_supermercato {
     APERTO = 0,
     CHIUSURA_IMMEDIATA,
@@ -23,13 +24,10 @@ typedef enum stato_supermercato {
 
 /** var. globali */
 extern stato_sm_t stato_supermercato;
-extern int num_clienti_in_coda;
 extern pthread_mutex_t mtx_stato_supermercato;
 
 void set_stato_supermercato(const stato_sm_t x);
 stato_sm_t get_stato_supermercato(void);
-int dec_num_clienti_in_coda(void);
-int inc_num_clienti_in_coda(void);
 
 /**************************************************************************************
  * PROTOCOLLO COMUNICAZIONE supermercato - direttore

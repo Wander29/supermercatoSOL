@@ -37,7 +37,7 @@
 
 void *cassiere(void *arg);
 stato_cassa_t get_stato_cassa(cassa_specific_t *cassa);
-void set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s);
+int set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s);
 
 
 #endif //PROGETTO_CASSIERE_H

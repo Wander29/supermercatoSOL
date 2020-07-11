@@ -10,6 +10,8 @@
 #include <unistd.h>     // ssize_t, read/write
 #include <stdio.h>     //  perror
 
+#define nsTOmsMULT  1000000
+
 #define MENO1(v) \
     if( (v) == -1 ) { perror(#v); exit(EXIT_FAILURE); }
 
