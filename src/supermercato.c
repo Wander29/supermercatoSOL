@@ -309,21 +309,24 @@ int main(int argc, char* argv[]) {
                         case CLIENTE_RICHIESTA_PERMESSO:
                             MENO1(readn(pipefd_sm[0], &param, sizeof(int)))
                             type_msg_sock = CLIENTE_SENZA_ACQUISTI;
-#ifdef DEBUG_MANAGER
-                            printf("[MANAGER] Ricevuta richiesta di uscire del cliente [%d]\n", param);
+#ifdef DEBUG_PIPE
+                            printf("[MANAGER] CLIENTE_RICHIESTA_PERMESSO: [%d]\n", param);
 #endif
                             MENO1(socket_write(&type_msg_sock, &param))
                             break;
 
                         case CLIENTE_ENTRATA:
                             cnt_clienti_attivi++;
-#ifdef DEBUG_CLIENTE
-                            printf("[MANAGER] clienti attivi [%d]\n", cnt_clienti_attivi);
+#ifdef DEBUG_PIPE
+                            printf("[MANAGER] CLIENTE_ENTRATA: [%d]\n", cnt_clienti_attivi);
 #endif
                             break;
 
                         case CLIENTE_USCITA:
                             cnt_clienti_attivi--;
+#ifdef DEBUG_PIPE
+                            printf("[MANAGER] CLIENTE_USCITA: [%d]\n", cnt_clienti_attivi);
+#endif
                             if(get_stato_supermercato() != APERTO && cnt_clienti_attivi == 0) {
                                 set_stato_supermercato(CHIUSURA_IMMEDIATA);
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
@@ -331,6 +334,9 @@ int main(int argc, char* argv[]) {
                                 goto terminazione_supermercato;
                             }
                             if(par.C - cnt_clienti_attivi == par.E) {
+#ifdef DEBUG_WAIT
+                                printf("[MANAGER] C[%d] - cnt_clienti_attivi[%d] = E[%d]\n", par.C, cnt_clienti_attivi, par.E);
+#endif
                                 NOTZERO(ch_jobs(&arg_cl, par.E))
                                 for(i = 0; i < par.E; i++) {
                                     PTH(err, pthread_cond_signal(&(arg_cl.cond)))
@@ -339,6 +345,9 @@ int main(int argc, char* argv[]) {
                             break;
 
                         case SIG_RICEVUTO:
+#ifdef DEBUG_PIPE
+                            printf("[MANAGER] SIG_RICEVUTO\n");
+#endif
                             if(get_stato_supermercato() == CHIUSURA_SOFT) {
                                 PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
                             }
@@ -365,6 +374,7 @@ int main(int argc, char* argv[]) {
                             printf("[MANAGER] Ricevuto PERMESSO di uscire per il cliente [%d]\n", param);
 #endif
                             NOTZERO(set_permesso_uscita(clienti+param, 1))
+                            //clienti[param].permesso_uscita = 1;
                             PTH(err, pthread_cond_signal(&(clienti[param].cond)))
 
                             break;

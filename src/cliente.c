@@ -2,7 +2,7 @@
 
 static int cliente_attesa_lavoro(pool_set_t *P);
 static int cliente_attendi_permesso_uscita(cliente_arg_t *t);
-static int cliente_push(queue_t *q, queue_elem_t *new_elem);
+static int cliente_push(cassa_specific_t *C, queue_elem_t *new_elem);
 static int cliente_attendi_servizio(queue_elem_t *e);
 
 inline static int cliente_cassa_random(unsigned *seedptr, int k, cassa_specific_t **c) {
@@ -10,6 +10,9 @@ inline static int cliente_cassa_random(unsigned *seedptr, int k, cassa_specific_
 
     do {
         x = rand_r(seedptr) % k;
+#ifdef DEBUG_RAND
+        printf("[CLIENTE] random X[%d] K[%d]!\n", x, k);
+#endif
         if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
             return -1;
     } while(c[x]->stato != APERTA);
@@ -69,12 +72,12 @@ void *cliente(void *arg) {
     PTH(err, pthread_mutex_init(&(elem.mtx_cl_q), NULL))
 
     pipe_msg_code_t type_msg;
-    unsigned seedp = C->index;\
+    unsigned seedp = C->index + time(NULL);
 
     for(;;) {
         /* attende il lavoro */
         if ((err = cliente_attesa_lavoro(P)) == 1) { // termina
-#ifdef DEBUG_CLIENTE
+#ifdef DEBUG_TERM
             printf("[CLIENTE %d] terminato per chiusura supermercato, ero sulla JOBS!\n", C->index);
 #endif
             goto terminazione_cliente;
@@ -84,6 +87,7 @@ void *cliente(void *arg) {
         /* lavoro ottenuto! */
         type_msg = CLIENTE_ENTRATA;
         pipe_write(&type_msg, NULL);
+
         running = 1;
         NOTZERO(set_permesso_uscita(C, 0))
         /*
@@ -91,7 +95,9 @@ void *cliente(void *arg) {
          */
         p = rand_r(&seedp) % (C->shared->P + 1);
         t = (rand_r(&seedp) % (C->shared->T - MIN_TEMPO_ACQUISTI + 1)) + MIN_TEMPO_ACQUISTI;
-
+#ifdef DEBUG_RAND
+        printf("[CLIENTE %d] p: [%d]\tt: [%d]\n",C->index, p, t);
+#endif
         /*
          * fa acquisti
          */
@@ -104,8 +110,10 @@ void *cliente(void *arg) {
 #ifdef DEBUG_CLIENTE
         printf("[CLIENTE %d] Nanosleep passata\n", C->index);
 #endif
-        if (get_stato_supermercato() == CHIUSURA_IMMEDIATA) {                   \
+        if (get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+#ifdef DEBUG_TERM
             printf("[CLIENTE %d] terminato per chiusura supermercato, dopo acquisti!\n", C->index);
+#endif
             goto terminazione_cliente;
         }
 
@@ -122,6 +130,7 @@ void *cliente(void *arg) {
 #endif
         type_msg = CLIENTE_RICHIESTA_PERMESSO;
         MENO1(pipe_write(&type_msg, &(C->index)))
+
         NOTZERO(cliente_attendi_permesso_uscita(C))
         } else {
             /**********************************************************
@@ -134,10 +143,16 @@ void *cliente(void *arg) {
 
             int x = cliente_cassa_random(&seedp, C->shared->numero_casse, Casse);
             if(x == -1) {
+#ifdef DEBUG_TERM
                 printf("[CLIENTE %d] terminato per chiusura supemercato, dopo scelta cassa random!\n", C->index);
+#endif
                 goto terminazione_cliente;
             }
-            MENO1LIB(cliente_push(Casse[x]->q, &elem), ((void *) -1))
+#ifdef DEBUG_WAIT
+            printf("[CLIENTE %d] sto per pusharmi nella coda [%d]!\n", C->index, x);
+#endif
+
+            MENO1LIB(cliente_push(Casse[x], &elem), ((void *) -1))
             while ((err = cliente_attendi_servizio(&elem)) > 0) {
                 /******************************************
                  * Cliente è stato svegliato dalla coda MA
@@ -145,13 +160,13 @@ void *cliente(void *arg) {
                  ******************************************/
                 if(elem.stato_attesa == CASSA_IN_CHIUSURA) { // si accoda ad un'altra cassa random
                     int y;
-                    do
+                    do {
                         y = cliente_cassa_random(&seedp, C->shared->numero_casse, Casse);
-                    while (x == y);
+                    } while (x == y);
 
-                    MENO1LIB(cliente_push(Casse[y]->q, &elem), ((void *) -1))
+                    MENO1LIB(cliente_push(Casse[y], &elem), ((void *) -1))
                 } else if(elem.stato_attesa == SM_IN_CHIUSURA) {
-#ifdef DEBUG_CLIENTE
+#ifdef DEBUG_TERM
                     printf("[CLIENTE %d] terminato per chiusura supermercato, ero in CODA!\n", C->index);
 #endif
                     goto terminazione_cliente;
@@ -159,9 +174,13 @@ void *cliente(void *arg) {
             }
             if (err < 0){
                 fprintf(stderr, "ERRORE [CLIENTE] durante attesa del servizio\n");
-                // termina?
+                goto terminazione_cliente;
             }
+
         }
+#ifdef DEBUG_TERM
+        printf("[CLIENTE %d] Rivivrò?\n", C->index);
+#endif
         running = 0;
         /*******************************************
          * Cliente SERVITO
@@ -172,12 +191,13 @@ void *cliente(void *arg) {
         pipe_write(&type_msg, NULL);
 
         if(get_stato_supermercato() != APERTO) {
-#ifdef DEBUG_CLIENTE
+#ifdef DEBUG_TERM
             printf("[CLIENTE %d] Sono stato servito, vado a casa ora!\n", C->index);
 #endif
             break;
         }
     }
+
 
 terminazione_cliente:
     if(running == 1) {
@@ -197,8 +217,11 @@ terminazione_cliente:
 static int cliente_attesa_lavoro(pool_set_t *P) {
     int err;
 
-    PTHLIB(err, pthread_(&(P->mtx)))
-    while(P->jobs == 0) {mutex_lock
+    PTHLIB(err, pthread_mutex_lock(&(P->mtx)))
+    while(P->jobs == 0) {
+#ifdef DEBUG_WAIT
+        printf("[CLIENTE] sto andando in wait JOBS!\n");
+#endif
         PTHLIB(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
         PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
         /* se è stato svegliato perchè il supermercato è in chiusura => deve terminare */
@@ -209,6 +232,9 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
         PTHLIB(err, pthread_mutex_lock(&(P->mtx)))
     }
     P->jobs--;
+#ifdef DEBUG_WAIT
+    printf("[CLIENTE] JOBS [%d]!\n", P->jobs);
+#endif
     PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
 
     return 0;
@@ -220,6 +246,9 @@ static int cliente_attendi_servizio(queue_elem_t *e) {
 
     PTHLIB(err, pthread_mutex_lock(&(e->mtx_cl_q))) {
         while(e->stato_attesa == IN_ATTESA) {
+#ifdef DEBUG_WAIT
+            printf("[CLIENTE] sto andando in wait CODA!\n");
+#endif
             PTHLIB(err, pthread_cond_wait(&(e->cond_cl_q), &(e->mtx_cl_q)))
             if(e->stato_attesa == SERVITO) {
                 ret = 0;
@@ -238,11 +267,11 @@ static int cliente_attendi_permesso_uscita(cliente_arg_t *t) {
     int err;
 
     PTHLIB(err, pthread_mutex_lock(&(t->mtx))) {
-        while((err = get_permesso_uscita(t)) == 0)
+        while(t->permesso_uscita == 0)
                 PTHLIB(err, pthread_cond_wait(&(t->cond), &(t->mtx)))
         if(err == -1) {
             PTHLIB(err, pthread_mutex_unlock(&(t->mtx)))
-            exit(EXIT_FAILURE);
+            return -1;
         }
 
 #ifdef DEBUG_CLIENTE
@@ -253,22 +282,24 @@ static int cliente_attendi_permesso_uscita(cliente_arg_t *t) {
     return 0;
 }
 
-int cliente_push(queue_t *q, queue_elem_t *new_elem) {
+int cliente_push(cassa_specific_t *C, queue_elem_t *new_elem) {
     int r;          // retval, per errori
 
-    PTH(r, pthread_mutex_lock(&(q->mtx))) {
-#ifdef DEBUG
-        if(q->nelems == 0)
-            puts("[CODA vuota] potrebbe essre un inserimento mentre la coda è chiusa!");
-#endif
-        if(insert_into_queue(q, (void *) new_elem) == -1) {
-            PTH(r, pthread_mutex_unlock(&(q->mtx)))
-            // fprintf(stderr, "CALLOC fallita: %s\n", __func__);
+    queue_t *q = C->q;
+    PTHLIB(r, pthread_mutex_lock(&(q->mtx))) {
+        if(C->stato == CHIUSA) {
+            fprintf(stderr, "[CLIENTE] inserimento in una coda chiusa!\n");
+            PTHLIB(r, pthread_mutex_unlock(&(q->mtx)))
             return -1;
         }
-        PTH(r, pthread_mutex_unlock(&(q->mtx)))
-        PTH(r, pthread_cond_signal(&(q->cond_read)))
-    } PTH(r, pthread_mutex_unlock(&(q->mtx)))
+
+        if(insert_into_queue(q, (void *) new_elem) == -1) {
+            PTHLIB(r, pthread_mutex_unlock(&(q->mtx)))
+            fprintf(stderr, "[CLIENTE] inserimento fallito: %s\n", __func__);
+            return -1;
+        }
+        PTHLIB(r, pthread_cond_signal(&(q->cond_read)))
+    } PTHLIB(r, pthread_mutex_unlock(&(q->mtx)))
 
     return 0;
 }

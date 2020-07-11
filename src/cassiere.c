@@ -42,7 +42,8 @@ void *cassiere(void *arg) {
     PTH(err, pthread_mutex_init(&(C->mtx), NULL))
     PTH(err, pthread_cond_init(&(C->cond), NULL))
 
-    MENO1(start_queue(&(C->q)))
+    // MENO1(start_queue(&(C->q)))
+    EQNULL(C->q = start_queue2())
 
     pthread_t tid_notificatore = -1;
     void *status_notificatore;
@@ -50,7 +51,7 @@ void *cassiere(void *arg) {
     int i = C->index;
 
     /** parametri del Cassiere */
-    unsigned seedp = C->index;
+    unsigned seedp = i + time(NULL);
 
     int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
     int tempo_servizio;
@@ -78,6 +79,9 @@ void *cassiere(void *arg) {
         }
 
         set_stato_cassa(C, APERTA);
+#ifdef DEBUG_CASSIERE
+        printf("[CASSA %d] APERTA!\n", C->index);
+#endif
 
         /********************************************************************************
          * GESTIONE CLIENTI(cassa APERTA)
@@ -186,9 +190,12 @@ static int cassiere_attesa_lavoro(pool_set_t *P) {
             }
             PTH(err, pthread_mutex_lock(&(P->mtx)))
         }
+#ifdef DEBUG_CASSIERE
+        printf("[CASSA] sto per aprire!\n");
+#endif
         P->jobs--;
 #ifdef DEBUG_CASSIERE
-        printf("[CASSIERE] sto per aprire!\n");
+        printf("[CASSIERE] JOBS [%d]!\n", P->jobs);
 #endif
     } PTH(err, pthread_mutex_unlock(&(P->mtx)))
 
@@ -235,9 +242,12 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
         node_t *ptr = q->head;
         queue_elem_t *curr;
 
-        while(ptr != NULL) {
-            curr = (queue_elem_t *) ptr->elem;
-            curr->stato_attesa = stato;
+        while(q->nelems > 0) {
+#ifdef DEBUG_TERM
+            printf("[CASSIERE] sveglio con prodotti [%d]!\n", curr->num_prodotti);
+#endif
+            curr = (queue_elem_t *) get_from_queue(q);
+            //curr->stato_attesa = stato;
             PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
         }
     } PTHLIB(err, pthread_mutex_unlock(&(q->mtx)))

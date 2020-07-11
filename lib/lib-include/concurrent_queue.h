@@ -38,6 +38,7 @@ enum deallocazione_t {DYNAMIC_ELEMS=0, NO_DYNAMIC_ELEMS=1};
 
 int insert_into_queue(queue_t *Q, void *new_elem);
 void *get_from_queue(queue_t *Q);
+queue_t *start_queue2(void);
 
 int start_queue(queue_t **Q);
 /* @INPUT       Q               ptr all'indirizzo della coda da inizializzare (o reinizializzare)

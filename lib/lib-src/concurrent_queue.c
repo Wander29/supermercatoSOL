@@ -5,6 +5,7 @@
  * Mutua esclusione sia fra consumatori che fra produttori
  */
 #include <concurrent_queue.h>
+#include "../lib-include/concurrent_queue.h"
 
 int start_queue(queue_t **Q) {
     *Q = calloc(1, sizeof(queue_t));
@@ -19,6 +20,21 @@ int start_queue(queue_t **Q) {
     MENO1( pthread_cond_init  (&((*Q)->cond_read), NULL))
 
     return 0;
+}
+
+queue_t *start_queue2(void) {
+    queue_t *Q = calloc(1, sizeof(queue_t));
+    if(Q == NULL) {
+        // fprintf(stderr, "CALLOC fallita: %s\n", __func__);
+        return NULL;
+    }
+    Q->nelems = 0;
+    Q->tail = NULL;
+    Q->head = NULL;
+    MENO1( pthread_mutex_init (&(Q->mtx), NULL))
+    MENO1( pthread_cond_init  (&(Q->cond_read), NULL))
+
+    return Q;
 }
 
 /*
@@ -133,6 +149,8 @@ void free_queue(queue_t *Q, enum deallocazione_t opt) {
     QUEUENULL(Q, )
     int r;
     PTH(r, pthread_mutex_lock(&(Q->mtx)))
+
+    printf("[CODA] dimensione [%d]\n", Q->nelems);
 
     node_t  *curr = Q->head,
             *curr_prev;

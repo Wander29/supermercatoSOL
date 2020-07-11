@@ -8,6 +8,6 @@ fi
 
 ./bin/direttore &
 PID_DIR=$!
-sleep 3
+sleep 6
 kill -s ${SIG} ${PID_DIR}
 sleep 1
