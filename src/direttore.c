@@ -13,7 +13,6 @@
 #include <sys/wait.h>
 
 #include "../include/protocollo.h"
-
 #include "../lib/lib-include/parser_config.h"
 #include "../lib/lib-include/mypoll.h"
 
@@ -85,7 +84,7 @@ static void cleanup(void) {
  * LOGICA DEL DIRETTORE (del supermercato)
  * - forka il processo supermercato
  * - gestione segnali
- *      thread signal handler che scrive sulla pipe per avvisare
+ *      thread signal handler che scrive sulla pipe per avvisare della ricezione del segnale
  * - crea un socket di comunicazione col supermercato e si mette in ascolto su:
  *         . socket di comunicazione
  *         . pipe[0]
@@ -154,20 +153,17 @@ int main(int argc, char *argv[]) {
      * - thread signal handler, gestirà SIGQUIT e SIGHUP
      *      maschero tutti i segnali nel thread main
     ****************************************************************************************/
+    MENO1(pipe(pipefd_dir))
+
     sigset_t mask;
     MENO1(sigfillset(&mask))
     PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
-    /*
-     * thread signal handler
-     * - inizializzo coda di comunicazione
-     */
-    MENO1(pipe(pipefd_dir))
 
     pthread_t tid_tsh;
     void *status_tsh;
     PTH(err, pthread_create(&tid_tsh, NULL, sync_signal_handler, (void *) NULL))
 
-    /***************************************************************************************segnali
+    /***************************************************************************************
     * Apertura Supermercato
     * - fork del processo supermercato
     ****************************************************************************************/

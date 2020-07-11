@@ -6,14 +6,14 @@
 #define PROGETTO_CLIENTE_H
 
 #include <myutils.h>
-#include "../include/types.h"
+#include "../include/mytypes.h"
 #include <protocollo.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <pthread.h>
-#include <mypthread.h>
-#include <mysocket.h>
+#include "../lib/lib-include/mypthread.h"
+#include "../lib/lib-include/mysocket.h"
 #include <mypoll.h>
 #include <parser_config.h>
 #include <pool.h>
@@ -30,5 +30,7 @@
 #include "../include/cassiere.h"
 
 void *cliente(void *arg);
+int get_permesso_uscita(cliente_arg_t *c);
+int set_permesso_uscita(cliente_arg_t *c, const int new_perm);
 
 #endif //PROGETTO_CLIENTE_H

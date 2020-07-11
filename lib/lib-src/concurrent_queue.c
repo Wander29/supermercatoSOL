@@ -156,7 +156,6 @@ void free_queue(queue_t *Q, enum deallocazione_t opt) {
 
 void print_queue_int(queue_t *Q) {
     QUEUENULL(Q, )
-    int r;
     // PTH(r, pthread_mutex_lock(&(Q->mtx)))
     puts("\nCODA:");
     node_t *tmp = Q->head;

@@ -3,6 +3,7 @@
 static void *notificatore(void *arg);
 static int cassiere_attesa_lavoro(pool_set_t *P);
 static queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C);
+static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato);
 
 /**********************************************************************************************************
  * LOGICA DEL CASSIERE
@@ -26,12 +27,22 @@ static queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C);
  **********************************************************************************************************/
 void *cassiere(void *arg) {
     int err;
+
+    /****************************************************************************
+    * Cassiere _ THREAD
+     * - casting degli argomenti
+     * - inizializzaione
+     *      cond, mutex
+     *      coda
+    ****************************************************************************/
     cassa_arg_t *Cassa_args = (cassa_arg_t *) arg;
     cassa_specific_t *C = Cassa_args->cassa_set;
     pool_set_t *P = Cassa_args->pool_set;
 
     PTH(err, pthread_mutex_init(&(C->mtx), NULL))
     PTH(err, pthread_cond_init(&(C->cond), NULL))
+
+    MENO1(start_queue(&(C->q)))
 
     pthread_t tid_notificatore = -1;
     void *status_notificatore;
@@ -41,12 +52,20 @@ void *cassiere(void *arg) {
     /** parametri del Cassiere */
     unsigned seedp = 0;
     int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
+    int tempo_servizio;
     struct timespec ts = {0, 0};
 
+    /************************************************
+     * Vita del Cassiere
+     ************************************************/
     for(;;) {
         /* attende il lavoro */
-        if( (err = cassiere_attesa_lavoro(P)) == 1) // termina
+        if( (err = cassiere_attesa_lavoro(P)) == 1) { // termina
+#ifdef DEBUG
+            printf("[CASSA %d] terminato per chiusura supemercato, ero sulla JOBS!\n", C->index);
+#endif
             goto terminazione_cassiere;
+        }
         else if(err < 0)
             fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", i);
 
@@ -72,47 +91,60 @@ void *cassiere(void *arg) {
         for(;;) {
             if( (cliente = cassiere_pop_cliente(C)) == (queue_elem_t *) 1 ) {
                 if(CHIUSA == get_stato_cassa(C)) {
-                    // avverte i clienti di cambiare cassa
-
+#ifdef DEBUG
+                    printf("[CASSA %d] chiudo la cassa (potrei riaprirla poi..)!\n", C->index);
+#endif
+                    cassiere_sveglia_clienti(C->q, CASSA_IN_CHIUSURA);
                     break;
                 } else if(CHIUSURA_IMMEDIATA == get_stato_supermercato()) {
-                    // avvisa i clienti di terminare
-                    break;
+#ifdef DEBUG
+                    printf("[CASSA %d] esco, ero sulla COND_READ!\n", C->index);
+#endif
+                    cassiere_sveglia_clienti(C->q, SUPERMERCATO_IN_CHIUSURA);
+                    goto terminazione_cassiere;
                 }
             } else if(cliente == (queue_elem_t *) -1) {
                 // gestione errore ritorno dalla funzione
+                fprintf(stderr, "ERRORE: cassiere, pop_cliente\n");
+                return (void *) -1;
             }
-            /*
-             * cliente estratto, lo servo
-             */
-            // cassiere_servi_cliente();
-            /*
-             * tempo di servizio =
-             *      tempo_fisso + num_prodotti * L(== tempo gestione singolo prodotto)
-             */
-            ts.tv_nsec = 1000000 * (tempo_fisso + cliente->num_prodotti * Cassa_args->tempo_prodotto);
+            /**************************************************
+             * Cliente estratto dalla coda
+             * - lo servo
+             *      - calcolo il tempo di servizio
+             *      - simulo il servizio con una nanosleep
+             *      - sveglio il cliente
+             *      - decremento il numero di clienti in coda nel supermercato
+             **************************************************/
+            tempo_servizio = tempo_fisso + cliente->num_prodotti * Cassa_args->tempo_prodotto;
+            ts.tv_nsec = 1000000 * tempo_servizio;
 #ifdef DEBUG
-            printf("sto per aspettare [%ld]ns!\n", ts.tv_nsec);
+            printf("[CASSA %d] sto per aspettare [%ld]ns!\n", C->index, ts.tv_nsec);
 #endif
-            MENO1(nanosleep(&ts, NULL))     //
+            MENO1(nanosleep(&ts, NULL))
 #ifdef DEBUG
-            printf("ho servito sto cliente!\n");
+            printf("[CASSA %d] ho servito sto cliente!\n", C->index);
 #endif
-            /*
-             * una volta servito il clienti decremento il contatore di clienti in coda
-             */
+            cliente->stato_attesa = SERVITO;
+            PTH(err, pthread_cond_signal(&(cliente->cond_cl_q)))
+
             if(dec_num_clienti_in_coda() == 0 && get_stato_supermercato() == CHIUSURA_SOFT) {
                 pipe_msg_code_t msg = CLIENTI_TERMINATI;
                 pipe_write(&msg, NULL);
             }
         }
+#ifdef DEBUG
+        printf("[CASSA %d] ucito dal FOR dei clienti!\n", C->index);
+#endif
     }
 
-    terminazione_cassiere:
+terminazione_cassiere:
     if(tid_notificatore != (pthread_t) -1) {
         PTH(err, pthread_join(tid_notificatore, &status_notificatore))
         PTHJOIN(status_notificatore, "Notificatore cassiere")
     }
+
+    free_queue(C->q, NO_DYNAMIC_ELEMS);
 
     PTH(err, pthread_mutex_destroy(&(C->mtx)))
     PTH(err, pthread_cond_destroy(&(C->cond)))
@@ -158,6 +190,9 @@ static int cassiere_attesa_lavoro(pool_set_t *P) {
             PTH(err, pthread_mutex_lock(&(P->mtx)))
         }
         P->jobs--;
+#ifdef DEBUG_CASSIERE
+        printf("[CASSIERE] sto per aprire!\n");
+#endif
     } PTH(err, pthread_mutex_unlock(&(P->mtx)))
 
     return 0;
@@ -178,7 +213,11 @@ queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C) {
 
     PTH(err, pthread_mutex_lock(&(q->mtx))) {
         while(q->nelems == 0) {
+#ifdef DEBUG_CASSIERE
+            printf("[CASSIERE] Non c'è gente!\n");
+#endif
             PTH(err, pthread_cond_wait(&(q->cond_read), &(q->mtx)))
+
             PTH(err, pthread_mutex_unlock(&(q->mtx)))
 
             CASSA_APERTA_CHECK(C)
@@ -190,4 +229,19 @@ queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C) {
     } PTH(err, pthread_mutex_unlock(&(q->mtx)))
 
     return val;
+}
+
+static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
+    int err;
+
+    node_t *ptr = q->head;
+    queue_elem_t *curr;
+
+    while(ptr != NULL) {
+        curr = (queue_elem_t *) ptr->elem;
+        curr->stato_attesa = stato;
+        PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
+    }
+
+    return 0;
 }

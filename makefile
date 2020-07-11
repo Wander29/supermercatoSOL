@@ -14,7 +14,7 @@ INCDIR		=	include/
 INCLUDE     =   $(INCDIR) -I $(LIBINCLUDE)
 LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libconcurrent_queue.so $(LIBDIR)libmypoll.so \
 				$(LIBDIR)libpool.so $(LIBDIR)libparser_config.so
-INCUSED		=	$(INCDIR)mysocket.h $(INCDIR)mypthread.h $(INCDIR)protocollo.h
+INCUSED		=	$(LIBINCLUDE)mysocket.h $(LIBINCLUDE)mypthread.h $(INCDIR)mytypes.h
 OBJDIR		=	obj/
 OBJS		=	$(OBJDIR)cliente.o $(OBJDIR)cassiere.o $(OBJDIR)protocollo.o
 BINDIR		=	bin/

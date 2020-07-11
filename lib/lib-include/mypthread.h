@@ -15,7 +15,7 @@
     if ( ((r) = (pth_call)) != 0) {						\
         errno = r;									    \
         perror(#pth_call);								\
-        return r;								\
+        return -1;								\
     }
 
 #define PTHJOIN(status, str)                            \

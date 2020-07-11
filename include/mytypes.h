@@ -1,5 +1,5 @@
-#ifndef PROGETTO_TYPES_H
-#define PROGETTO_TYPES_H
+#ifndef PROGETTO_MYTYPES_H
+#define PROGETTO_MYTYPES_H
 
 #include <myutils.h>
 #include <protocollo.h>
@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #include <pthread.h>
-#include <mypthread.h>
-#include <mysocket.h>
+#include "../lib/lib-include/mypthread.h"
+#include "../lib/lib-include/mysocket.h"
 #include <mypoll.h>
 #include <parser_config.h>
 #include <pool.h>
@@ -84,4 +84,4 @@ typedef struct cliente_arg {
 } cliente_arg_t;
 
 
-#endif //PROGETTO_TYPES_H
+#endif //PROGETTO_MYTYPES_H

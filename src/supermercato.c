@@ -25,7 +25,6 @@ int dfd = -1;                /* file descriptor del socket col direttore, access
 int pipefd_sm[2];            /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
 
 /** LOCK */
-// TODO serve sul socket?
 pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
 
@@ -79,16 +78,10 @@ static void cleanup(void) {
         MENO1(close(pipefd_sm[1]))
 }
 
-static void consenti_uscita_cliente(cliente_arg_t *t) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(t->mtx))) {
-        t->permesso_uscita = 1;
-        PTH(err, pthread_cond_signal(&(t->cond)))
-    } PTH(err, pthread_mutex_unlock(&(t->mtx)))
-}
-
 int main(int argc, char* argv[]) {
+#ifdef DEBUG
+    printf("[SUPERMERCATO] nato!\n");
+#endif
     /* TO DO
      * lettura file config passato da exec
      *
@@ -144,6 +137,9 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+#ifdef DEBUG
+    printf("[SUPERMERCATO] comunicazione col direttore OK!\n");
+#endif
     /*
      * scritture del supermercato sul socket:
      *      sono concorrenti, in quanto sia clienti che
@@ -180,10 +176,12 @@ int main(int argc, char* argv[]) {
     pipe_msg_code_t type_msg_pipe;
     sock_msg_code_t type_msg_sock;
     int param;
-
+#ifdef DEBUG
+    printf("[SUPERMERCATO] multiplexing started OK!\n");
+#endif
     /*************************************************************
    * Generazione cassieri
-    * - inizializzazione code
+    * - dichiarazione delle code (inizializzate dai cassieri)
    *  - thread pool di K cassieri
    *  - attivo solamente J casse inizialmente
    *************************************************************/
@@ -195,13 +193,15 @@ int main(int argc, char* argv[]) {
     void **status_casse;        /* conterrà i valori di ritorno dei thread cassieri */
     EQNULL(status_casse = calloc(par.K, sizeof(void *)))
 
-    /*
-     * argomenti del cassiere
-     */
-    pool_set_t arg_cas;     /* conterrà i parametri per far attesa e lavoro del cassiere */
+    /***********************************************************
+     * Argomenti passati ai thread CASSIERI
+     ***********************************************************/
+    /** argomenti del POOL */
+    pool_set_t arg_cas;
     pool_start(&arg_cas);
     arg_cas.jobs = par.J;   /* casse attive inizialmente */
 
+    /** argomenti SPECIFICI, riempiti nel ciclo */
     cassa_specific_t *casse_specific;
     EQNULL(casse_specific = calloc(par.K, sizeof(cassa_specific_t)))
 
@@ -209,16 +209,24 @@ int main(int argc, char* argv[]) {
     EQNULL(casse = calloc(par.K, sizeof(cassa_arg_t)))
     /* per ogni cassiere passo una struttura contenente anche il suo indice */
     for(i = 0; i < par.K; i++) {
-        casse[i].tempo_prodotto = par.L;
+        /* comuni */
         casse[i].pool_set = &arg_cas;
-        casse[i].cassa_set->index = i;
-        casse[i].cassa_set->q = Q[i];
-        set_stato_cassa(casse[i].cassa_set, CHIUSA);
+        casse[i].tempo_prodotto = par.L;
+
+        /* specifici */
+        casse_specific[i].index = i;
+        casse_specific[i].q = Q[i];
+        casse_specific[i].stato = CHIUSA;
+
+        casse[i].cassa_set = casse_specific + i;
     }
     for(i = 0; i < par.K; i++) {
         PTH(err, pthread_create((tid_casse + i), NULL, cassiere, (void *) (casse+i) ))
     }
 
+#ifdef DEBUG
+    printf("[SUPERMERCATO] cassieri generati!\n");
+#endif
     /*************************************************************
    * Generazione Client
     * - inizializzazione pipe di comunicazione
@@ -338,7 +346,9 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_MANAGER
                             printf("[MANAGER] Ricevuto PERMESSO di uscire per il cliente [%d]\n", param);
 #endif
-                            consenti_uscita_cliente(clienti + param);
+                            NOTZERO(set_permesso_uscita(clienti+param, 1))
+                            PTH(err, pthread_cond_signal(&(clienti[param].cond)))
+
                             break;
                         default: ;
                     }
@@ -364,18 +374,20 @@ terminazione_supermercato:
         PTH(err, pthread_cond_signal(&(casse[i].pool_set->cond)))
     }
      */
+    // i cassieri vanno svegliati sia sulla cond di JOBS
+    //  che sulla cond di READ
     PTH(err, pthread_cond_broadcast(&(arg_cas.cond)))
 
-    pool_destroy(&arg_cas);
-
-
     for(i = 0; i < par.K; i++) {
-        free_queue(Q[i], NO_DYNAMIC_ELEMS);
+        PTH(err, pthread_cond_signal(&(casse_specific[i].q->cond_read)))
         PTH(err, pthread_join(tid_casse[i], status_casse+i))
         PTHJOIN(status_casse[i], "Cassiere")
     }
+    pool_destroy(&arg_cas);
+
     free(tid_casse);
     free(status_casse);
+    free(casse_specific);
     free(casse);
 
     /*

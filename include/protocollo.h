@@ -2,8 +2,8 @@
 #define PROGETTO_PROTOCOLLO_H
 
 #include <pthread.h>
-#include <mypthread.h>
-#include <mysocket.h>
+#include "../lib/lib-include/mypthread.h"
+#include "../lib/lib-include/mysocket.h"
 
 #define SOCKET_SERVER_NAME "pleasekillmeatexit.socket"
 #define PATH_TO_SUPERMARKET "./bin/supermercato"
@@ -13,7 +13,7 @@
 #define DEBUG_CLIENTE
 #define DEBUG_CASSIERE
 #define DEBUG_MANAGER
-// #define DEBUG_SOCKET
+#define DEBUG_SOCKET
 
 typedef enum stato_supermercato {
     APERTO = 0,

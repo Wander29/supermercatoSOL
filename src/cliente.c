@@ -1,5 +1,6 @@
 #include "../include/cliente.h"
 
+static int cliente_attesa_lavoro(pool_set_t *P);
 static void cliente_attendi_permesso_uscita(cliente_arg_t *t);
 static int cliente_push(queue_t *q, queue_elem_t *new_elem);
 static int cliente_attendi_servizio(queue_elem_t *e);
@@ -15,40 +16,47 @@ inline static int cliente_cassa_random(unsigned *seedptr, int k, cassa_specific_
 }
 
 void *cliente(void *arg) {
-    cliente_arg_t *C = (cliente_arg_t *) arg;
-    pool_set_t *P = C->shared->pool_set;
-    cassa_specific_t **Casse = C->shared->casse;
+    int p = 0,
+        t,
+        err;
 
 #ifdef DEBUG_CLIENTE
     printf("[CLIENTE %d] sono nato!\n", C->index);
 #endif
 
-    int p = 0,
-    // t,
-    err;
+    /****************************************************************************
+    * Cliente _ THREAD
+     * - casting degli argomenti
+     * - inizializzaione
+     *      cond, mutex
+     * - ATTESA LAVORO
+     *      - se il supermercato e in chiusura (SOFT o IMMEDIATA)
+     *              viene svegliato, e deve terminare
+    ****************************************************************************/
+    cliente_arg_t *C = (cliente_arg_t *) arg;
+    pool_set_t *P = C->shared->pool_set;
+    cassa_specific_t **Casse = C->shared->casse;
 
     PTH(err, pthread_mutex_init(&(C->mtx), NULL))
     PTH(err, pthread_cond_init(&(C->cond), NULL))
 
     pipe_msg_code_t type_msg;
-
-    // while(get_stato_supermercato() == APERTO) {
-    PTH(err, pthread_mutex_lock(&(P->mtx)))
-    while(P->jobs == 0) {
-        PTH(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
-        /*
-         * viene svegliato: si deve controllare se si deve terminare;
-         * lascia la mutex per non avere due risorse lockate
-         */
-        PTH(err, pthread_mutex_unlock(&(P->mtx)))
-        if(get_stato_supermercato() != APERTO) {
-            pthread_exit((void *) NULL);
+    
+    for(;;) {
+        /* attende il lavoro */
+        if ((err = cliente_attesa_lavoro(P)) == 1) { // termmina
+#ifdef DEBUG_CLIENTE
+            printf("[CLIENTE %d] terminato per chiusura supemercato, ero sulla JOBS!\n", C->index);
+#endif
+            goto terminazione_cliente;
         }
-        PTH(err, pthread_mutex_lock(&(P->mtx)))
+        else if (err < 0)
+            fprintf(stderr, "Errore durante l'attesa di un lavoro per il Cliente [%d]\n", C->index);
+
+        /* lavoro ottenuto! */
+        NOTZERO(set_permesso_uscita(C, 0))
+
     }
-    P->jobs--;
-    C->permesso_uscita = 0;
-    PTH(err, pthread_mutex_unlock(&(P->mtx)))
 
     /*
      * fa acquisti
@@ -113,10 +121,28 @@ void *cliente(void *arg) {
     }
     //}
 
+terminazione_cliente:
     PTH(err, pthread_mutex_destroy(&(C->mtx)))
     PTH(err, pthread_cond_destroy(&(C->cond)))
 
     pthread_exit((void *)NULL);
+}
+
+static int cliente_attesa_lavoro(pool_set_t *P) {
+    int err;
+
+    PTH(err, pthread_mutex_lock(&(P->mtx)))
+    while(P->jobs == 0) {
+        PTH(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
+        PTH(err, pthread_mutex_unlock(&(P->mtx)))
+        /* se è stato svegliato perchè il supermercato è in chiusura => deve terminare */
+        if(get_stato_supermercato() != APERTO) {
+            return 1; // anche se la chiusura è SOFT!
+        }
+        PTH(err, pthread_mutex_lock(&(P->mtx)))
+    }
+    P->jobs--;
+    PTH(err, pthread_mutex_unlock(&(P->mtx)))
 }
 
 static int cliente_attendi_servizio(queue_elem_t *e) {
@@ -140,8 +166,10 @@ static void cliente_attendi_permesso_uscita(cliente_arg_t *t) {
     int err;
 
     PTH(err, pthread_mutex_lock(&(t->mtx))) {
-        while(t->permesso_uscita == 0)
-            PTH(err, pthread_cond_wait(&(t->cond), &(t->mtx)))
+        while((err = get_permesso_uscita(t)) == 0)
+                PTH(err, pthread_cond_wait(&(t->cond), &(t->mtx)))
+        if(err == -1)
+            exit(EXIT_FAILURE);
 
 #ifdef DEBUG_CLIENTE
         printf("[CLIENTE %d] Permesso di uscita ricevuto!\n", t->index);
@@ -164,4 +192,23 @@ int cliente_push(queue_t *q, queue_elem_t *new_elem) {
     } PTH(r, pthread_mutex_unlock(&(q->mtx)))
 
     return 0;
+}
+
+int get_permesso_uscita(cliente_arg_t *c) {
+    int err,
+        ret;
+
+    PTHLIB(err, (pthread_mutex_lock(&(c->mtx)))) {
+        ret = c->permesso_uscita;
+    } PTHLIB(err, (pthread_mutex_unlock(&(c->mtx))))
+
+    return ret;
+}
+
+int set_permesso_uscita(cliente_arg_t *c, const int new_perm) {
+    int err;
+
+    PTHLIB(err, (pthread_mutex_lock(&(c->mtx)))) {
+        c->permesso_uscita = new_perm;
+    } PTHLIB(err, (pthread_mutex_unlock(&(c->mtx))))
 }
