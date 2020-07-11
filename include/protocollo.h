@@ -6,7 +6,7 @@
 #include <mysocket.h>
 
 #define SOCKET_SERVER_NAME "pleasekillmeatexit.socket"
-#define PATH_TO_SUPERMARKET "./supermercato"
+#define PATH_TO_SUPERMARKET "./bin/supermercato"
 #define MAX_BACKLOG 2
 
 #define DEBUG

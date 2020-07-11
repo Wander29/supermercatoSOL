@@ -13,8 +13,8 @@
 #define MENO1(v) \
     if( (v) == -1 ) { perror(#v); exit(EXIT_FAILURE); }
 
-#define MENO1LIB(v) \
-    if( (v) == -1 ) { fprintf(stderr, "ERROR: %s\n" #v); return -1; }
+#define MENO1LIB(v, ret) \
+    if( (v) == -1 ) { fprintf(stderr, "ERROR: %s\n", #v); return (ret); }
 
 #define LT0(v) /* LT0 == less than 0 */         \
     if( (v) < 0 )       { perror(#v); exit(EXIT_FAILURE); }

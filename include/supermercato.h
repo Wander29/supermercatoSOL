@@ -2,6 +2,7 @@
 #define PROGETTO_SUPERMERCATO_H
 
 #include <myutils.h>
+#include "../include/types.h"
 #include <protocollo.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,10 +21,18 @@
 #include <fcntl.h>
 #include <time.h>
 
-#include "../include/pool.h"
 #include "../include/protocollo.h"
-#include "../include/concurrent_queue.h"
-#include "../include/parser_config.h"
+#include "../lib/lib-include/pool.h"
+#include "../lib/lib-include/concurrent_queue.h"
+#include "../lib/lib-include/parser_config.h"
+
+/** Var. GLOBALI */
+extern int dfd;                 /* file descriptor del socket col direttore */
+extern int pipefd_sm[2];        /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
+
+/** LOCK */
+extern pthread_mutex_t mtx_socket;
+extern pthread_mutex_t mtx_pipe;
 
 typedef enum pipe_msg_code {
     CLIENTE_RICHIESTA_PERMESSO = 0,

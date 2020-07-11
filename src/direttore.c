@@ -11,9 +11,11 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+
 #include "../include/protocollo.h"
-#include "../include/parser_config.h"
-#include "../include/mypoll.h"
+
+#include "../lib/lib-include/parser_config.h"
+#include "../lib/lib-include/mypoll.h"
 
 /** var. globali */
 static int pipefd_dir[2];       /* pipe di comunicazione fra signal handler e main */

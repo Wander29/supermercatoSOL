@@ -1,8 +1,23 @@
 #include "../include/cliente.h"
 
-static void *cliente(void *arg) {
+static void cliente_attendi_permesso_uscita(cliente_arg_t *t);
+static int cliente_push(queue_t *q, queue_elem_t *new_elem);
+static int cliente_attendi_servizio(queue_elem_t *e);
+
+inline static int cliente_cassa_random(unsigned *seedptr, int k, cassa_specific_t **c) {
+    int x;
+
+    do {
+        x = rand_r(seedptr) % k;
+    } while(c[x]->stato != APERTA);
+
+    return x;
+}
+
+void *cliente(void *arg) {
     cliente_arg_t *C = (cliente_arg_t *) arg;
-    pool_set_t *P = C->pool_set;
+    pool_set_t *P = C->shared->pool_set;
+    cassa_specific_t **Casse = C->shared->casse;
 
 #ifdef DEBUG_CLIENTE
     printf("[CLIENTE %d] sono nato!\n", C->index);
@@ -34,9 +49,21 @@ static void *cliente(void *arg) {
     P->jobs--;
     C->permesso_uscita = 0;
     PTH(err, pthread_mutex_unlock(&(P->mtx)))
+
     /*
      * fa acquisti
      */
+#ifdef DEBUG_CLIENTE
+    printf("[CLIENTE %d] comincio gli acquisti!\n", C->index);
+#endif
+    /*
+     *  tempo per gli acquisti che varia in modo casuale da 10 a
+        T>10 millisecondi, ed un numero di prodotti che acquisterà che varia da 0 a P>0
+     */
+
+    if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+        // TODO termina
+    }
     if(p == 0) {
         /*
          * vuole comunicare al direttore di voler uscire:
@@ -49,7 +76,8 @@ static void *cliente(void *arg) {
         type_msg = CLIENTE_RICHIESTA_PERMESSO;
         MENO1(pipe_write(&type_msg, &(C->index)))
         cliente_attendi_permesso_uscita(C);
-    } else {
+    }
+    else {
         /*
         * si mette in fila in una cassa
         */
@@ -57,31 +85,30 @@ static void *cliente(void *arg) {
         elem.num_prodotti = p;
         PTH(err, pthread_cond_init(&(elem.cond_cl_q), NULL))
         PTH(err, pthread_mutex_init(&(elem.mtx_cl_q), NULL))
-        sleep(1);
-        /* @TODO
-         * prima di mettermi in coda dovrei controllare lo stato del supermercato
-         */
-        /*
-         * devo vedere se la cassa è aperta!!!!!!!!!!
-         */
+
         unsigned seedp;
-        int x = rand_r(&seedp) % K;
-        MENO1LIB(cliente_push(Q[x], &elem))
-        while((err = cliente_attendi_servizio(&elem)) != 0) {
-            if(err < 0) {
-                fprintf(stderr, "ERRORE [CLIENTE] durante attesa del servizio\n");
-            }
+
+        int x = cliente_cassa_random(&seedp, C->shared->numero_casse, Casse);
+        MENO1LIB(cliente_push(Casse[x]->q, &elem), ((void *)-1))
+
+        while((err = cliente_attendi_servizio(&elem)) > 0) {
             /*
              * TODO migliorabile!
              */
             /*
              * se la cassa sta per chiudere
              */
-            if(elem.stato_attesa == CASSA_IN_CHIUSURA) {
-                int y = rand_r(&seedp) % K;
+            if(elem.stato_attesa == CASSA_IN_CHIUSURA) { // si accoda ad un'altra cassa random
+                int y;
+                do
+                    y = cliente_cassa_random(&seedp, C->shared->numero_casse, Casse);
+                while(x == y);
 
-                MENO1LIB(cliente_push(Q[x], &elem))
+                MENO1LIB(cliente_push(Casse[x]->q, &elem), ((void *)-1))
             }
+        }
+        if(err < 0) {
+            fprintf(stderr, "ERRORE [CLIENTE] durante attesa del servizio\n");
         }
     }
     //}
@@ -92,19 +119,21 @@ static void *cliente(void *arg) {
     pthread_exit((void *)NULL);
 }
 
-static
-
 static int cliente_attendi_servizio(queue_elem_t *e) {
-    int err;
+    int err, ret;
     PTHLIB(err, pthread_mutex_lock(&(e->mtx_cl_q))) {
         while(e->stato_attesa == IN_ATTESA) {
             PTHLIB(err, pthread_cond_wait(&(e->cond_cl_q), &(e->mtx_cl_q)))
             if(e->stato_attesa == SERVITO) {
-                return 0;
-            } else if(e->stato_attesa != IN_ATTESA)
-                return 1;
+                ret = 0;
+                break;
+            } else if(e->stato_attesa != IN_ATTESA) {
+                ret = 1;
+                break;
+            }
         }
     } PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+    return ret;
 }
 
 static void cliente_attendi_permesso_uscita(cliente_arg_t *t) {
@@ -117,15 +146,6 @@ static void cliente_attendi_permesso_uscita(cliente_arg_t *t) {
 #ifdef DEBUG_CLIENTE
         printf("[CLIENTE %d] Permesso di uscita ricevuto!\n", t->index);
 #endif
-    } PTH(err, pthread_mutex_unlock(&(t->mtx)))
-}
-
-static void consenti_uscita_cliente(cliente_arg_t *t) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&(t->mtx))) {
-        t->permesso_uscita = 1;
-        PTH(err, pthread_cond_signal(&(t->cond)))
     } PTH(err, pthread_mutex_unlock(&(t->mtx)))
 }
 

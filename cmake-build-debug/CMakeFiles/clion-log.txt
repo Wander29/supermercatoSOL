@@ -1,4 +1,16 @@
 /home/ludo/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/201.7846.88/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO
 -- Configuring done
--- Generating done
--- Build files have been written to: /home/ludo/UNIVERSITY/UNI_current/___UNI_WORKSPACE/SOL/PROGETTO/cmake-build-debug
+CMake Error at CMakeLists.txt:6 (add_executable):
+  Cannot find source file:
+
+    include/myutils.h
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .m .M .mm .h .hh .h++ .hm
+  .hpp .hxx .in .txx
+
+
+CMake Error at CMakeLists.txt:6 (add_executable):
+  No SOURCES given to target: PROGETTO
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

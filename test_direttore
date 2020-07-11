@@ -6,7 +6,7 @@ else
   SIG=SIGQUIT
 fi
 
-./direttore &
+./bin/direttore &
 PID_DIR=$!
 sleep 3
 kill -s ${SIG} ${PID_DIR}

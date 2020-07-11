@@ -21,12 +21,13 @@
  *********************************************************************************************************/
 
 /** Var. GLOBALI */
-static int dfd = -1;                 /* file descriptor del socket col direttore */
-static int pipefd_sm[2];                /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
+int dfd = -1;                /* file descriptor del socket col direttore, accessibile dal cleanup */
+int pipefd_sm[2];            /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
 
 /** LOCK */
-static pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
+// TODO serve sul socket?
+pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
 
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
@@ -51,7 +52,8 @@ static void *sync_signal_handler(void *useless) {
             case SIGQUIT: /* chiusura immediata */
                 puts("SIGQUIT");
                 set_stato_supermercato(CHIUSURA_IMMEDIATA);
-                MENO1(writen(pipefd_sm[1], &msg, sizeof(pipe_msg_code_t)))
+                // MENO1(writen(pipefd_sm[1], &msg, sizeof(pipe_msg_code_t)))
+                MENO1LIB(pipe_write(&msg, NULL), ((void *)-1))
                 break;
             case SIGHUP:
                 puts("SIGHUP");
@@ -75,6 +77,15 @@ static void cleanup(void) {
 
     if(fcntl(pipefd_sm[1], F_GETFL) >= 0)
         MENO1(close(pipefd_sm[1]))
+}
+
+static void consenti_uscita_cliente(cliente_arg_t *t) {
+    int err;
+
+    PTH(err, pthread_mutex_lock(&(t->mtx))) {
+        t->permesso_uscita = 1;
+        PTH(err, pthread_cond_signal(&(t->cond)))
+    } PTH(err, pthread_mutex_unlock(&(t->mtx)))
 }
 
 int main(int argc, char* argv[]) {
@@ -176,6 +187,7 @@ int main(int argc, char* argv[]) {
    *  - thread pool di K cassieri
    *  - attivo solamente J casse inizialmente
    *************************************************************/
+    queue_t **Q;
     EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
 
     pthread_t *tid_casse;       /* tid dei cassieri*/
@@ -218,21 +230,28 @@ int main(int argc, char* argv[]) {
     void **status_clienti;        /* conterrà i valori di ritorno dei thread clienti */
     EQNULL(status_clienti = calloc(par.C, sizeof(void *)))
 
-    /*
-     * argomenti del cliente
-     */
+    /***********************************************************
+     * Argomenti passati ai thread CLIENTI
+     ***********************************************************/
+    /** argomenti del POOL */
     pool_set_t arg_cl;
     MENO1(pool_start(&arg_cl))
     arg_cl.jobs = par.C;
 
+    /** argomenti COMUNI */
+    client_com_arg_t com;
+    com.numero_casse = par.K;
+    com.casse = &casse_specific;
+    com.pool_set = &arg_cl;
+    com.T = par.T;
+    com.P = par.P;
+
+    /** argomenti SPECIFICI, riempiti nel ciclo */
     cliente_arg_t *clienti;
     EQNULL(clienti = calloc(par.C, sizeof(cliente_arg_t)))
-    /*
-     * per ogni cliente passo una struttura contenente il suo indice
-     */
 
     for(i = 0; i < par.C; i++) {
-        clienti[i].pool_set = &arg_cl;
+        clienti[i].shared = &com;
         clienti[i].index = i;
         clienti[i].permesso_uscita = 0;
     }

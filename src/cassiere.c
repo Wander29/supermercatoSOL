@@ -1,5 +1,9 @@
 #include "../include/cassiere.h"
 
+static void *notificatore(void *arg);
+static int cassiere_attesa_lavoro(pool_set_t *P);
+static queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C);
+
 /**********************************************************************************************************
  * LOGICA DEL CASSIERE
  * - viene creato => aspetta che la cassa venga aperta
@@ -20,7 +24,7 @@
  *              -> serve tutti i clienti in coda, quando la coda è vuota terminerà
  *
  **********************************************************************************************************/
-static void *cassiere(void *arg) {
+void *cassiere(void *arg) {
     int err;
     cassa_arg_t *Cassa_args = (cassa_arg_t *) arg;
     cassa_specific_t *C = Cassa_args->cassa_set;
@@ -86,7 +90,7 @@ static void *cassiere(void *arg) {
              * tempo di servizio =
              *      tempo_fisso + num_prodotti * L(== tempo gestione singolo prodotto)
              */
-            ts.tv_nsec = 1000000 * (tempo_fisso + cliente->num_prodotti * tempo_prodotto);
+            ts.tv_nsec = 1000000 * (tempo_fisso + cliente->num_prodotti * Cassa_args->tempo_prodotto);
 #ifdef DEBUG
             printf("sto per aspettare [%ld]ns!\n", ts.tv_nsec);
 #endif
@@ -117,7 +121,7 @@ static void *cassiere(void *arg) {
     return (void *) 0;
 }
 
-static stato_cassa_t get_stato_cassa(cassa_arg_t *cassa) {
+stato_cassa_t get_stato_cassa(cassa_specific_t *cassa) {
     int err;
     stato_cassa_t stato;
 
@@ -128,7 +132,7 @@ static stato_cassa_t get_stato_cassa(cassa_arg_t *cassa) {
     return stato;
 }
 
-static void set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s) {
+void set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s) {
     int err;
 
     PTH(err, pthread_mutex_lock(&(cassa->mtx))) {
@@ -166,9 +170,9 @@ static void *notificatore(void *arg) {
     return (void *) NULL;
 }
 
-queue_elem_t *cassiere_pop_cliente(cassa_arg_t *C) {
+queue_elem_t *cassiere_pop_cliente(cassa_specific_t *C) {
     CASSA_APERTA_CHECK(C)
-    queue_t *q = C->cassa_set->q;
+    queue_t *q = C->q;
     int err;          // retval, per errori
     queue_elem_t *val;
 
