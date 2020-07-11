@@ -43,7 +43,7 @@ void *cassiere(void *arg) {
     PTH(err, pthread_cond_init(&(C->cond), NULL))
 
     // MENO1(start_queue(&(C->q)))
-    EQNULL(C->q = start_queue2())
+    //EQNULL(C->q = start_queue2())
 
     pthread_t tid_notificatore = -1;
     void *status_notificatore;
@@ -94,7 +94,7 @@ void *cassiere(void *arg) {
          *      invia al Manager tale comunicazione
          ********************************************************************************/
         for(;;) {
-            if( (cliente = cassiere_pop_cliente(C)) == (queue_elem_t *) 1 ) {
+            if( (cliente = cassiere_pop_cliente(C)) == (queue_elem_t *) 1 ) { // termina
                 if(CHIUSA == get_stato_cassa(C)) {
 #ifdef DEBUG
                     printf("[CASSA %d] chiudo la cassa (potrei riaprirla poi..)!\n", C->index);
@@ -130,7 +130,8 @@ void *cassiere(void *arg) {
 #ifdef DEBUG
             printf("[CASSA %d] ho servito sto cliente!\n", C->index);
 #endif
-            cliente->stato_attesa = SERVITO;
+
+            NOTZERO((set_stato_attesa(cliente, SERVITO)))
             PTH(err, pthread_cond_signal(&(cliente->cond_cl_q)))
         }
 #ifdef DEBUG
@@ -139,16 +140,20 @@ void *cassiere(void *arg) {
     }
 
 terminazione_cassiere:
+    NOTZERO(set_stato_cassa(C, CHIUSA))
     if(tid_notificatore != (pthread_t) -1) {
         PTH(err, pthread_join(tid_notificatore, &status_notificatore))
         PTHJOIN(status_notificatore, "Notificatore cassiere")
     }
-
-    free_queue(C->q, NO_DYNAMIC_ELEMS);
+    printf("[CASSA %d] dimensione coda: [%d]\n", i, C->q->nelems);
+    // free_queue(C->q, NO_DYNAMIC_ELEMS);
 
     PTH(err, pthread_mutex_destroy(&(C->mtx)))
     PTH(err, pthread_cond_destroy(&(C->cond)))
 
+#ifdef DEBUG_TERM
+    printf("[CASSIERE %d] TERMINATO CORRETTAMENTE\n", i);
+#endif
 
     return (void *) 0;
 }
@@ -239,15 +244,16 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
     int err;
 
     PTHLIB(err, pthread_mutex_lock(&(q->mtx))) {
-        node_t *ptr = q->head;
         queue_elem_t *curr;
 
         while(q->nelems > 0) {
+            curr = (queue_elem_t *) get_from_queue(q);
 #ifdef DEBUG_TERM
             printf("[CASSIERE] sveglio con prodotti [%d]!\n", curr->num_prodotti);
 #endif
-            curr = (queue_elem_t *) get_from_queue(q);
-            //curr->stato_attesa = stato;
+            PTHLIB(err, pthread_mutex_unlock(&(q->mtx)))
+            NOTZERO(set_stato_attesa(curr, stato))
+            PTHLIB(err, pthread_mutex_lock(&(q->mtx)))
             PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
         }
     } PTHLIB(err, pthread_mutex_unlock(&(q->mtx)))

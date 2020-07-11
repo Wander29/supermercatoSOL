@@ -69,7 +69,7 @@ int insertFIFO(queue_t *Q, void *new_elem);
  * !NOTES
  */
 
-void free_queue(queue_t *Q, enum deallocazione_t opt);
+int free_queue(queue_t *Q, enum deallocazione_t opt);
 /* @INPUT       Q               coda
  *              opt             DYNAMIC_ELEMS, NO_DYNAMIC_ELEMS
  *                              indicano se gli elementi nei nodi vanno o meno deallocati

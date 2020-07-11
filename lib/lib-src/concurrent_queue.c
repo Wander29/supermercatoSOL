@@ -145,8 +145,8 @@ int insertFIFO(queue_t *Q, void *new_elem) {
     return 0;
 }
 
-void free_queue(queue_t *Q, enum deallocazione_t opt) {
-    QUEUENULL(Q, )
+int free_queue(queue_t *Q, enum deallocazione_t opt) {
+    QUEUENULL(Q, -1)
     int r;
     PTH(r, pthread_mutex_lock(&(Q->mtx)))
 
@@ -161,15 +161,12 @@ void free_queue(queue_t *Q, enum deallocazione_t opt) {
             free(curr_prev->elem);
         free(curr_prev);
     }
-    if(&(Q->cond_read) != NULL) {
-        PTH(r, pthread_cond_destroy(&(Q->cond_read)))
-    }
-    PTH(r, pthread_mutex_unlock(&(Q->mtx)))
-
-    if(&(Q->mtx) != NULL) {
-        PTH(r, pthread_mutex_destroy(&(Q->mtx)))
-    }
+    PTHLIB(r, pthread_cond_destroy(&(Q->cond_read)))
+    PTHLIB(r, pthread_mutex_unlock(&(Q->mtx)))
+    PTHLIB(r, pthread_mutex_destroy(&(Q->mtx)))
     free(Q);
+
+    return 0;
 }
 
 void print_queue_int(queue_t *Q) {

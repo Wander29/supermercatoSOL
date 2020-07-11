@@ -1,0 +1,7 @@
+#!/bin/bash
+
+valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all ./bin/direttore &
+PID=$!
+sleep 4
+kill -s SIGQUIT ${PID}
+sleep 1

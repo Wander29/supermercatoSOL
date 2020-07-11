@@ -180,12 +180,15 @@ int main(int argc, char* argv[]) {
 #endif
     /*************************************************************
    * Generazione cassieri
-    * - dichiarazione delle code (inizializzate dai cassieri)
+    * - dichiarazione delle code (inizializzate e distrutte nel main)
    *  - thread pool di K cassieri
    *  - attivo solamente J casse inizialmente
    *************************************************************/
     queue_t **Q;
     EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
+    for(i = 0; i < par.K; i++) {
+        EQNULL(Q[i] = start_queue2())
+    }
 
     pthread_t *tid_casse;       /* tid dei cassieri*/
     EQNULL(tid_casse = calloc(par.K, sizeof(pthread_t)))
@@ -248,7 +251,7 @@ int main(int argc, char* argv[]) {
     /** argomenti COMUNI */
     client_com_arg_t com;
     com.numero_casse = par.K;
-    com.casse = &casse_specific;
+    com.casse = casse_specific;
     com.pool_set = &arg_cl;
     com.T = par.T;
     com.P = par.P;
@@ -411,17 +414,13 @@ terminazione_supermercato:
     printf("[SUPERMERCATO] terminazione iniziata\n");
     fflush(stdout);
 #endif
-    /*
-     * cassieri
+    /****************************************************************
+     * TERMINAZIONE CASSIERI
      * sveglio tutti gli eventuali cassieri dormienti, in attesa di lavoro o in attesa sulla coda
-     */
-    /*
-    for(i = 0; i < par.K; i++) {
-        PTH(err, pthread_cond_signal(&(casse[i].pool_set->cond)))
-    }
-     */
-    // i cassieri vanno svegliati sia sulla cond di JOBS
-    //  che sulla cond di READ
+         i cassieri vanno svegliati sia sulla cond di JOBS
+      che sulla cond di READ
+     ****************************************************************/
+
     PTH(err, pthread_cond_broadcast(&(arg_cas.cond)))
 
     for(i = 0; i < par.K; i++) {
@@ -429,8 +428,8 @@ terminazione_supermercato:
         PTH(err, pthread_join(tid_casse[i], status_casse+i))
         PTHJOIN(status_casse[i], "Cassiere")
     }
-    pool_destroy(&arg_cas);
 
+    pool_destroy(&arg_cas);
     free(tid_casse);
     free(status_casse);
     free(casse_specific);
@@ -452,6 +451,13 @@ terminazione_supermercato:
      * poll
      */
     pollfd_destroy(pollfd_v);
+
+    /* CODE casse */
+    for(i = 0; i < par.K; i++) {
+        if(free_queue(Q[i], NO_DYNAMIC_ELEMS))
+            printf("[STRONZA %d]\n", i);
+    }
+    free(Q);
 
     /*
      * signal handler

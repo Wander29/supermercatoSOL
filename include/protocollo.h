@@ -9,7 +9,7 @@
 #define PATH_TO_SUPERMARKET "./bin/supermercato"
 #define MAX_BACKLOG 2
 
-// #define DEBUG_CLIENTE
+#define DEBUG_CLIENTE
 #define DEBUG
 #define DEBUG_CASSIERE
 /*
@@ -18,8 +18,8 @@
 */
 #define DEBUG_CONC
 #define DEBUG_TERM
-// #define DEBUG_RAND
-// #define DEBUG_WAIT
+#define DEBUG_RAND
+#define DEBUG_WAIT
 #define DEBUG_PIPE
 
 typedef enum stato_supermercato {

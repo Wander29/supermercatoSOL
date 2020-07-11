@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "../lib/lib-include/mypthread.h"
 #include "../lib/lib-include/mysocket.h"
+#include "../lib/lib-include/concurrent_queue.h"
 #include <mypoll.h>
 #include <parser_config.h>
 #include <pool.h>
@@ -77,7 +78,7 @@ typedef struct queue_elem {
  */
 typedef struct client_com_arg {
     pool_set_t *pool_set;
-    cassa_specific_t **casse;
+    cassa_specific_t *casse;
     int numero_casse;
     int T;
     int P;

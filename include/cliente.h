@@ -38,5 +38,7 @@
 void *cliente(void *arg);
 int get_permesso_uscita(cliente_arg_t *c);
 int set_permesso_uscita(cliente_arg_t *c, const int new_perm);
+attesa_t get_stato_attesa(queue_elem_t *e);
+int set_stato_attesa(queue_elem_t *e, const attesa_t new_stato);
 
 #endif //PROGETTO_CLIENTE_H
