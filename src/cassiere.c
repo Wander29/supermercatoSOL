@@ -90,7 +90,7 @@ void *cassiere(void *arg) {
 
         /* setta la cassa APERTA e la rende la più conveniente in cui aspettare */
         set_stato_cassa(C, APERTA);
-        set_min_queue(C->q, 0);
+        set_min_queue(C, 0);
 
 #ifdef DEBUG_CASSIERE
         printf("[CASSA %d] APERTA!\n", C->index);
@@ -120,7 +120,7 @@ void *cassiere(void *arg) {
                     printf("[CASSA %d] chiudo la cassa (potrei riaprirla poi..) \tDIM [%d]!\n", C->index, queue_get_len(C->q));
 #endif
                     /* se era la coda più conveniente resetto min_queue */
-                    MENO1LIB(is_min_queue_testreset(C->q), (void *)-1)
+                    MENO1LIB(is_min_queue_testreset(C), (void *)-1)
                     cassiere_sveglia_clienti(C->q, CASSA_IN_CHIUSURA);
 #ifdef DEBUG
                     printf("[CASSA %d] Ho detto che sto in chiusura \tDIM [%d]!\n", C->index, queue_get_len(C->q));
@@ -134,7 +134,7 @@ void *cassiere(void *arg) {
                 }
             }
             /* ho fatto la POP, controllo se la mia coda `e la piú conveniente */
-            MENO1LIB( testset_min_queue(C->q, queue_get_len(C->q)), (void *) -1)
+            MENO1LIB( testset_min_queue(C, queue_get_len(C->q)), (void *) -1)
 #ifdef DEBUG_QUEUE
             printf("[CASSA %d] cliente estratto\tDIM[%d]\n", C->index, queue_get_len(C->q));
 #endif
@@ -158,6 +158,7 @@ void *cassiere(void *arg) {
 #endif
 
             NOTZERO((set_stato_attesa(cli.ptr, SERVITO)))
+            //cli.ptr->stato_attesa = SERVITO;
             PTH(err, pthread_cond_signal(&(cli.ptr->cond_cl_q)))
         }
     }
@@ -294,24 +295,24 @@ static int cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val) {
     queue_t *q = C->q;
     int err;          // retval, per errori
 
-    PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue))) {
+    PTHLIB(err, pthread_mutex_lock(&(C->mtx))) {
         while(q->nelems == 0) {
 #ifdef DEBUG_CASSIERE
             printf("[CASSIERE] Non c'è gente!\n");
 #endif
-            PTHLIB(err, pthread_cond_wait(&(q->cond_read), &(q->mtx_queue)))
+            PTHLIB(err, pthread_cond_wait(&(q->cond_read), &(C->mtx)))
 
-            PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
+            PTHLIB(err, pthread_mutex_unlock(&(C->mtx)))
 
             CASSA_APERTA_CHECK(C)
 
-            PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue)))
+            PTHLIB(err, pthread_mutex_lock(&(C->mtx)))
         }
         val->ptr = (queue_elem_t *) get_from_queue(q);
         if(val->ptr == NULL)
             fprintf(stderr, "NO elements in Queue: %s\n", __func__);
         val->ptr->stato_attesa = SERVIZIO_IN_CORSO;
-    } PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
+    } PTHLIB(err, pthread_mutex_unlock(&(C->mtx)))
 
     return 0;
 }
@@ -337,10 +338,11 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
 #ifdef DEBUG_a
             printf("[CASSIERE] sveglio con prodotti [%d]!\n", curr->num_prodotti);
 #endif
-            PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-            NOTZERO(set_stato_attesa(curr, stato))
+            //PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
+            //NOTZERO(set_stato_attesa(curr, stato))
+            curr->stato_attesa = stato;
             PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
-            PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue)))
+            //PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue)))
         }
     }
 #ifdef DEBUG_WAKE

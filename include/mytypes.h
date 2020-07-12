@@ -20,11 +20,6 @@
 
 #include "../include/protocollo.h"
 
-typedef struct min_queue {
-    queue_t *ptr_q;
-    int num;
-} min_queue_t;
-
 /************************************
  * PIPE: PROTOCOLLO comunicazione
  ************************************/
@@ -108,5 +103,10 @@ typedef struct cliente_arg {
     int permesso_uscita;
 } cliente_arg_t;
 
+
+typedef struct min_queue {
+    cassa_specific_t *ptr_q;
+    int num;
+} min_queue_t;
 
 #endif //PROGETTO_MYTYPES_H

@@ -1,9 +1,9 @@
 #include <parser_config.h>
 
 int get_params_from_file(param_t *ptr) {
-    ptr->C = 5;
-    ptr->K = 4;
-    ptr->E = 3;
+    ptr->C = 100;
+    ptr->K = 8;
+    ptr->E = 15;
     ptr->T = 200;
     ptr->P = 100;
     ptr->S = 20;

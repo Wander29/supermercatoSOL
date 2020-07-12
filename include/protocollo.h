@@ -23,8 +23,8 @@
 #define DEBUG_WAKE
 #define DEBUG_NOTIFY
 #define DEBUG_MINQ
-
 #define DEBUG_TERM
+
 
 typedef enum stato_supermercato {
     APERTO = 0,

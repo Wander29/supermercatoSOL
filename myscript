@@ -2,6 +2,6 @@
 
 valgrind --trace-children=yes --leak-check=full --error-limit=no --show-leak-kinds=all ./bin/direttore &
 PID=$!
-sleep 4
+sleep 6
 kill -s SIGQUIT ${PID}
-sleep 1
+wait ${PID}

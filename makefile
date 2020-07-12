@@ -84,7 +84,7 @@ clean:
 	-rm -f vgcore*
 
 kill: clean
-	-killall -r supermercato
+	-killall -r supermercato -r memcheck
 
 cleanall: clean
 	-rm -f $(TARGETS)

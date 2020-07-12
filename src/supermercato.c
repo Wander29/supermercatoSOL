@@ -474,6 +474,10 @@ terminazione_supermercato:
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler")
 
+    PTH(err, pthread_mutex_destroy(&mtx_socket))
+    PTH(err, pthread_mutex_destroy(&mtx_pipe))
+    PTH(err, pthread_mutex_destroy(&mtx_stato_supermercato))
+
 #ifdef DEBUG_TERM
     fprintf(stderr, "[SUPERMERCATO] CHIUSURA CORRETTA\n");
 #endif

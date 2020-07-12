@@ -29,10 +29,11 @@
 
 #define PTHLIBMQ(err, pth_spin_call)        \
     if( (err = pth_spin_call) != 0 ) {      \
-        tmp.ptr_q   = (queue_t *) -1;       \
+        tmp.ptr_q   = (cassa_specific_t *) -1;       \
         tmp.num     = -1;                   \
-    }                                       \
-    return tmp;
+        pthread_spin_unlock(&spin);          \
+        return tmp;                         \
+}
 
 /** Var. GLOBALI */
 extern int dfd;                 /* file descriptor del socket col direttore */
@@ -66,6 +67,7 @@ extern pthread_spinlock_t spin;
  *      la min_queue, e come per la PUSH non gestisco il nuovo inserimento
  *****************************************************************************/
 
+
 inline static min_queue_t get_min_queue(void) {
     int err;
     min_queue_t tmp;
@@ -78,7 +80,7 @@ inline static min_queue_t get_min_queue(void) {
     return tmp;
 }
 
-inline static int testset_min_queue(queue_t *q, const int num_to_test) {
+inline static int testset_min_queue(cassa_specific_t *q, const int num_to_test) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -94,7 +96,7 @@ inline static int testset_min_queue(queue_t *q, const int num_to_test) {
     return 0;
 }
 
-inline static int set_min_queue(queue_t *q, const int num_to_test) {
+inline static int set_min_queue(cassa_specific_t *q, const int num_to_test) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -108,7 +110,7 @@ inline static int set_min_queue(queue_t *q, const int num_to_test) {
     return 0;
 }
 
-inline static int is_min_queue_testreset(queue_t *q) {
+inline static int is_min_queue_testreset(cassa_specific_t *q) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -124,7 +126,7 @@ inline static int is_min_queue_testreset(queue_t *q) {
     return 0;
 }
 
-inline static int is_min_queue_testinc(queue_t *q) {
+inline static int is_min_queue_testinc(cassa_specific_t *q) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
