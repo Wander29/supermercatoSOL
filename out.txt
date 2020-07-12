@@ -1,0 +1,955 @@
+[DIRETTORE] La cassa [2] ha [18] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [19] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [24] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [2] ha [17] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [18] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [2] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [22] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [2] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [13] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [25] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [7] ha [1] clienti in coda!
+[DIRETTORE] La cassa [5] ha [3] clienti in coda!
+[DIRETTORE] La cassa [4] ha [1] clienti in coda!
+[DIRETTORE] La cassa [6] ha [1] clienti in coda!
+[DIRETTORE] La cassa [2] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [9]
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] La cassa [5] ha [3] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [9] ha [4] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [5] clienti in coda!
+[DIRETTORE] La cassa [5] ha [2] clienti in coda!
+[DIRETTORE] La cassa [6] ha [1] clienti in coda!
+[DIRETTORE] La cassa [4] ha [4] clienti in coda!
+[DIRETTORE] La cassa [2] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [9] ha [3] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [3] clienti in coda!
+[DIRETTORE] La cassa [5] ha [1] clienti in coda!
+[DIRETTORE] La cassa [4] ha [3] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [21] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [10] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [9] ha [2] clienti in coda!
+[DIRETTORE] La cassa [5] ha [1] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [2] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [2] clienti in coda!
+[DIRETTORE] La cassa [2] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[NOTIFICATORE 0] sono nato!
+[NOTIFICATORE 0] attendo stato!
+[NOTIFICATORE 0] ATTIVO!
+[NOTIFICATORE 2] sono nato!
+[NOTIFICATORE 2] attendo stato!
+[NOTIFICATORE 2] ATTIVO!
+[NOTIFICATORE 3] sono nato!
+[NOTIFICATORE 3] attendo stato!
+[NOTIFICATORE 3] ATTIVO!
+[NOTIFICATORE 1] sono nato!
+[NOTIFICATORE 1] attendo stato!
+[NOTIFICATORE 1] ATTIVO!
+[CLIENTE 98] Rivivrò?
+[CLIENTE 91] Rivivrò?
+[CLIENTE 73] Rivivrò?
+[CLIENTE 59] Rivivrò?
+[CLIENTE 89] Rivivrò?
+[CLIENTE 57] Rivivrò?
+[CLIENTE 40] Rivivrò?
+[CLIENTE 22] Rivivrò?
+[CLIENTE 10] Rivivrò?
+[CLIENTE 83] Rivivrò?
+[CLIENTE 70] Rivivrò?
+[CLIENTE 88] Rivivrò?
+[CLIENTE 34] Rivivrò?
+[CLIENTE 11] Rivivrò?
+[CLIENTE 54] Rivivrò?
+[CLIENTE 27] Rivivrò?
+[CLIENTE 24] Rivivrò?
+[CLIENTE 78] Rivivrò?
+[CLIENTE 32] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CASSA] APERTA!
+[CASSA] APERTA!
+[CASSA] APERTA!
+[CASSA] APERTA!
+[NOTIFICATORE 7] sono nato!
+[NOTIFICATORE 7] attendo stato!
+[NOTIFICATORE 7] ATTIVO!
+[NOTIFICATORE 4] sono nato!
+[NOTIFICATORE 4] attendo stato!
+[NOTIFICATORE 4] ATTIVO!
+[NOTIFICATORE 6] sono nato!
+[NOTIFICATORE 6] attendo stato!
+[NOTIFICATORE 6] ATTIVO!
+[NOTIFICATORE 5] sono nato!
+[NOTIFICATORE 5] attendo stato!
+[NOTIFICATORE 5] ATTIVO!
+[CLIENTE 86] Rivivrò?
+[CLIENTE 2] Rivivrò?
+[CLIENTE 56] Rivivrò?
+[CLIENTE 19] Rivivrò?
+[CLIENTE 25] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[CASSA] APERTA!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CASSA] APERTA!
+[MANAGER] 1 cassa aperta!
+[NOTIFICATORE 8] sono nato!
+[NOTIFICATORE 8] attendo stato!
+[NOTIFICATORE 8] ATTIVO!
+[NOTIFICATORE 9] sono nato!
+[NOTIFICATORE 9] attendo stato!
+[NOTIFICATORE 9] ATTIVO!
+[CLIENTE 14] Rivivrò?
+[CLIENTE 75] Rivivrò?
+[CLIENTE 80] Rivivrò?
+[CLIENTE 64] Rivivrò?
+[CLIENTE 63] Rivivrò?
+[CLIENTE 8] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 37] Rivivrò?
+[CLIENTE 95] Rivivrò?
+[CLIENTE 32] Rivivrò?
+[CLIENTE 72] Rivivrò?
+[CLIENTE 27] Rivivrò?
+[CLIENTE 77] Rivivrò?
+[CLIENTE 51] Rivivrò?
+[CLIENTE 54] Rivivrò?
+[CLIENTE 46] Rivivrò?
+[CLIENTE 93] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 31] Rivivrò?
+[CLIENTE 0] Rivivrò?
+[CLIENTE 73] Rivivrò?
+[CLIENTE 57] Rivivrò?
+[CLIENTE 8] Rivivrò?
+[CLIENTE 89] Rivivrò?
+[CLIENTE 96] Rivivrò?
+[CLIENTE 2] Rivivrò?
+[CLIENTE 10] Rivivrò?
+[CLIENTE 34] Rivivrò?
+[CLIENTE 61] Rivivrò?
+[CLIENTE 69] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 74] Rivivrò?
+[CLIENTE 99] Rivivrò?
+[CLIENTE 64] Rivivrò?
+[CLIENTE 56] Rivivrò?
+[CLIENTE 25] Rivivrò?
+[CLIENTE 48] Rivivrò?
+[MANAGER] cassa [9] da chiudere!
+[CLIENTE 91] Rivivrò?
+[CLIENTE 13] Rivivrò?
+[CLIENTE 66] Rivivrò?
+[CLIENTE 58] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 72] Rivivrò?
+[CLIENTE 29] Rivivrò?
+[CLIENTE 39] Rivivrò?
+[CLIENTE 59] Rivivrò?
+[CLIENTE 90] Rivivrò?
+[CLIENTE 64] Rivivrò?
+[CLIENTE 18] Rivivrò?
+[CLIENTE 63] Rivivrò?
+[CLIENTE 86] Rivivrò?
+[CLIENTE 48] Rivivrò?
+[CLIENTE 93] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 32] Rivivrò?
+[CLIENTE 0] Rivivrò?
+[CLIENTE 5] Rivivrò?
+[CLIENTE 26] Rivivrò?
+[CLIENTE 77] Rivivrò?
+[CLIENTE 89] Rivivrò?
+[CLIENTE 23] Rivivrò?
+[CLIENTE 80] Rivivrò?
+[CLIENTE 10] Rivivrò?
+[CLIENTE 52] Rivivrò?
+[CLIENTE 7] Rivivrò?
+[CLIENTE 8] Rivivrò?
+[CLIENTE 46] Rivivrò?
+[CLIENTE 16] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 37] Rivivrò?
+[CLIENTE 6] Rivivrò?
+[CLIENTE 28] Rivivrò?
+[CLIENTE 96] Rivivrò?
+[CLIENTE 38] Rivivrò?
+[CLIENTE 61] Rivivrò?
+[CLIENTE 40] Rivivrò?
+[CLIENTE 27] Rivivrò?
+[CLIENTE 50] Rivivrò?
+[CLIENTE 87] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 2] Rivivrò?
+[CLIENTE 20] Rivivrò?
+[CLIENTE 77] Rivivrò?
+[CLIENTE 13] Rivivrò?
+[CLIENTE 84] Rivivrò?
+[CLIENTE 43] Rivivrò?
+[CLIENTE 69] Rivivrò?
+[CLIENTE 54] Rivivrò?
+[CLIENTE 97] Rivivrò?
+[CLIENTE 95] Rivivrò?
+[CLIENTE 66] Rivivrò?
+[CLIENTE 9] Rivivrò?
+[CLIENTE 4] Rivivrò?
+[CLIENTE 93] Rivivrò?
+[CLIENTE 57] Rivivrò?
+[CLIENTE 99] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 64] Rivivrò?
+[CLIENTE 74] Rivivrò?
+[CLIENTE 36] Rivivrò?
+[CLIENTE 42] Rivivrò?
+[CLIENTE 46] Rivivrò?
+[CLIENTE 47] Rivivrò?
+[CLIENTE 60] Rivivrò?
+[CLIENTE 6] Rivivrò?
+[CLIENTE 69] Rivivrò?
+[CLIENTE 5] Rivivrò?
+[CLIENTE 45] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 77] Rivivrò?
+[CLIENTE 30] Rivivrò?
+[CLIENTE 89] Rivivrò?
+[CLIENTE 13] Rivivrò?
+[CLIENTE 27] Rivivrò?
+[CLIENTE 18] Rivivrò?
+[CLIENTE 28] Rivivrò?
+[CLIENTE 76] Rivivrò?
+[CLIENTE 63] Rivivrò?
+[CLIENTE 67] Rivivrò?
+[CLIENTE 3] Rivivrò?
+[CLIENTE 38] Rivivrò?
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 12] Rivivrò?
+[CLIENTE 60] Rivivrò?
+[CLIENTE 46] Rivivrò?
+[CLIENTE 47] Rivivrò?
+[CLIENTE 81] Rivivrò?
+[CLIENTE 20] Rivivrò?
+[CLIENTE 39] Rivivrò?
+[CLIENTE 65] Rivivrò?
+SIGHUP
+[CLIENTE 69] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 6] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 45] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 69] TERMINATO CORRETTAMENTE
+[CLIENTE 45] TERMINATO CORRETTAMENTE
+[CLIENTE 6] TERMINATO CORRETTAMENTE
+[CLIENTE 89] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 89] TERMINATO CORRETTAMENTE
+[CLIENTE 30] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 18] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 18] TERMINATO CORRETTAMENTE
+[CLIENTE 77] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 27] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 27] TERMINATO CORRETTAMENTE
+[CLIENTE 5] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 77] TERMINATO CORRETTAMENTE
+[CLIENTE 13] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 30] TERMINATO CORRETTAMENTE
+[CLIENTE 13] TERMINATO CORRETTAMENTE
+[CLIENTE 5] TERMINATO CORRETTAMENTE
+[CLIENTE 76] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 28] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 63] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 63] TERMINATO CORRETTAMENTE
+[CLIENTE 67] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 67] TERMINATO CORRETTAMENTE
+[CLIENTE 38] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 12] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 38] TERMINATO CORRETTAMENTE
+[CLIENTE 60] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 28] TERMINATO CORRETTAMENTE
+[CLIENTE 46] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 12] TERMINATO CORRETTAMENTE
+[CLIENTE 46] TERMINATO CORRETTAMENTE
+[CLIENTE 76] TERMINATO CORRETTAMENTE
+[CLIENTE 20] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 20] TERMINATO CORRETTAMENTE
+[CLIENTE 65] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 65] TERMINATO CORRETTAMENTE
+[CLIENTE 3] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 3] TERMINATO CORRETTAMENTE
+[CLIENTE 47] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 47] TERMINATO CORRETTAMENTE
+[CLIENTE 39] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 39] TERMINATO CORRETTAMENTE
+[CLIENTE 60] TERMINATO CORRETTAMENTE
+[CLIENTE 81] terminato per chiusura supermercato, ero sulla JOBS!
+[CLIENTE 81] TERMINATO CORRETTAMENTE
+[CLIENTE 93] Rivivrò?
+[CLIENTE 93] Sono stato servito, vado a casa ora!
+[CLIENTE 93] TERMINATO CORRETTAMENTE
+[CLIENTE 7] Rivivrò?
+[CLIENTE 7] Sono stato servito, vado a casa ora!
+[CLIENTE 7] TERMINATO CORRETTAMENTE
+[CLIE[DIRETTORE] La cassa [1] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [9] ha [1] clienti in coda!
+[DIRETTORE] La cassa [5] ha [1] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [4] clienti in coda!
+[DIRETTORE] La cassa [6] ha [3] clienti in coda!
+[DIRETTORE] La cassa [7] ha [5] clienti in coda!
+[DIRETTORE] La cassa [2] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [9] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [1] clienti in coda!
+[DIRETTORE] La cassa [4] ha [3] clienti in coda!
+[DIRETTORE] La cassa [7] ha [3] clienti in coda!
+[DIRETTORE] La cassa [2] ha [13] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [22] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [5] ha [1] clienti in coda!
+[DIRETTORE] La cassa [9] ha [2] clienti in coda!
+[DIRETTORE] La cassa [6] ha [1] clienti in coda!
+[DIRETTORE] La cassa [8] ha [2] clienti in coda!
+[DIRETTORE] La cassa [7] ha [5] clienti in coda!
+[DIRETTORE] La cassa [4] ha [3] clienti in coda!
+[DIRETTORE] La cassa [2] ha [13] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [23] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [1] clienti in coda!
+[DIRETTORE] La cassa [7] ha [4] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [2] clienti in coda!
+[DIRETTORE] La cassa [2] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [22] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [14] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [10] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [3] clienti in coda!
+[DIRETTORE] La cassa [2] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [0] ha [19] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [13] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [8] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [2] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [9] clienti in coda!
+[DIRETTORE] La cassa [0] ha [19] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [6] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [9] clienti in coda!
+[DIRETTORE] La cassa [0] ha [17] clienti in coda!
+[DIRETTORENTE 54] Rivivrò?
+[CLIENTE 54] Sono stato servito, vado a casa ora!
+[CLIENTE 54] TERMINATO CORRETTAMENTE
+[CLIENTE 97] Rivivrò?
+[CLIENTE 97] Sono stato servito, vado a casa ora!
+[CLIENTE 97] TERMINATO CORRETTAMENTE
+[CLIENTE 62] Rivivrò?
+[CLIENTE 62] Sono stato servito, vado a casa ora!
+[CLIENTE 62] TERMINATO CORRETTAMENTE
+[CLIENTE 26] Rivivrò?
+[CLIENTE 26] Sono stato servito, vado a casa ora!
+[CLIENTE 26] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 85] Rivivrò?
+[CLIENTE 85] Sono stato servito, vado a casa ora!
+[CLIENTE 85] TERMINATO CORRETTAMENTE
+[CLIENTE 2] Rivivrò?
+[CLIENTE 2] Sono stato servito, vado a casa ora!
+[CLIENTE 2] TERMINATO CORRETTAMENTE
+[CLIENTE 92] Rivivrò?
+[CLIENTE 92] Sono stato servito, vado a casa ora!
+[CLIENTE 92] TERMINATO CORRETTAMENTE
+[CLIENTE 15] Rivivrò?
+[CLIENTE 15] Sono stato servito, vado a casa ora!
+[CLIENTE 15] TERMINATO CORRETTAMENTE
+[CLIENTE 43] Rivivrò?
+[CLIENTE 43] Sono stato servito, vado a casa ora!
+[CLIENTE 43] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[CLIENTE 55] Rivivrò?
+[CLIENTE 55] Sono stato servito, vado a casa ora!
+[CLIENTE 55] TERMINATO CORRETTAMENTE
+[CLIENTE 17] Rivivrò?
+[CLIENTE 17] Sono stato servito, vado a casa ora!
+[CLIENTE 17] TERMINATO CORRETTAMENTE
+[CLIENTE 40] Rivivrò?
+[CLIENTE 40] Sono stato servito, vado a casa ora!
+[CLIENTE 40] TERMINATO CORRETTAMENTE
+[CLIENTE 11] Rivivrò?
+[CLIENTE 11] Sono stato servito, vado a casa ora!
+[CLIENTE 11] TERMINATO CORRETTAMENTE
+[CLIENTE 53] Rivivrò?
+[CLIENTE 53] Sono stato servito, vado a casa ora!
+[CLIENTE 53] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 74] Rivivrò?
+[CLIENTE 74] Sono stato servito, vado a casa ora!
+[CLIENTE 74] TERMINATO CORRETTAMENTE
+[CLIENTE 48] Rivivrò?
+[CLIENTE 48] Sono stato servito, vado a casa ora!
+[CLIENTE 48] TERMINATO CORRETTAMENTE
+[CLIENTE 44] Rivivrò?
+[CLIENTE 44] Sono stato servito, vado a casa ora!
+[CLIENTE 44] TERMINATO CORRETTAMENTE
+[CLIENTE 94] Rivivrò?
+[CLIENTE 94] Sono stato servito, vado a casa ora!
+[CLIENTE 94] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[CLIENTE 49] Rivivrò?
+[CLIENTE 49] Sono stato servito, vado a casa ora!
+[CLIENTE 49] TERMINATO CORRETTAMENTE
+[CLIENTE 75] Rivivrò?
+[CLIENTE 75] Sono stato servito, vado a casa ora!
+[CLIENTE 75] TERMINATO CORRETTAMENTE
+[CLIENTE 78] Rivivrò?
+[CLIENTE 78] Sono stato servito, vado a casa ora!
+[CLIENTE 78] TERMINATO CORRETTAMENTE
+[CLIENTE 36] Rivivrò?
+[CLIENTE 36] Sono stato servito, vado a casa ora!
+[CLIENTE 36] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 82] Rivivrò?
+[CLIENTE 82] Sono stato servito, vado a casa ora!
+[CLIENTE 82] TERMINATO CORRETTAMENTE
+[CLIENTE 42] Rivivrò?
+[CLIENTE 42] Sono stato servito, vado a casa ora!
+[CLIENTE 42] TERMINATO CORRETTAMENTE
+[CLIENTE 98] Rivivrò?
+[CLIENTE 98] Sono stato servito, vado a casa ora!
+[CLIENTE 98] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 21] Rivivrò?
+[CLIENTE 21] Sono stato servito, vado a casa ora!
+[CLIENTE 21] TERMINATO CORRETTAMENTE
+[CLIENTE 22] Rivivrò?
+[CLIENTE 22] Sono stato servito, vado a casa ora!
+[CLIENTE 22] TERMINATO CORRETTAMENTE
+[CLIENTE 73] Rivivrò?
+[CLIENTE 73] Sono stato servito, vado a casa ora!
+[CLIENTE 73] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 52] Rivivrò?
+[CLIENTE 52] Sono stato servito, vado a casa ora!
+[CLIENTE 52] TERMINATO CORRETTAMENTE
+[CLIENTE 83] Rivivrò?
+[CLIENTE 83] Sono stato servito, vado a casa ora!
+[CLIENTE 83] TERMINATO CORRETTAMENTE
+[CLIENTE 84] Rivivrò?
+[CLIENTE 84] Sono stato servito, vado a casa ora!
+[CLIENTE 84] TERMINATO CORRETTAMENTE
+[CLIENTE 41] Rivivrò?
+[CLIENTE 41] Sono stato servito, vado a casa ora!
+[CLIENTE 41] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 90] Rivivrò?
+[CLIENTE 90] Sono stato servito, vado a casa ora!
+[CLIENTE 90] TERMINATO CORR] Apre una cassa
+[DIRETTORE] La cassa [1] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [4] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [8] clienti in coda!
+[DIRETTORE] La cassa [0] ha [16] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [10] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [3] ha [3] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [5] clienti in coda!
+[DIRETTORE] La cassa [0] ha [15] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [9] clienti in coda!
+[DIRETTORE] La cassa [3] ha [2] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [4] clienti in coda!
+[DIRETTORE] La cassa [0] ha [13] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [8] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [2] clienti in coda!
+[DIRETTORE] La cassa [0] ha [12] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [7] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [1] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [11] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [6] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [10] clienti in coda!
+[DIRETTORE] Apre una cassa
+[DIRETTORE] La cassa [1] ha [5] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [9] clienti in coda!
+[DIRETTORE] La cassa [1] ha [4] clienti in coda!
+[ETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 24] Rivivrò?
+[CLIENTE 24] Sono stato servito, vado a casa ora!
+[CLIENTE 24] TERMINATO CORRETTAMENTE
+[CLIENTE 86] Rivivrò?
+[CLIENTE 86] Sono stato servito, vado a casa ora!
+[CLIENTE 86] TERMINATO CORRETTAMENTE
+[CLIENTE 25] Rivivrò?
+[CLIENTE 25] Sono stato servito, vado a casa ora!
+[CLIENTE 25] TERMINATO CORRETTAMENTE
+[CLIENTE 95] Rivivrò?
+[CLIENTE 95] Sono stato servito, vado a casa ora!
+[CLIENTE 95] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 68] Rivivrò?
+[CLIENTE 68] Sono stato servito, vado a casa ora!
+[CLIENTE 68] TERMINATO CORRETTAMENTE
+[CLIENTE 91] Rivivrò?
+[CLIENTE 91] Sono stato servito, vado a casa ora!
+[CLIENTE 91] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[CLIENTE 87] Rivivrò?
+[CLIENTE 87] Sono stato servito, vado a casa ora!
+[CLIENTE 87] TERMINATO CORRETTAMENTE
+[CLIENTE 37] Rivivrò?
+[CLIENTE 37] Sono stato servito, vado a casa ora!
+[CLIENTE 37] TERMINATO CORRETTAMENTE
+[CLIENTE 31] Rivivrò?
+[CLIENTE 31] Sono stato servito, vado a casa ora!
+[CLIENTE 31] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 79] Rivivrò?
+[CLIENTE 79] Sono stato servito, vado a casa ora!
+[CLIENTE 79] TERMINATO CORRETTAMENTE
+[CLIENTE 35] Rivivrò?
+[CLIENTE 35] Sono stato servito, vado a casa ora!
+[CLIENTE 35] TERMINATO CORRETTAMENTE
+[CLIENTE 50] Rivivrò?
+[CLIENTE 50] Sono stato servito, vado a casa ora!
+[CLIENTE 50] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[MANAGER] cassa [3] da chiudere!
+[CLIENTE 34] Rivivrò?
+[CLIENTE 34] Sono stato servito, vado a casa ora!
+[CLIENTE 34] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 8] Rivivrò?
+[CLIENTE 8] Sono stato servito, vado a casa ora!
+[CLIENTE 8] TERMINATO CORRETTAMENTE
+[CLIENTE 33] Rivivrò?
+[CLIENTE 33] Sono stato servito, vado a casa ora!
+[CLIENTE 33] TERMINATO CORRETTAMENTE
+[CLIENTE 80] Rivivrò?
+[CLIENTE 80] Sono stato servito, vado a casa ora!
+[CLIENTE 80] TERMINATO CORRETTAMENTE
+[MANAGER] 1 cassa aperta!
+[NOTIFICATORE 3] attendo stato!
+[CLIENTE 61] Rivivrò?
+[NOTIFICATORE 3] ATTIVO!
+[CLIENTE 61] Sono stato servito, vado a casa ora!
+[CLIENTE 61] TERMINATO CORRETTAMENTE
+[CLIENTE 16] Rivivrò?
+[CLIENTE 16] Sono stato servito, vado a casa ora!
+[CLIENTE 16] TERMINATO CORRETTAMENTE
+[CLIENTE 10] Rivivrò?
+[CLIENTE 10] Sono stato servito, vado a casa ora!
+[CLIENTE 10] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 71] Rivivrò?
+[CLIENTE 71] Sono stato servito, vado a casa ora!
+[CLIENTE 71] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 29] Rivivrò?
+[CLIENTE 29] Sono stato servito, vado a casa ora!
+[CLIENTE 29] TERMINATO CORRETTAMENTE
+[CLIENTE 57] Rivivrò?
+[CLIENTE 58] Rivivrò?
+[CLIENTE 57] Sono stato servito, vado a casa ora!
+[CLIENTE 57] TERMINATO CORRETTAMENTE
+[CLIENTE 58] Sono stato servito, vado a casa ora!
+[CLIENTE 58] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 1] Rivivrò?
+[CLIENTE 1] Sono stato servito, vado a casa ora!
+[CLIENTE 1] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[MANAGER] 1 cassa aperta!
+[CLIENTE 0] Rivivrò?
+[CLIENTE 0] Sono stato servito, vado a casa ora!
+[CLIENTE 0] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 19] Rivivrò?
+[CLIENTE 19] Sono stato servito, vado a casa ora!
+[CLIENTE 19] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[CLIENTE 23] Rivivrò?
+[CLIENTE 23] Sono stato servito, vado a casa ora!
+[CLIENTE 23] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[MANAGER] cassa [3] da chiudere!
+[CLIENTE 14] Rivivrò?
+[CLIENTE 14] Sono stato servito, vado a casa ora!
+[CLIENTE 14] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[CLIENTE 96] Rivivrò?
+[CLIENTE 96] Sono stato servito, vado a casa ora!
+[CLIENTE 96] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[MANAGER] cassa [3] da chiudere!
+[MANAGER] cassa [2] da chiudere!
+[CLIENTE 70] Rivivrò?
+[CLIENTE 70] Sono stato servito, vado a casa ora!
+[CLIENTE 70] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 9] Rivivrò?
+[CLIENTE 9] Sono stato servito, vado a casa ora!
+[CLIENTE 9] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [3] da chiudere!
+[CLIENTE 64] Rivivrò?
+[CLIENTE 64] Sono stato servito, vado a casa ora!
+[CLIENTE 64] TERMINATO CORRETTAMENTE
+[CLIENTE 88] Rivivrò?
+[CLIENTE 88] Sono stato servito, vado a casa ora!
+[CLIENTE 88] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[MANAGER] cassa [1] da chiudere!
+[CLIENTE 99] Rivivrò?
+[CLIENTE 99] Sono stato servito, vado a casa ora!
+[CLIENTE 99] TERMINATO CORRETTAMENTE
+[CLIENTE 51] Rivivrò?
+[CLIENTE 51] Sono stato servito, vado a casa ora!
+[CLIENTE 51] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 56] Rivivrò?
+[CLIENTE 56] Sono stato servito, vado a casa ora!
+[CLIENTE 56] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [3] da chiudere!
+[CLIENTE 59] Rivivrò?
+[CLIENTE 59] Sono stato servito, vado a casa ora!
+[CLIENTE 59] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[MANAGER] cassa [1] da chiudere!
+[MANAGER] cassa [4] da chiudere!
+[MANAGER] cassa [7] da chiudere!
+[CLIENTE 32] Rivivrò?
+[CLIENTE 32] Sono stato servito, vado a casa ora!
+[CLIENTE 32] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [3] da chiudere!
+[CLIENTE 72] Rivivrò?
+[CLIENTE 72] Sono stato servito, vado a casa ora!
+[CLIENTE 72] TERMINATO CORRETTAMENTE
+[MANAGER] cassa [2] da chiudere!
+[MANAGER] cassa [0] da chiudere!
+[MANAGER] cassa [1] da chiudere!
+[CLIENTE 66] Rivivrò?
+[CLIENTE 4] Rivivrò?
+[CLIENTE 66] Sono stato servito, vado a casa ora!
+[CLIENTE 66] TERMINATO CORRETTAMENTE
+[CLIENTE 4] Sono stato servito, vado a casa ora!
+[CLIENTE 4] TERMINATO CORRETTAMENTE
+[NOTIFICATORE 0] TERMINATO CORRETTAMENTE!
+[CASSIERE 0] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 1] TERMINATO CORRETTAMENTE!
+[CASSIERE 1] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 2] TERMINATO CORRETTAMENTE!
+[CASSIERE 2] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 3] TERMINATO CORRETTAMENTE!
+[CASSIERE 3] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 4] TERMINATO CORRETTAMENTE!
+[CASSIERE 4] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 5] TERMINATO CORRETTAMENTE!
+[CASSIERE 5] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 6] TERMINATO CORRETTAMENTE!
+[CASSIERE 6] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 7] TERMINATO CORRETTAMENTE!
+[CASSIERE 7] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 8] TERMINATO CORRETTAMENTE!
+[CASSIERE 8] TERMINATO CORRETTAMENTE!
+[NOTIFICATORE 9] TERMINATO CORRETTAMENTE!
+[CASSIERE 9] TERMINATO CORRETTAMENTE!
+SIGUSR1
+DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [8] clienti in coda!
+[DIRETTORE] La cassa [1] ha [3] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [8] clienti in coda!
+[DIRETTORE] La cassa [1] ha [2] clienti in coda!
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [6] clienti in coda!
+[DIRETTORE] La cassa [1] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [1]
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [3] clienti in coda!
+[DIRETTORE] La cassa [1] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [1]
+[DIRETTORE] La cassa [6] ha [0] clienti in coda!
+[DIRETTORE] La cassa [4] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [4]
+[DIRETTORE] La cassa [5] ha [0] clienti in coda!
+[DIRETTORE] La cassa [9] ha [0] clienti in coda!
+[DIRETTORE] La cassa [7] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [7]
+[DIRETTORE] La cassa [8] ha [0] clienti in coda!
+[DIRETTORE] La cassa [3] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [3]
+[DIRETTORE] La cassa [2] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [2]
+[DIRETTORE] La cassa [0] ha [1] clienti in coda!
+[DIRETTORE] Chiude cassa [0]
+[DIRETTORE] La cassa [1] ha [0] clienti in coda!
+[DIRETTORE] Chiude cassa [1]
+[DIRETTORE] CHIUSURA CORRETTA
