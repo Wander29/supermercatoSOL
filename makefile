@@ -21,7 +21,7 @@ BINDIR		=	bin/
 
 TARGETS     =  	$(BINDIR)direttore
 
-.PHONY: all clean
+.PHONY: all clean kill
 .SUFFIXES: .c .o .h
 
 all: $(TARGETS)
@@ -38,10 +38,10 @@ $(BINDIR)direttore: $(SRCDIR)direttore.c $(BINDIR)supermercato $(OBJDIR)protocol
 $(BINDIR)supermercato: 	$(SRCDIR)supermercato.c $(INCDIR)supermercato.h $(LIBUSED) $(INCUSED) $(OBJS)
 	$(CC) $(CFLAGS) -I $(INCLUDE) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS) $(OBJS)
 
-$(OBJDIR)cliente.o: $(SRCDIR)cliente.c $(INCDIR)cliente.h
+$(OBJDIR)cliente.o: $(SRCDIR)cliente.c $(INCDIR)cliente.h $(OBJDIR)protocollo.o
 	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
 
-$(OBJDIR)cassiere.o: $(SRCDIR)cassiere.c $(INCDIR)cassiere.h
+$(OBJDIR)cassiere.o: $(SRCDIR)cassiere.c $(INCDIR)cassiere.h $(OBJDIR)protocollo.o
 	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
 
 $(OBJDIR)protocollo.o: $(SRCDIR)protocollo.c $(INCDIR)protocollo.h
@@ -82,6 +82,9 @@ clean:
 	-rm -f *.socket
 	-rm -f ~*
 	-rm -f vgcore*
+
+kill: clean
+	-killall -r supermercato
 
 cleanall: clean
 	-rm -f $(TARGETS)

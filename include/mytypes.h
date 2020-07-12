@@ -20,6 +20,11 @@
 
 #include "../include/protocollo.h"
 
+typedef struct min_queue {
+    queue_t *ptr_q;
+    int num;
+} min_queue_t;
+
 /************************************
  * PIPE: PROTOCOLLO comunicazione
  ************************************/
@@ -66,12 +71,14 @@ typedef struct cassa_arg {
  ************************************/
 typedef enum attesa {
     IN_ATTESA = 0,
+    SERVIZIO_IN_CORSO,
     SERVITO,
     CASSA_IN_CHIUSURA,
     SM_IN_CHIUSURA
 } attesa_t;
 
 typedef struct queue_elem {
+    int id_cl;
     int num_prodotti;
     attesa_t stato_attesa;
     pthread_cond_t cond_cl_q;
@@ -87,6 +94,7 @@ typedef struct client_com_arg {
     int numero_casse;
     int T;
     int P;
+    int S;
 } client_com_arg_t;
 
 typedef struct cliente_arg {

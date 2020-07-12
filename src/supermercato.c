@@ -23,10 +23,13 @@
 /** Var. GLOBALI */
 int dfd = -1;                /* file descriptor del socket col direttore, accessibile dal cleanup */
 int pipefd_sm[2];            /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
+min_queue_t min_queue = { NULL, -1 };
+
 
 /** LOCK */
 pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
+pthread_spinlock_t spin;
 
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
@@ -184,6 +187,8 @@ int main(int argc, char* argv[]) {
    *  - thread pool di K cassieri
    *  - attivo solamente J casse inizialmente
    *************************************************************/
+    PTH(err, pthread_spin_init(&spin, PTHREAD_PROCESS_PRIVATE))
+
     queue_t **Q;
     EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
     for(i = 0; i < par.K; i++) {
@@ -260,6 +265,7 @@ int main(int argc, char* argv[]) {
     com_cl.pool_set = &arg_cl;
     com_cl.T = par.T;
     com_cl.P = par.P;
+    com_cl.S = par.S;
 
     /** argomenti SPECIFICI, riempiti nel ciclo */
     cliente_arg_t *clienti;
@@ -385,16 +391,16 @@ int main(int argc, char* argv[]) {
                             break;
 
                         case DIRETTORE_APERTURA_CASSA:
-                            ch_jobs(&arg_cas, +1);
+                            set_jobs(&arg_cas, 1);
                             PTH(err, pthread_cond_signal(&(arg_cas.cond)))
-#ifdef DEBUG_MANAGER
+#ifdef DEBUG_NOTIFY
                             printf("[MANAGER] 1 cassa aperta!\n");
 #endif
                             break;
 
                         case DIRETTORE_CHIUSURA_CASSA:
                             MENO1(readn(dfd, &param, sizeof(int)))
-#ifdef DEBUG_MANAGER
+#ifdef DEBUG_NOTIFY
                             printf("[MANAGER] cassa [%d] da chiudere!\n", param);
 #endif
                             NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
@@ -460,7 +466,7 @@ terminazione_supermercato:
             printf("[STRONZA %d]\n", i);
     }
     free(Q);
-
+    PTH(err, pthread_spin_destroy(&spin))
     /*
      * signal handler
      */

@@ -28,6 +28,7 @@
 #include "../include/protocollo.h"
 #include "../include/supermercato.h"
 #include "../include/cassiere.h"
+#include "../lib/lib-include/concurrent_queue.h"
 
 #define MIN_TEMPO_ACQUISTI 10
 

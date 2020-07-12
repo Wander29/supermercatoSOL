@@ -8,7 +8,7 @@ typedef struct param {
         E,              /*  */
         T,              /*  */
         P,              /*  numero prodotti massimo acquistati da un cliente */
-        S,              /*  */
+        S,              /*  intervallo di tempo in cui ogni cliente decide se cambiare coda*/
         L,              /*  tempo gestione di un singolo prodtto di ogni cassiere */
         A,              /*  intervallo di comunicazione col Direttore da parte dei cassieri */
         S1,             /* definisce il numero di casse con al più un cliente in coda

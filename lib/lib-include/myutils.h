@@ -70,5 +70,7 @@ ssize_t writen(int fd, void *ptr, size_t n);
  */
 
 int millisleep(const int ms);
+int millitimespec(struct timespec *ts, const int timeout_ms);
+
 
 #endif //PROGETTO_MYUTILS_H

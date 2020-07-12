@@ -34,6 +34,11 @@ typedef struct queue_type {
     pthread_cond_t  cond_read;
 } queue_t;
 
+typedef struct queue_position {
+    int pos;
+    node_t *ptr_in_queue;
+} queue_position_t;
+
 enum deallocazione_t {DYNAMIC_ELEMS=0, NO_DYNAMIC_ELEMS=1};
 
 int insert_into_queue(queue_t *Q, void *new_elem);
@@ -80,5 +85,8 @@ int free_queue(queue_t *Q, enum deallocazione_t opt);
  */
 
 int queue_get_len(queue_t *Q);
+queue_position_t queue_get_position(queue_t *Q, const void *elem);
+int queue_remove_specific_elem(queue_t *Q, node_t *ptr);
+void print_queue(queue_t *Q);
 
 #endif //PROGETTO_CONCURRENT_QUEUE_H

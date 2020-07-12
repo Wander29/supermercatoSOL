@@ -45,6 +45,19 @@ ssize_t writen(int fd, void *ptr, size_t n) {
     return(n - nleft); /* return >= 0 */
 }
 
+int millitimespec(struct timespec *ts, const int timeout_ms) {
+    if(timeout_ms <= 0) {
+        fprintf(stderr, "MILLISLEEP: timeout_ms must be > 0\n");
+        errno = EINVAL;
+        return -1;
+    }
+    ts->tv_sec = timeout_ms / 1000;
+    ts->tv_nsec = (timeout_ms % 1000) * msTOnsMULT;
+
+    return 0;
+}
+
+
 int millisleep(const int ms) {
     int err;
     struct timespec towait = {0, 0},
@@ -55,8 +68,10 @@ int millisleep(const int ms) {
         errno = EINVAL;
         return -1;
     }
+
     towait.tv_sec = ms / 1000;
     towait.tv_nsec = (ms % 1000) * msTOnsMULT;
+
     do {
         err = nanosleep(&towait, &remaining);
         towait = remaining;

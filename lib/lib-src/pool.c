@@ -48,3 +48,13 @@ int ch_jobs(pool_set_t *p, const int change) {
 
     return 0;
 }
+
+int set_jobs(pool_set_t *p, const int new_val) {
+    int err;
+
+    PTHLIB(err, pthread_mutex_lock(&(p->mtx))) {
+        p->jobs += new_val;
+    } PTHLIB(err, pthread_mutex_unlock(&(p->mtx)))
+
+    return 0;
+}

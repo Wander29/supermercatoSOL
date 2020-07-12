@@ -16,5 +16,6 @@ int pool_start(pool_set_t *arg);
 
 int get_jobs(pool_set_t *p);
 int ch_jobs(pool_set_t *p, const int change);
+int set_jobs(pool_set_t *p, const int new_val);
 
 #endif //PROGETTO_EXECUTOR_H

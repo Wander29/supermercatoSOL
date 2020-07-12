@@ -401,14 +401,11 @@ int main(int argc, char *argv[]) {
                              */
 
                             if(num_casse_aperte > 1) {
-#ifdef DEBUG_CASSIERE
-                                printf("[DIRETTORE] Decido chiusura..\n");
-#endif
                                 if(sotto_soglia_S1 >= par.S1) {
                                     type_msg = DIRETTORE_CHIUSURA_CASSA;
                                     MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
                                     MENO1(writen(smfd, &ind, sizeof(int)))
-#ifdef DEBUG_CASSIERE
+#ifdef DEBUG_NOTIFY
                                     printf("[DIRETTORE] Chiude cassa [%d]\n", ind);
 #endif
                                     code_casse[ind] = -1;
@@ -422,7 +419,7 @@ int main(int argc, char *argv[]) {
                             if(code_casse[ind] >= par.S2) {
                                 type_msg = DIRETTORE_APERTURA_CASSA;
                                 MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
-#ifdef DEBUG_CASSIERE
+#ifdef DEBUG_NOTIFY
                                 printf("[DIRETTORE] Apre una cassa\n");
 #endif
                             }

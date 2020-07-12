@@ -175,3 +175,56 @@ int queue_get_len(queue_t *Q) {
 
     return len;
 }
+
+queue_position_t queue_get_position(queue_t *Q, const void *elem) {
+    node_t *ptr = Q->head;
+    int cnt = 0;
+    queue_position_t tmp = {-1, NULL};
+
+    while(ptr != NULL) {
+        if(ptr->elem == elem) {
+            tmp.pos = cnt;
+            tmp.ptr_in_queue = ptr;
+            return tmp;
+        }
+        cnt++;
+        ptr = ptr->next;
+    }
+
+    return tmp;
+}
+
+int queue_remove_specific_elem(queue_t *Q, node_t *ptr) {
+    if(ptr == NULL || Q == NULL)
+        return -1;
+
+    if(Q->head == ptr) {
+        if(Q->nelems == 1) {
+            Q->head = (Q->tail = NULL);
+        } else {
+            Q->head = Q->head->next;
+            Q->head->prec = NULL;
+        }
+    }
+    else if(Q->tail == ptr) {
+        Q->tail = Q->tail->prec;
+        Q->tail->next = NULL;
+    } else {
+        (ptr->prec)->next = (ptr->next);
+    }
+
+    free(ptr);
+    Q->nelems--;
+
+    return 0;
+}
+
+void print_queue(queue_t *Q) {
+    node_t *ptr = Q->head;
+    int cnt = 0;
+    puts("CODA");
+    while(ptr != NULL) {
+        printf("[%d] %p\n", cnt++, ptr->elem);
+        ptr = ptr->next;
+    }
+}

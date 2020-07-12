@@ -76,14 +76,22 @@ void *cassiere(void *arg) {
         else if(err < 0)
             fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", i);
 
-        /* ha ottenuto il lavoro
+        /************************************************************************
+         * Quando OTTIENE il lavoro
          *  - se è la prima apertura, avvia il thread notificatore associato
-         *  - apre la cassa e si mette in attesa di clienti */
+         *      else avvisa il notificatore
+         *  - apre la cassa e si mette in attesa di clienti
+         *************************************************************************/
         if(tid_notificatore == (pthread_t ) -1) {
             PTH(err, pthread_create(&tid_notificatore, NULL, notificatore, arg))
+        } else {
+            PTH(err, pthread_cond_signal(&(C->cond))) /* signal al notificatore */
         }
 
+        /* setta la cassa APERTA e la rende la più conveniente in cui aspettare */
         set_stato_cassa(C, APERTA);
+        set_min_queue(C->q, 0);
+
 #ifdef DEBUG_CASSIERE
         printf("[CASSA %d] APERTA!\n", C->index);
 #endif
@@ -100,21 +108,24 @@ void *cassiere(void *arg) {
          ********************************************************************************/
         for(;;) {
             if((cassiere_pop_cliente(C, &cli)) == -1) {
-                if (CASSA_IN_CHIUSURA == cli.stato) {
-#ifdef DEBUG
-                    printf("[CASSA %d] chiudo la cassa (potrei riaprirla poi..) \tDIM [%d]!\n", C->index, queue_get_len(C->q));
-#endif
-                    cassiere_sveglia_clienti(C->q, CASSA_IN_CHIUSURA);
-#ifdef DEBUG
-                    printf("[CASSA %d] Ho detto che sto in chiusura \tDIM [%d]!\n", C->index, queue_get_len(C->q));
-#endif
-                    break;
-                } else if (SM_IN_CHIUSURA == cli.stato) {
+                if (SM_IN_CHIUSURA == cli.stato) {
 #ifdef DEBUG
                     printf("[CASSA %d] esco, ero sulla COND_READ!\n", C->index);
 #endif
                     cassiere_sveglia_clienti(C->q, SM_IN_CHIUSURA);
                     goto terminazione_cassiere;
+                }
+                else if (CASSA_IN_CHIUSURA == cli.stato) {
+#ifdef DEBUG
+                    printf("[CASSA %d] chiudo la cassa (potrei riaprirla poi..) \tDIM [%d]!\n", C->index, queue_get_len(C->q));
+#endif
+                    /* se era la coda più conveniente resetto min_queue */
+                    MENO1LIB(is_min_queue_testreset(C->q), (void *)-1)
+                    cassiere_sveglia_clienti(C->q, CASSA_IN_CHIUSURA);
+#ifdef DEBUG
+                    printf("[CASSA %d] Ho detto che sto in chiusura \tDIM [%d]!\n", C->index, queue_get_len(C->q));
+#endif
+                    break;
                 }
                 else {
                     // gestione errore ritorno dalla funzione
@@ -122,8 +133,10 @@ void *cassiere(void *arg) {
                     return (void *) -1;
                 }
             }
-#ifdef DEBUG
-            printf("[CASSA %d] cliente estratto [%p], prodotti [%d]!\n", C->index, (void*) cli.ptr, cli.ptr->num_prodotti);
+            /* ho fatto la POP, controllo se la mia coda `e la piú conveniente */
+            MENO1LIB( testset_min_queue(C->q, queue_get_len(C->q)), (void *) -1)
+#ifdef DEBUG_QUEUE
+            printf("[CASSA %d] cliente estratto\tDIM[%d]\n", C->index, queue_get_len(C->q));
 #endif
             /**************************************************
              * Cliente estratto dalla coda
@@ -151,6 +164,8 @@ void *cassiere(void *arg) {
 
 terminazione_cassiere:
     NOTZERO(set_stato_cassa(C, CHIUSA))
+    PTH(err, pthread_cond_signal(&(C->cond)))
+
     if(tid_notificatore != (pthread_t) -1) {
         PTH(err, pthread_join(tid_notificatore, &status_notificatore))
         PTHJOIN(status_notificatore, "Notificatore cassiere")
@@ -205,6 +220,9 @@ static int cassiere_attesa_lavoro(pool_set_t *P) {
                 return 1;
             }
             PTH(err, pthread_mutex_lock(&(P->mtx)))
+#ifdef DEBUG_NOTIFY
+            printf("[CASSA] APERTA!\n");
+#endif
         }
 #ifdef DEBUG_CASSIERE
         printf("[CASSA] sto per aprire!\n");
@@ -241,11 +259,18 @@ static void *notificatore(void *arg) {
     sock_msg_code_t sock_msg = CASSIERE_NUM_CLIENTI;
     int num_clienti,
         index = C->index;
-    /*
-    do {
-        MENO1(notificatre_attendi_apertura_cassa(C))
 
-        MENO1(millisleep(Com->A))
+    do {
+#ifdef DEBUG_NOTIFY
+        printf("[NOTIFICATORE %d] attendo stato!\n", C->index);
+#endif
+        if(notificatre_attendi_apertura_cassa(C) == 1) {
+            goto terminazione_notificatore;
+        }
+#ifdef DEBUG_NOTIFY
+        printf("[NOTIFICATORE %d] ATTIVO!\n", C->index);
+#endif
+        MENO1(millisleep(1000 + Com->A))
         while(get_stato_cassa(C) == APERTA) {
             MENO1(num_clienti = queue_get_len(C->q))
             socket_write(&sock_msg, 2, &index, &num_clienti);
@@ -253,10 +278,12 @@ static void *notificatore(void *arg) {
         }
 
     }  while(get_stato_supermercato() != CHIUSURA_IMMEDIATA);
-     */
 
-#ifdef DEBUG_TERM
+
+terminazione_notificatore:
+#ifdef DEBUG_NOTIFY
     printf("[NOTIFICATORE %d] TERMINATO CORRETTAMENTE!\n", C->index);
+    fflush(stdout);
 #endif
     return (void *) NULL;
 }
@@ -268,9 +295,6 @@ static int cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val) {
     int err;          // retval, per errori
 
     PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue))) {
-#ifdef DEBUG_MUTEX
-        printf("[CASSIERE] Mutex LOCK![%p]\n", (void *) &(q->mtx_queue));
-#endif
         while(q->nelems == 0) {
 #ifdef DEBUG_CASSIERE
             printf("[CASSIERE] Non c'è gente!\n");
@@ -286,11 +310,9 @@ static int cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val) {
         val->ptr = (queue_elem_t *) get_from_queue(q);
         if(val->ptr == NULL)
             fprintf(stderr, "NO elements in Queue: %s\n", __func__);
-
+        val->ptr->stato_attesa = SERVIZIO_IN_CORSO;
     } PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-#ifdef DEBUG_MUTEX
-    printf("[CASSIERE] Mutex UNLOCK![%p]\n", (void *) &(q->mtx_queue));
-#endif
+
     return 0;
 }
 
@@ -302,7 +324,9 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
 #ifdef DEBUG_MUTEX
         printf("[CASSIERE] Mutex LOCK![%p]\n", (void *) &(q->mtx_queue));
 #endif
-
+#ifdef DEBUG_WAKE
+        printf("[CASSA] DIM pre-wake[%d]\n", q->nelems);
+#endif
         while(q->nelems > 0) {
             curr = (queue_elem_t *) get_from_queue(q);
             if(curr == NULL) {
@@ -310,7 +334,7 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
                 PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
                 return 0;
             }
-#ifdef DEBUG_TERM
+#ifdef DEBUG_a
             printf("[CASSIERE] sveglio con prodotti [%d]!\n", curr->num_prodotti);
 #endif
             PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
@@ -318,7 +342,11 @@ static int cassiere_sveglia_clienti(queue_t *q, attesa_t stato) {
             PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))
             PTHLIB(err, pthread_mutex_lock(&(q->mtx_queue)))
         }
-    } PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
+    }
+#ifdef DEBUG_WAKE
+    printf("[CASSA] DIM post-wake[%d]\n", q->nelems);
+#endif
+    PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
 #ifdef DEBUG_MUTEX
     printf("[CASSIERE] Mutex UNLOCK![%p]\n", (void *) &(q->mtx_queue));
 #endif
@@ -331,6 +359,10 @@ static int notificatre_attendi_apertura_cassa(cassa_specific_t *c) {
     PTHLIB(err, pthread_mutex_lock(&(c->mtx))) {
         while(c->stato != APERTA) {
             PTHLIB(err, pthread_cond_wait(&(c->cond), &(c->mtx)))
+            if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+                PTHLIB(err, pthread_mutex_unlock(&(c->mtx)))
+                return 1;
+            }
         }
     } PTHLIB(err, pthread_mutex_unlock(&(c->mtx)))
 
