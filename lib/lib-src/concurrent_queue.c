@@ -16,7 +16,7 @@ int start_queue(queue_t **Q) {
     (*Q)->nelems = 0;
     (*Q)->tail = NULL;
     (*Q)->head = NULL;
-    MENO1( pthread_mutex_init (&((*Q)->mtx), NULL))
+    MENO1( pthread_mutex_init (&((*Q)->mtx_queue), NULL))
     MENO1( pthread_cond_init  (&((*Q)->cond_read), NULL))
 
     return 0;
@@ -31,7 +31,7 @@ queue_t *start_queue2(void) {
     Q->nelems = 0;
     Q->tail = NULL;
     Q->head = NULL;
-    MENO1( pthread_mutex_init (&(Q->mtx), NULL))
+    MENO1( pthread_mutex_init (&(Q->mtx_queue), NULL))
     MENO1( pthread_cond_init  (&(Q->cond_read), NULL))
 
     return Q;
@@ -104,16 +104,16 @@ void *getFIFO(queue_t *Q) {
     int r;          // retval, per errori
     void *val;
 
-    PTH(r, pthread_mutex_lock(&(Q->mtx)))
+    PTH(r, pthread_mutex_lock(&(Q->mtx_queue)))
 
     while(Q->nelems == 0)
-       PTH(r, pthread_cond_wait(&(Q->cond_read), &(Q->mtx)))
+       PTH(r, pthread_cond_wait(&(Q->cond_read), &(Q->mtx_queue)))
 
     if( (val = get_from_queue(Q)) == NULL) {
         // fprintf(stderr, "NO elements in Queue: %s\n", __func__);
     }
 
-    PTH(r, pthread_mutex_unlock(&(Q->mtx)))
+    PTH(r, pthread_mutex_unlock(&(Q->mtx_queue)))
 
     return val;
 }
@@ -131,16 +131,15 @@ int insertFIFO(queue_t *Q, void *new_elem) {
     QUEUENULL(Q, -1)
     int r;          // retval, per errori
 
-    PTH(r, pthread_mutex_lock(&(Q->mtx)))
+    PTH(r, pthread_mutex_lock(&(Q->mtx_queue)))
 
     if(insert_into_queue(Q, new_elem) == -1) {
-        PTH(r, pthread_mutex_unlock(&(Q->mtx)))
+        PTH(r, pthread_mutex_unlock(&(Q->mtx_queue)))
         // fprintf(stderr, "CALLOC fallita: %s\n", __func__);
         return -1;
     }
-    print_queue_int(Q);
     PTH(r, pthread_cond_signal(&(Q->cond_read)))
-    PTH(r, pthread_mutex_unlock(&(Q->mtx)))
+    PTH(r, pthread_mutex_unlock(&(Q->mtx_queue)))
 
     return 0;
 }
@@ -148,10 +147,7 @@ int insertFIFO(queue_t *Q, void *new_elem) {
 int free_queue(queue_t *Q, enum deallocazione_t opt) {
     QUEUENULL(Q, -1)
     int r;
-    PTH(r, pthread_mutex_lock(&(Q->mtx)))
-
-    printf("[CODA] dimensione [%d]\n", Q->nelems);
-
+    PTH(r, pthread_mutex_lock(&(Q->mtx_queue)))
     node_t  *curr = Q->head,
             *curr_prev;
     while(curr != NULL) {
@@ -162,22 +158,20 @@ int free_queue(queue_t *Q, enum deallocazione_t opt) {
         free(curr_prev);
     }
     PTHLIB(r, pthread_cond_destroy(&(Q->cond_read)))
-    PTHLIB(r, pthread_mutex_unlock(&(Q->mtx)))
-    PTHLIB(r, pthread_mutex_destroy(&(Q->mtx)))
+    PTHLIB(r, pthread_mutex_unlock(&(Q->mtx_queue)))
+    PTHLIB(r, pthread_mutex_destroy(&(Q->mtx_queue)))
     free(Q);
 
     return 0;
 }
 
-void print_queue_int(queue_t *Q) {
-    QUEUENULL(Q, )
-    // PTH(r, pthread_mutex_lock(&(Q->mtx)))
-    puts("\nCODA:");
-    node_t *tmp = Q->head;
-    while(tmp != NULL) {
-        printf("%d\n", (int)tmp->elem);
-        tmp = tmp->next;
-    }
+int queue_get_len(queue_t *Q) {
+    int err,
+        len;
 
-    // PTH(r, pthread_mutex_unlock(&(Q->mtx)))
+    PTHLIB(err, pthread_mutex_lock(&(Q->mtx_queue))) {
+        len = Q->nelems;
+    } PTH(err, pthread_mutex_unlock(&(Q->mtx_queue)))
+
+    return len;
 }

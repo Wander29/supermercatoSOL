@@ -47,10 +47,15 @@ typedef struct cassa_specific {
     int index;
 } cassa_specific_t;
 
-typedef struct cassa_arg {
-    /* comune a tutte le casse */
+typedef struct cassa_com_arg {
     pool_set_t *pool_set;
     int tempo_prodotto;
+    int A;                      /* ampiezza intervallo di comunicazione col direttore */
+} cassa_com_arg_t;
+
+typedef struct cassa_arg {
+    /* comune a tutte le casse */
+    cassa_com_arg_t *shared;
 
     /* specifico per ogni cassa */
     cassa_specific_t *cassa_set;

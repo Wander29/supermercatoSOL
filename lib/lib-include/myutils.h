@@ -9,8 +9,10 @@
 #include <stdlib.h>     // exit, EXIT_FAILURE
 #include <unistd.h>     // ssize_t, read/write
 #include <stdio.h>     //  perror
+#include <time.h>     //  nanosleep
+#include <errno.h>     //  nanosleep
 
-#define nsTOmsMULT  1000000
+#define msTOnsMULT  1000000
 
 #define MENO1(v) \
     if( (v) == -1 ) { perror(#v); exit(EXIT_FAILURE); }
@@ -66,5 +68,7 @@ ssize_t writen(int fd, void *ptr, size_t n);
  *              -1              errore, non è stato scritto nessun byte
  * !NOTES
  */
+
+int millisleep(const int ms);
 
 #endif //PROGETTO_MYUTILS_H

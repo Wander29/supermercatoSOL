@@ -1,6 +1,6 @@
 #!/bin/bash
 
-valgrind --trace-children=yes --leak-check=full --show-leak-kinds=all ./bin/direttore &
+valgrind --trace-children=yes --leak-check=full --error-limit=no --show-leak-kinds=all ./bin/direttore &
 PID=$!
 sleep 4
 kill -s SIGQUIT ${PID}

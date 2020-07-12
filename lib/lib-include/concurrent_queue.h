@@ -30,7 +30,7 @@ typedef struct queue_type {
     int nelems;                 /* numero elementi nella coda*/
     node_t  *head,
             *tail;
-    pthread_mutex_t mtx;
+    pthread_mutex_t mtx_queue;
     pthread_cond_t  cond_read;
 } queue_t;
 
@@ -79,11 +79,6 @@ int free_queue(queue_t *Q, enum deallocazione_t opt);
  * !NOTES       dovrebbe essere chiamata solamente da un thread per coda, tipicamente dal main
  */
 
-void print_queue_int(queue_t *Q);
-/* @INPUT       Q               Coda
- * @EFFECTS     stampa la coda FIFO considerando gli elementi contenuti nei nodi di tipo INTERO
- * @RETURNS     //
- * !NOTES
- */
+int queue_get_len(queue_t *Q);
 
 #endif //PROGETTO_CONCURRENT_QUEUE_H

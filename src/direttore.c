@@ -261,6 +261,8 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
     printf("[DIRETTORE] In attesa di una connessione\n");
 #endif
+    int sotto_soglia_S1     = 0,
+        num_casse_aperte    = 0;
 
     for(;;) {
         if (get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
@@ -272,9 +274,6 @@ int main(int argc, char *argv[]) {
         /*
         * MULTIPLEXING: attendo I/O su vari fd
         */
-#ifdef DEBUG
-        printf("[DIRETTORE] POLL!\n");
-#endif
         if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, si blocca */
             if(errno == EINTR && get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
                 /*
@@ -363,26 +362,28 @@ int main(int argc, char *argv[]) {
 #endif
                             break;
                         case CASSIERE_NUM_CLIENTI: {
+                            int ind;
                             /*
                              * leggo l'indice della coda e il numero di clienti in coda
                              */
-                            int ind;
-                            int sotto_soglia_S1     = 0,
-                                num_casse_aperte    = 0;
                             MENO1(readn(smfd, &ind, sizeof(int)))
                             MENO1(readn(smfd, &param, sizeof(int)))
                             /* param >= 0, ind >= 0 */
-#ifdef DEBUG_CASSIERE
+#ifdef DEBUG_NOTIFY
                             printf("[DIRETTORE] La cassa [%d] ha [%d] clienti in coda!\n", ind, param);
 #endif
                             if(code_casse[ind] < 0) { // era chiusa
                                 num_casse_aperte++;
-                            } else if(code_casse[ind] <= 1) { // se era sotto la soglia S1
+                                if(param <= 1)
+                                    sotto_soglia_S1++;
+                            } else if(code_casse[ind] <= 1) { // se era APERTA e sotto la soglia S1
                                 if (param > 1)
                                     sotto_soglia_S1--;
                             } else if(param <= 1)     // non era sotto la soglia S1, ora sì
                                 sotto_soglia_S1++;
-
+#ifdef DEBUG_CASSIERE
+                            printf("[DIRETTORE] sotto_soglia_S1 [%d]!\n", sotto_soglia_S1);
+#endif
                             code_casse[ind] = param;
 /*
  * Il direttore, sulla base delle informazioni ricevute dai cassieri, decide se aprire o
@@ -398,7 +399,11 @@ int main(int argc, char *argv[]) {
                             /*
                              * decisione CHIUSURA casse
                              */
+
                             if(num_casse_aperte > 1) {
+#ifdef DEBUG_CASSIERE
+                                printf("[DIRETTORE] Decido chiusura..\n");
+#endif
                                 if(sotto_soglia_S1 >= par.S1) {
                                     type_msg = DIRETTORE_CHIUSURA_CASSA;
                                     MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
@@ -441,7 +446,7 @@ terminazione_direttore:
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler Direttore")
 
-#ifdef DEBUG
+#ifdef DEBUG_TERM
     printf("[DIRETTORE] CHIUSURA CORRETTA\n");
 #endif
 

@@ -6,6 +6,7 @@
 #include <protocollo.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include <pthread.h>
 #include "../lib/lib-include/mypthread.h"
@@ -54,8 +55,10 @@ inline static int pipe_write(pipe_msg_code_t *type, int *param) {
     return 0;
 }
 
-inline static int socket_write(sock_msg_code_t *type, int *param){
+inline static int socket_write(sock_msg_code_t *type, int cnt, ...){
     int err;
+    va_list l;
+    va_start(l, cnt);
 
     PTH(err, pthread_mutex_lock(&mtx_socket))
 
@@ -63,22 +66,22 @@ inline static int socket_write(sock_msg_code_t *type, int *param){
         perror("writen");
         return -1;
     }
-    if(param != NULL) {
-        if(writen(dfd, param, sizeof(int)) == -1) {
+#ifdef DEBUG_SOCKET
+    printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *type);
+#endif
+    while(cnt-- > 0) {
+        int *tmp = va_arg(l, int *);
+        if(writen(dfd, tmp, sizeof(int)) == -1) {
             perror("writen");
             return -1;
         }
 #ifdef DEBUG_SOCKET
-        printf("[SUPERMERCATO] HO scritto sul socket [%d, %d]\n", *type, *param);
-#endif
-    } else {
-#ifdef DEBUG_SOCKET
-        printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *type);
+        printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *tmp);
 #endif
     }
-
     PTH(err, pthread_mutex_unlock(&mtx_socket))
 
+    va_end(l);
     return 0;
 }
 

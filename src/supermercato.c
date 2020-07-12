@@ -203,21 +203,26 @@ int main(int argc, char* argv[]) {
     pool_start(&arg_cas);
     arg_cas.jobs = par.J;   /* casse attive inizialmente */
 
+    /** argomenti COMUNI a tutte le casse */
+    cassa_com_arg_t com_casse;
+    com_casse.pool_set        = &arg_cas;
+    com_casse.tempo_prodotto  = par.L;
+    com_casse.A               = par.A;
+
     /** argomenti SPECIFICI, riempiti nel ciclo */
     cassa_specific_t *casse_specific;
     EQNULL(casse_specific = calloc(par.K, sizeof(cassa_specific_t)))
 
     cassa_arg_t *casse;
     EQNULL(casse = calloc(par.K, sizeof(cassa_arg_t)))
-    /* per ogni cassiere passo una struttura contenente anche il suo indice */
+
     for(i = 0; i < par.K; i++) {
         /* comuni */
-        casse[i].pool_set = &arg_cas;
-        casse[i].tempo_prodotto = par.L;
+        casse[i].shared = &com_casse;
 
         /* specifici */
         casse_specific[i].index = i;
-        casse_specific[i].q = Q[i];
+        casse_specific[i].q     = Q[i];
         casse_specific[i].stato = CHIUSA;
 
         casse[i].cassa_set = casse_specific + i;
@@ -249,19 +254,19 @@ int main(int argc, char* argv[]) {
     arg_cl.jobs = par.C;
 
     /** argomenti COMUNI */
-    client_com_arg_t com;
-    com.numero_casse = par.K;
-    com.casse = casse_specific;
-    com.pool_set = &arg_cl;
-    com.T = par.T;
-    com.P = par.P;
+    client_com_arg_t com_cl;
+    com_cl.numero_casse = par.K;
+    com_cl.casse = casse_specific;
+    com_cl.pool_set = &arg_cl;
+    com_cl.T = par.T;
+    com_cl.P = par.P;
 
     /** argomenti SPECIFICI, riempiti nel ciclo */
     cliente_arg_t *clienti;
     EQNULL(clienti = calloc(par.C, sizeof(cliente_arg_t)))
 
     for(i = 0; i < par.C; i++) {
-        clienti[i].shared = &com;
+        clienti[i].shared = &com_cl;
         clienti[i].index = i;
         clienti[i].permesso_uscita = 0;
     }
@@ -279,9 +284,6 @@ int main(int argc, char* argv[]) {
         /*
        * MULTIPLEXING: attendo I/O su vari fd
        */
-#ifdef DEBUG_MANAGER
-        printf("[MANAGER] POLL\n");
-#endif
         if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, si blocca */
             if(errno == EINTR && get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
                 /*
@@ -315,7 +317,7 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_PIPE
                             printf("[MANAGER] CLIENTE_RICHIESTA_PERMESSO: [%d]\n", param);
 #endif
-                            MENO1(socket_write(&type_msg_sock, &param))
+                            MENO1(socket_write(&type_msg_sock, 1, &param))
                             break;
 
                         case CLIENTE_ENTRATA:
@@ -333,7 +335,7 @@ int main(int argc, char* argv[]) {
                             if(get_stato_supermercato() != APERTO && cnt_clienti_attivi == 0) {
                                 set_stato_supermercato(CHIUSURA_IMMEDIATA);
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
-                                MENO1(socket_write(&type_msg_sock, NULL))
+                                MENO1(socket_write(&type_msg_sock, 0))
                                 goto terminazione_supermercato;
                             }
                             if(par.C - cnt_clienti_attivi == par.E) {
@@ -357,7 +359,7 @@ int main(int argc, char* argv[]) {
                             else if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
                                 PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
-                                MENO1(socket_write(&type_msg_sock, NULL))
+                                MENO1(socket_write(&type_msg_sock, 0))
                                 goto terminazione_supermercato;
                             }
                             break;
@@ -367,7 +369,7 @@ int main(int argc, char* argv[]) {
                 }
                 else if(fd_curr == dfd) {
                     MENO1(readn(dfd, &type_msg_sock, sizeof(sock_msg_code_t)))
-#ifdef DEBUG_MANAGER
+#ifdef DEBUG_SOCKET
                     printf("[MANAGER] SOCKET [%d]!\n", type_msg_sock);
 #endif
                     switch(type_msg_sock) {
@@ -466,7 +468,7 @@ terminazione_supermercato:
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler")
 
-#ifdef DEBUG
+#ifdef DEBUG_TERM
     fprintf(stderr, "[SUPERMERCATO] CHIUSURA CORRETTA\n");
 #endif
     return 0;

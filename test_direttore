@@ -10,4 +10,4 @@ fi
 PID_DIR=$!
 sleep 6
 kill -s ${SIG} ${PID_DIR}
-sleep 1
+sleep 3

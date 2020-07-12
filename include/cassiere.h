@@ -26,11 +26,18 @@
 
 #define CASSA_APERTA_CHECK(Q)                               \
     if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {    \
-        return (queue_elem_t *) 1;                          \
+        val->stato = SM_IN_CHIUSURA;                        \
+        return -1;                                          \
     }                                                       \
     if(get_stato_cassa((Q)) == CHIUSA) {                    \
-        return (queue_elem_t *) 1;                          \
+        val->stato = CASSA_IN_CHIUSURA;                     \
+        return -1;                                          \
     }
+
+typedef struct ret_pop {
+    queue_elem_t *ptr;
+    attesa_t stato;
+} ret_pop_t;
 
 #define MAX_TEMPO_FISSO 80
 #define MIN_TEMPO_FISSO 20

@@ -1,4 +1,5 @@
 #include <myutils.h>
+#include "../lib-include/myutils.h"
 
 /* tratto da “Advanced Programming In the UNIX Environment”
  * by W. Richard Stevens and Stephen A. Rago, 2013, 3rd Edition, Addison-Wesley
@@ -43,3 +44,24 @@ ssize_t writen(int fd, void *ptr, size_t n) {
     }
     return(n - nleft); /* return >= 0 */
 }
+
+int millisleep(const int ms) {
+    int err;
+    struct timespec towait = {0, 0},
+                    remaining = {0, 0};
+
+    if(ms <= 0) {
+        fprintf(stderr, "MILLISLEEP: ms must be > 0\n");
+        errno = EINVAL;
+        return -1;
+    }
+    towait.tv_sec = ms / 1000;
+    towait.tv_nsec = (ms % 1000) * msTOnsMULT;
+    do {
+        err = nanosleep(&towait, &remaining);
+        towait = remaining;
+    } while(err != 0);
+
+    return 0;
+}
+

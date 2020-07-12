@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <poll.h>
 
-static unsigned size = START_SIZE;
+static int size = START_SIZE;
 
-struct pollfd *start_pollfd() {
+struct pollfd *start_pollfd(void) {
     struct pollfd *v;
     v = calloc(START_SIZE, sizeof(struct pollfd));
     if(v == NULL) {
@@ -61,7 +61,7 @@ int pollfd_remove(struct pollfd *v, const int j, int *actual_len) {
      * altrimenti sposto gli altri elemnti indietro
      */
     for(int i=j; i < (*actual_len - 1); i++) {
-        v[i] = (struct pollfd) v[i+1];
+        v[i] = v[i+1];
     }
 
     (*actual_len)--;
