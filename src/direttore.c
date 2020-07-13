@@ -153,11 +153,20 @@ int main(int argc, char *argv[]) {
      * - thread signal handler, gestirà SIGQUIT e SIGHUP
      *      maschero tutti i segnali nel thread main
     ****************************************************************************************/
-    MENO1(pipe(pipefd_dir))
+    struct sigaction sa;
+    MENO1(sigaction(SIGPIPE, NULL, &sa))
+    sa.sa_handler = SIG_IGN;
+    MENO1(sigaction(SIGPIPE, &sa, NULL))
 
     sigset_t mask;
     MENO1(sigfillset(&mask))
+    MENO1(sigdelset(&mask, SIGPIPE))
     PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
+
+    /*
+     * inizializzazione PIPE per tsh
+     */
+    MENO1(pipe(pipefd_dir))
 
     pthread_t tid_tsh;
     void *status_tsh;

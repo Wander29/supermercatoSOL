@@ -1,5 +1,5 @@
-#ifndef PROGETTO_MYSOCKET_H
-#define PROGETTO_MYSOCKET_H
+#ifndef LUDOVICO_VENTURI_MYSOCKET_H
+#define LUDOVICO_VENTURI_MYSOCKET_H
 
 #include <myutils.h>
 #include <string.h>
@@ -15,4 +15,4 @@
     MENO1((sfd) = socket(AF_UNIX, SOCK_STREAM, 0))
 
 
-#endif //PROGETTO_MYSOCKET_H
+#endif //LUDOVICO_VENTURI_MYSOCKET_H

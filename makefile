@@ -12,7 +12,7 @@ LDFLAGS     = 	-Wl,-rpath,$(LIBDIR)
 LIBINCLUDE  =   $(LIBDIR)lib-include/
 INCDIR		=	include/
 INCLUDE     =   $(INCDIR) -I $(LIBINCLUDE)
-LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libconcurrent_queue.so $(LIBDIR)libmypoll.so \
+LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libqueue_linked.so $(LIBDIR)libmypoll.so \
 				$(LIBDIR)libpool.so $(LIBDIR)libparser_config.so
 INCUSED		=	$(LIBINCLUDE)mysocket.h $(LIBINCLUDE)mypthread.h $(INCDIR)mytypes.h
 OBJDIR		=	obj/
@@ -53,11 +53,11 @@ $(LIBDIR)libmyutils.so: $(LIBSRC)myutils.c $(LIBINCLUDE)myutils.h
 	$(CC) -shared -o $@ myutils.o
 	rm -f myutils.o
 
-$(LIBDIR)libconcurrent_queue.so: $(LIBSRC)concurrent_queue.c $(LIBINCLUDE)concurrent_queue.h
-	-rm -f concurrent_queue.o
-	$(CC) $(CFLAGS) -I $(INCLUDE) -c -fPIC -o concurrent_queue.o $<
-	$(CC) -shared -o $@ concurrent_queue.o
-	rm -f concurrent_queue.o
+$(LIBDIR)libqueue_linked.so: $(LIBSRC)queue_linked.c $(LIBINCLUDE)queue_linked.h
+	-rm -f queue_linked.o
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -fPIC -o queue_linked.o $<
+	$(CC) -shared -o $@ queue_linked.o
+	rm -f queue_linked.o
 
 $(LIBDIR)libmypoll.so: $(LIBSRC)mypoll.c $(LIBINCLUDE)mypoll.h
 	-rm -f mypoll.o

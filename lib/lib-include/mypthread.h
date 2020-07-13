@@ -1,5 +1,5 @@
-#ifndef PROGETTO_MYPTHREAD_H
-#define PROGETTO_MYPTHREAD_H
+#ifndef LUDOVICO_VENTURI_MYPTHREAD_H
+#define LUDOVICO_VENTURI_MYPTHREAD_H
 
 #include <stdio.h>     //  perror
 #include <errno.h>     //  errno
@@ -15,7 +15,14 @@
     if ( ((r) = (pth_call)) != 0) {						\
         errno = r;									    \
         perror(#pth_call);								\
-        return -1;								\
+        return -1;								        \
+    }
+
+#define PTHLIBR(r, pth_call, ret)			            \
+    if ( ((r) = (pth_call)) != 0) {						\
+        errno = r;									    \
+        perror(#pth_call);								\
+        return (ret);								    \
     }
 
 #define PTHJOIN(status, str)                            \
@@ -26,4 +33,4 @@
         exit(EXIT_FAILURE);                             \
     }
 
-#endif //PROGETTO_MYPTHREAD_H
+#endif //LUDOVICO_VENTURI_MYPTHREAD_H

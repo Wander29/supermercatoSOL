@@ -1,8 +1,5 @@
-//
-// Ludovico Venturi
-//
-#ifndef PROGETTO_MYUTILS_H
-#define PROGETTO_MYUTILS_H
+#ifndef LUDOVICO_VENTURI_MYUTILS_H
+#define LUDOVICO_VENTURI_MYUTILS_H
 
 #define _POSIX_C_SOURCE 200809L
 
@@ -73,4 +70,4 @@ int millisleep(const int ms);
 int millitimespec(struct timespec *ts, const int timeout_ms);
 
 
-#endif //PROGETTO_MYUTILS_H
+#endif //LUDOVICO_VENTURI_MYUTILS_H

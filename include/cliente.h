@@ -1,9 +1,5 @@
-//
-// Created by ludo on 10/07/20.
-//
-
-#ifndef PROGETTO_CLIENTE_H
-#define PROGETTO_CLIENTE_H
+#ifndef LUDOVICO_VENTURI_CLIENTE_H
+#define LUDOVICO_VENTURI_CLIENTE_H
 
 #include <myutils.h>
 #include "../include/mytypes.h"
@@ -17,7 +13,7 @@
 #include <mypoll.h>
 #include <parser_config.h>
 #include <pool.h>
-#include <concurrent_queue.h>
+#include <queue_linked.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <time.h>
@@ -28,18 +24,12 @@
 #include "../include/protocollo.h"
 #include "../include/supermercato.h"
 #include "../include/cassiere.h"
-#include "../lib/lib-include/concurrent_queue.h"
+#include "../lib/lib-include/queue_linked.h"
 
 #define MIN_TEMPO_ACQUISTI 10
 
-#define CHECK_CHIUSURA_IMM(stri)                                             \
-                                           \
-}
+void *      cliente(void *arg);
+int         set_permesso_uscita(cliente_arg_t *c, const int new_perm);
+int         set_stato_attesa(queue_elem_t *e, const attesa_t new_stato);
 
-void *cliente(void *arg);
-int get_permesso_uscita(cliente_arg_t *c);
-int set_permesso_uscita(cliente_arg_t *c, const int new_perm);
-attesa_t get_stato_attesa(queue_elem_t *e);
-int set_stato_attesa(queue_elem_t *e, const attesa_t new_stato);
-
-#endif //PROGETTO_CLIENTE_H
+#endif //LUDOVICO_VENTURI_CLIENTE_H

@@ -1,5 +1,5 @@
-#ifndef PROGETTO_PARSER_CONFIG_H
-#define PROGETTO_PARSER_CONFIG_H
+#ifndef LUDOVICO_VENTURI_PARSER_CONFIG_H
+#define LUDOVICO_VENTURI_PARSER_CONFIG_H
 
 typedef struct param {
     int K,              /*  casse totali */
@@ -19,4 +19,4 @@ typedef struct param {
 
 int get_params_from_file(param_t *ptr);
 
-#endif // PROGETTO_PARSER_CONFIG_H
+#endif // LUDOVICO_VENTURI_PARSER_CONFIG_H

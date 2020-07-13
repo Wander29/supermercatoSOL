@@ -1,5 +1,5 @@
-#ifndef PROGETTO_MYTYPES_H
-#define PROGETTO_MYTYPES_H
+#ifndef LUDOVICO_VENTURI_MYTYPES_H
+#define LUDOVICO_VENTURI_MYTYPES_H
 
 #include <myutils.h>
 #include <protocollo.h>
@@ -9,11 +9,11 @@
 #include <pthread.h>
 #include "../lib/lib-include/mypthread.h"
 #include "../lib/lib-include/mysocket.h"
-#include "../lib/lib-include/concurrent_queue.h"
+#include "../lib/lib-include/queue_linked.h"
 #include <mypoll.h>
 #include <parser_config.h>
 #include <pool.h>
-#include <concurrent_queue.h>
+#include <queue_linked.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <time.h>
@@ -34,14 +34,14 @@ typedef enum pipe_msg_code {
  * Argomento ai thread Cassieri
  ************************************/
 typedef enum stato_cassa {
-    CHIUSA = 0,     /* IF(cassa.stato == CHIUSA && get_stato_supermerato() == CHIUS.IMM) => cliente esci */
-    APERTA,
-    SUPERMERCATO_IN_CHIUSURA
+    CHIUSA = 0,
+    APERTA
 } stato_cassa_t;
 
 typedef struct cassa_specific {
-    pthread_cond_t cond;
-    pthread_mutex_t mtx;
+    pthread_cond_t cond_queue;
+    pthread_cond_t cond_notif;
+    pthread_mutex_t mtx_cassa;
     queue_t *q;
     stato_cassa_t stato;
     int index;
@@ -73,7 +73,6 @@ typedef enum attesa {
 } attesa_t;
 
 typedef struct queue_elem {
-    int id_cl;
     int num_prodotti;
     attesa_t stato_attesa;
     pthread_cond_t cond_cl_q;
@@ -90,6 +89,9 @@ typedef struct client_com_arg {
     int T;
     int P;
     int S;
+    int current_last_id_cl;
+    pthread_cond_t cond_id_cl;
+    pthread_mutex_t mtx_id_cl;
 } client_com_arg_t;
 
 typedef struct cliente_arg {
@@ -103,10 +105,12 @@ typedef struct cliente_arg {
     int permesso_uscita;
 } cliente_arg_t;
 
-
+/*
+ * Gestione della cassa (forse) più conveniente (non OTTIMA)
+ */
 typedef struct min_queue {
     cassa_specific_t *ptr_q;
     int num;
 } min_queue_t;
 
-#endif //PROGETTO_MYTYPES_H
+#endif //LUDOVICO_VENTURI_MYTYPES_H

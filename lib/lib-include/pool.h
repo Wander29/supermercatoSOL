@@ -1,5 +1,5 @@
-#ifndef PROGETTO_EXECUTOR_H
-#define PROGETTO_EXECUTOR_H
+#ifndef LUDOVICO_VENTURI_POOL_H
+#define LUDOVICO_VENTURI_POOL_H
 
 #include <pthread.h>
 #include <mypthread.h>
@@ -18,4 +18,4 @@ int get_jobs(pool_set_t *p);
 int ch_jobs(pool_set_t *p, const int change);
 int set_jobs(pool_set_t *p, const int new_val);
 
-#endif //PROGETTO_EXECUTOR_H
+#endif //LUDOVICO_VENTURI_POOL_H

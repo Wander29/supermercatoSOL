@@ -1,9 +1,10 @@
-#ifndef PROGETTO_PROTOCOLLO_H
-#define PROGETTO_PROTOCOLLO_H
+#ifndef LUDOVICO_VENTURI_PROTOCOLLO_H
+#define LUDOVICO_VENTURI_PROTOCOLLO_H
 
 #include <pthread.h>
+#include <mypthread.h>
+
 #include "../lib/lib-include/mypthread.h"
-#include "../lib/lib-include/mysocket.h"
 
 #define SOCKET_SERVER_NAME "pleasekillmeatexit.socket"
 #define PATH_TO_SUPERMARKET "./bin/supermercato"
@@ -25,7 +26,6 @@
 #define DEBUG_MINQ
 #define DEBUG_TERM
 
-
 typedef enum stato_supermercato {
     APERTO = 0,
     CHIUSURA_IMMEDIATA,
@@ -36,7 +36,7 @@ typedef enum stato_supermercato {
 extern stato_sm_t stato_supermercato;
 extern pthread_mutex_t mtx_stato_supermercato;
 
-void set_stato_supermercato(const stato_sm_t x);
+int set_stato_supermercato(const stato_sm_t x);
 stato_sm_t get_stato_supermercato(void);
 
 /**************************************************************************************

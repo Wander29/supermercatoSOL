@@ -1,5 +1,5 @@
-#ifndef PROGETTO_CONCURRENT_QUEUE_H
-#define PROGETTO_CONCURRENT_QUEUE_H
+#ifndef LUDOVICO_VENTURI_CONCURRENT_QUEUE_H
+#define LUDOVICO_VENTURI_CONCURRENT_QUEUE_H
 
 #include <myutils.h>
 #include <mypthread.h>
@@ -30,8 +30,6 @@ typedef struct queue_type {
     int nelems;                 /* numero elementi nella coda*/
     node_t  *head,
             *tail;
-    pthread_mutex_t mtx_queue;
-    pthread_cond_t  cond_read;
 } queue_t;
 
 typedef struct queue_position {
@@ -53,7 +51,7 @@ int start_queue(queue_t **Q);
  * !NOTES       dovrebbe essere chiamata solamente da un thread per coda, tipicamente dal main
  */
 
-void *getFIFO(queue_t *Q);
+// void *getFIFO(queue_t *Q);
 /* @INPUT       Q               coda
  * @EFFECTS     estra dalla coda il nodo in testa, ne ritorna il valore contenuto e
  *                  libera la memoria relativa al nodo. La testa della coda diventa
@@ -64,7 +62,7 @@ void *getFIFO(queue_t *Q);
  * !NOTES
  */
 
-int insertFIFO(queue_t *Q, void *new_elem);
+// int insertFIFO(queue_t *Q, void *new_elem);
 /* @INPUT       Q               coda
  *              new_elem        valore da inserire in coda
  * @EFFECTS     alloca dinamicamente un nodo contenente il valore new_elem
@@ -84,9 +82,8 @@ int free_queue(queue_t *Q, enum deallocazione_t opt);
  * !NOTES       dovrebbe essere chiamata solamente da un thread per coda, tipicamente dal main
  */
 
-int queue_get_len(queue_t *Q);
 queue_position_t queue_get_position(queue_t *Q, const void *elem);
 int queue_remove_specific_elem(queue_t *Q, node_t *ptr);
 void print_queue(queue_t *Q);
 
-#endif //PROGETTO_CONCURRENT_QUEUE_H
+#endif //LUDOVICO_VENTURI_CONCURRENT_QUEUE_H

@@ -1,30 +1,30 @@
-#ifndef PROGETTO_SUPERMERCATO_H
-#define PROGETTO_SUPERMERCATO_H
+#ifndef LUDOVICO_VENTURI_SUPERMERCATO_H
+#define LUDOVICO_VENTURI_SUPERMERCATO_H
 
 #include <myutils.h>
-#include "../include/mytypes.h"
-#include <protocollo.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
-#include <pthread.h>
-#include "../lib/lib-include/mypthread.h"
-#include "../lib/lib-include/mysocket.h"
+#include <mytypes.h>
 #include <mypoll.h>
+#include <protocollo.h>
 #include <parser_config.h>
 #include <pool.h>
-#include <concurrent_queue.h>
+#include <queue_linked.h>
 #include <cassiere.h>
 #include <cliente.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <pthread.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <time.h>
 
+#include "../lib/lib-include/mypthread.h"
+#include "../lib/lib-include/mysocket.h"
+#include "../include/mytypes.h"
 #include "../include/protocollo.h"
 #include "../lib/lib-include/pool.h"
-#include "../lib/lib-include/concurrent_queue.h"
+#include "../lib/lib-include/queue_linked.h"
 #include "../lib/lib-include/parser_config.h"
 
 #define PTHLIBMQ(err, pth_spin_call)        \
@@ -34,6 +34,14 @@
         pthread_spin_unlock(&spin);          \
         return tmp;                         \
 }
+
+/*
+ * Qui sono contenture le variabili condivise fra i thread del processo Supermercato:
+ *      .manager
+ *      .thread signal handler
+ *      .cassieri (e notificatori)
+ *      .clienti
+ */
 
 /** Var. GLOBALI */
 extern int dfd;                 /* file descriptor del socket col direttore */
@@ -64,10 +72,9 @@ extern pthread_spinlock_t spin;
  *      diventa subito la cassa migliore, senza controlli, non avendo clienti
  * CAMBIO CASSA di un cliente
  *      se un cliente cambia cassa di certo la cassa da cui proviene non era
- *      la min_queue, e come per la PUSH non gestisco il nuovo inserimento
+ *      la min_queue, pertanto NON eseguo confronti al fine di aggiornare la min queue
  *****************************************************************************/
-
-
+/* CAMBIO CASSA (cliente) */
 inline static min_queue_t get_min_queue(void) {
     int err;
     min_queue_t tmp;
@@ -80,6 +87,7 @@ inline static min_queue_t get_min_queue(void) {
     return tmp;
 }
 
+/* POP */
 inline static int testset_min_queue(cassa_specific_t *q, const int num_to_test) {
     int err;
 
@@ -96,6 +104,7 @@ inline static int testset_min_queue(cassa_specific_t *q, const int num_to_test) 
     return 0;
 }
 
+/* APERTURA CASSA */
 inline static int set_min_queue(cassa_specific_t *q, const int num_to_test) {
     int err;
 
@@ -110,6 +119,7 @@ inline static int set_min_queue(cassa_specific_t *q, const int num_to_test) {
     return 0;
 }
 
+/* CHIUSURA cassa */
 inline static int is_min_queue_testreset(cassa_specific_t *q) {
     int err;
 
@@ -126,6 +136,7 @@ inline static int is_min_queue_testreset(cassa_specific_t *q) {
     return 0;
 }
 
+/* PUSH */
 inline static int is_min_queue_testinc(cassa_specific_t *q) {
     int err;
 
@@ -141,6 +152,8 @@ inline static int is_min_queue_testinc(cassa_specific_t *q) {
     return 0;
 }
 
+/* scrittura in mutua esclusione di 1 o + messaggi sulla pipe
+ * fra Manager-Clienti-TSH(supermercato) seguendo il protocollo di comunicazone */
 inline static int pipe_write(pipe_msg_code_t *type, int *param) {
     int err;
 
@@ -161,6 +174,8 @@ inline static int pipe_write(pipe_msg_code_t *type, int *param) {
     return 0;
 }
 
+/* scrittura in mutua esclusione di 1 o + messaggi (a seconda del tipo di messaggio)
+ * da parte dei thread del supermercato */
 inline static int socket_write(sock_msg_code_t *type, int cnt, ...){
     int err;
     va_list l;
@@ -191,4 +206,4 @@ inline static int socket_write(sock_msg_code_t *type, int cnt, ...){
     return 0;
 }
 
-#endif //PROGETTO_SUPERMERCATO_H
+#endif //LUDOVICO_VENTURI_SUPERMERCATO_H

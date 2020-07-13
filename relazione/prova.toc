@@ -1,0 +1,14 @@
+\babel@toc {italian}{}
+\babel@toc {italian}{}
+\contentsline {section}{\numberline {1}Pool}{1}{section.1}% 
+\contentsline {subsection}{\numberline {1.1}Concorrenza}{1}{subsection.1.1}% 
+\contentsline {section}{\numberline {2}Manager}{1}{section.2}% 
+\contentsline {subsection}{\numberline {2.1}Comunicazione con i Clienti}{1}{subsection.2.1}% 
+\contentsline {subsubsection}{\numberline {2.1.1}Concorrenza}{1}{subsubsection.2.1.1}% 
+\contentsline {section}{\numberline {3}Cliente}{2}{section.3}% 
+\contentsline {subsection}{\numberline {3.1}Concorrenza}{2}{subsection.3.1}% 
+\contentsline {section}{\numberline {4}Cassiere}{2}{section.4}% 
+\contentsline {subsection}{\numberline {4.1}Concorrenza}{2}{subsection.4.1}% 
+\contentsline {section}{\numberline {5}Direttore}{3}{section.5}% 
+\contentsline {subsection}{\numberline {5.1}Comunicazione Direttore-Supermercato}{3}{subsection.5.1}% 
+\contentsline {section}{\numberline {6}Utilizzo}{3}{section.6}% 

@@ -38,6 +38,7 @@ pthread_spinlock_t spin;
  *****************************************************/
 static void *sync_signal_handler(void *useless) {
     int err;
+
     sigset_t mask;
     MENO1(sigemptyset(&mask))
     MENO1(sigaddset(&mask, SIGQUIT))
@@ -53,13 +54,11 @@ static void *sync_signal_handler(void *useless) {
         switch(sig_captured) {
             case SIGQUIT: /* chiusura immediata */
                 puts("SIGQUIT");
-                set_stato_supermercato(CHIUSURA_IMMEDIATA);
-                MENO1LIB(pipe_write(&msg, NULL), ((void *)-1))
+                MENO1LIB(pipe_write(&msg, &sig_captured), ((void *)-1))
                 break;
             case SIGHUP:
                 puts("SIGHUP");
-                set_stato_supermercato(CHIUSURA_SOFT);
-                MENO1LIB(pipe_write(&msg, NULL), ((void *)-1))
+                MENO1LIB(pipe_write(&msg, &sig_captured), ((void *)-1))
                 break;
             default: /* SIGUSR1*/
                 puts("SIGUSR1");
@@ -104,8 +103,14 @@ int main(int argc, char* argv[]) {
      *      maschero tutti i segnali nel thread main
      *          => tutti i thread creati da questo thread erediteranno la signal mask
     ****************************************************************************************/
+    struct sigaction sa;
+    MENO1(sigaction(SIGPIPE, NULL, &sa))
+    sa.sa_handler = SIG_IGN;
+    MENO1(sigaction(SIGPIPE, &sa, NULL))
+
     sigset_t mask;
     MENO1(sigfillset(&mask))
+    MENO1(sigdelset(&mask, SIGPIPE))
     PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
 
     /*
@@ -266,6 +271,10 @@ int main(int argc, char* argv[]) {
     com_cl.T = par.T;
     com_cl.P = par.P;
     com_cl.S = par.S;
+    com_cl.current_last_id_cl = 0;
+
+    PTH(err, pthread_mutex_init(&(com_cl.mtx_id_cl), NULL))
+    PTH(err, pthread_cond_init(&(com_cl.cond_id_cl), NULL))
 
     /** argomenti SPECIFICI, riempiti nel ciclo */
     cliente_arg_t *clienti;
@@ -359,11 +368,13 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_PIPE
                             printf("[MANAGER] SIG_RICEVUTO\n");
 #endif
-                            if(get_stato_supermercato() == CHIUSURA_SOFT) {
+                            MENO1(readn(pipefd_sm[0], &param, sizeof(int)))
+                            if(param == SIGHUP) {
+                                set_stato_supermercato(CHIUSURA_SOFT);
                                 PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
                             }
-                            else if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
-                                PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
+                            else if(param == SIGQUIT) {
+                                set_stato_supermercato(CHIUSURA_IMMEDIATA);
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
                                 MENO1(socket_write(&type_msg_sock, 0))
                                 goto terminazione_supermercato;
@@ -385,7 +396,6 @@ int main(int argc, char* argv[]) {
                             printf("[MANAGER] Ricevuto PERMESSO di uscire per il cliente [%d]\n", param);
 #endif
                             NOTZERO(set_permesso_uscita(clienti+param, 1))
-                            //clienti[param].permesso_uscita = 1;
                             PTH(err, pthread_cond_signal(&(clienti[param].cond)))
 
                             break;
@@ -429,7 +439,9 @@ terminazione_supermercato:
       che sulla cond di READ
      ****************************************************************/
 
+    /* clienti e cassieri dormienti in attesa di lavoro vengono svegliati */
     PTH(err, pthread_cond_broadcast(&(arg_cas.cond)))
+    PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
 
     for(i = 0; i < par.K; i++) {
         PTH(err, pthread_cond_signal(&(casse_specific[i].q->cond_read)))
@@ -445,13 +457,17 @@ terminazione_supermercato:
 
     /*
      * clienti
+     * - devo svegliare anche eventuali clienti in attesa di permesso di uscita
      */
-    pool_destroy(&arg_cl);
-
     for(i = 0; i < par.C; i++) {
+        PTH(err, pthread_cond_signal(&(clienti[i].cond)))
         PTH(err, pthread_join(tid_clienti[i], status_clienti+i))
         PTHJOIN(status_clienti[i], "Cliente")
     }
+    PTH(err, pthread_mutex_destroy(&(com_cl.mtx_id_cl)))
+    PTH(err, pthread_cond_destroy(&(com_cl.cond_id_cl)))
+
+    pool_destroy(&arg_cl);
     free(tid_clienti);
     free(status_clienti);
     free(clienti);
@@ -462,11 +478,10 @@ terminazione_supermercato:
 
     /* CODE casse */
     for(i = 0; i < par.K; i++) {
-        if(free_queue(Q[i], NO_DYNAMIC_ELEMS))
-            printf("[STRONZA %d]\n", i);
+        if(free_queue(Q[i], NO_DYNAMIC_ELEMS) != 0)
+            printf("[CODA %d] Errore di terminazione\n", i);
     }
     free(Q);
-    PTH(err, pthread_spin_destroy(&spin))
     /*
      * signal handler
      */
@@ -474,6 +489,7 @@ terminazione_supermercato:
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler")
 
+    PTH(err, pthread_spin_destroy(&spin))
     PTH(err, pthread_mutex_destroy(&mtx_socket))
     PTH(err, pthread_mutex_destroy(&mtx_pipe))
     PTH(err, pthread_mutex_destroy(&mtx_stato_supermercato))
