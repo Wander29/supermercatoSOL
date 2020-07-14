@@ -1,6 +1,7 @@
 #!/bin/bash
 
-valgrind --trace-children=yes --leak-check=full --error-limit=no --show-leak-kinds=all ./bin/direttore &
+#valgrind --trace-children=yes ./bin/direttore -c config.txt &
+valgrind --trace-children=yes --leak-check=full --error-limit=no --show-leak-kinds=all ./bin/direttore -c config.txt &
 PID=$!
 sleep 6
 kill -s SIGQUIT ${PID}

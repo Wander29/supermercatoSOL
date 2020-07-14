@@ -21,7 +21,7 @@ BINDIR		=	bin/
 
 TARGETS     =  	$(BINDIR)direttore
 
-.PHONY: all clean kill
+.PHONY: all clean kill test1 test2 test3
 .SUFFIXES: .c .o .h
 
 all: $(TARGETS)
@@ -69,25 +69,47 @@ $(LIBDIR)libpool.so: $(LIBSRC)pool.c $(LIBINCLUDE)pool.h
 	rm -f pool.o
 
 $(LIBDIR)libsupermercato_com.a: 	$(SRCDIR)protocollo.c $(SRCDIR)parser_writer.c \
-								$(INCDIR)protocollo.h $(INCDIR)parser_writer.h
+									$(INCDIR)protocollo.h $(INCDIR)parser_writer.h
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o protocollo.o $(SRCDIR)protocollo.c
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o parser_writer.o $(SRCDIR)parser_writer.c
 	ar rvs $@ protocollo.o parser_writer.o
 	rm -f protocollo.o parser_writer.o
 
 $(LIBDIR)libsupermercato.a: 	$(SRCDIR)cliente.c $(SRCDIR)cassiere.c $(SRCDIR)notificatore.c  \
-							$(INCDIR)cliente.h $(INCDIR)cassiere.h $(INCDIR)notificatore.h
+								$(INCDIR)cliente.h $(INCDIR)cassiere.h $(INCDIR)notificatore.h  \
+								$(INCDIR)protocollo.h
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o cliente.o $(SRCDIR)cliente.c
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o cassiere.o $(SRCDIR)cassiere.c
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o notificatore.o $(SRCDIR)notificatore.c
 	ar rvs $@ cliente.o cassiere.o notificatore.o
 	rm -f cliente.o cassiere.o notificatore.o
 
+test1:
+	set -e ;\
+	valgrind --trace-children=yes --leak-check=full ./bin/direttore -c configtest1.txt ;\
+	PID_DIR=$$!
+	sleep 15 ;\
+	kill -s SIGQUIT $${PID_DIR} ;\
+	wait $${PID_DIR} ;\
+
+test2:
+	{ \
+	set -e ;\
+	msg="header:" ;\
+	for i in $$(seq 1 3) ; do msg="$$msg pre_$${i}_post" ; done ;\
+	msg="$$msg :footer" ;\
+	echo msg=$$msg ;\
+	}
+
+test3:
+	@echo "Doing tunslip" &
+
 clean:
 	-rm -f *.o
 	-rm -f *.socket
 	-rm -f ~*
 	-rm -f vgcore*
+	-rm -f out*
 
 kill: clean
 	-killall -r supermercato -r memcheck

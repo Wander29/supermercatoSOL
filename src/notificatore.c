@@ -20,10 +20,6 @@ void *notificatore(void *arg) {
     cassa_specific_t *C = Cassa_args->cassa_set;
     cassa_com_arg_t *Com = Cassa_args->shared;
 
-#ifdef DEBUG_NOTIFY
-    printf("[NOTIFICATORE %d] sono nato!\n", C->index);
-#endif
-    /*
     do {
         if(notificatore_attendi_apertura_cassa(C) == 1) {
             goto terminazione_notificatore;
@@ -37,7 +33,6 @@ void *notificatore(void *arg) {
 
     }  while(get_stato_supermercato() != CHIUSURA_IMMEDIATA);
 
-*/
     terminazione_notificatore:
 #ifdef DEBUG_TERM
     printf("[NOTIFICATORE %d] TERMINATO CORRETTAMENTE!\n", C->index);
@@ -48,8 +43,8 @@ void *notificatore(void *arg) {
 
 static int notificatore_notifica(cassa_specific_t *c, int timeout) {
     int err,
-            num_clienti,
-            index = c->index;
+        num_clienti,
+        index = c->index;
     sock_msg_code_t sock_msg = CASSIERE_NUM_CLIENTI;
 
     for(;;) {

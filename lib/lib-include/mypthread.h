@@ -30,7 +30,7 @@
     if((status) == PTHREAD_CANCELED)                    \
         printf("Thread %s cancellato\n", str);          \
     else if((status) != (void *) 0) {                   \
-        perror("Exit value on pthread_join");           \
+        fprintf(stderr, "Exit value on pthread_join: %p\n", (void *)(status));           \
         exit(EXIT_FAILURE);                             \
     }
 

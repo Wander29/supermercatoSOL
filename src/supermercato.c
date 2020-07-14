@@ -231,6 +231,9 @@ int main(int argc, char* argv[]) {
         casse[i].shared = &com_casse;
 
         /* specifici */
+        PTH(err, pthread_mutex_init(&(casse_specific[i].mtx_cassa), NULL))
+        PTH(err, pthread_cond_init(&(casse_specific[i].cond_notif), NULL))
+        PTH(err, pthread_cond_init(&(casse_specific[i].cond_queue), NULL))
         casse_specific[i].index = i;
         casse_specific[i].q     = Q[i];
         casse_specific[i].stato = CHIUSA;
@@ -263,6 +266,7 @@ int main(int argc, char* argv[]) {
     MENO1(pool_start(&arg_cl))
     arg_cl.jobs = par.C;
 
+
     /** argomenti COMUNI */
     client_com_arg_t com_cl;
     com_cl.numero_casse = par.K;
@@ -284,6 +288,13 @@ int main(int argc, char* argv[]) {
         clienti[i].shared = &com_cl;
         clienti[i].index = i;
         clienti[i].permesso_uscita = 0;
+
+        PTH(err, pthread_mutex_init(&(clienti[i].mtx), NULL))
+        PTH(err, pthread_cond_init(&(clienti[i].cond), NULL))
+
+        EQNULL(clienti[i].elem = calloc(1, sizeof(queue_elem_t)))
+        PTH(err, pthread_cond_init(&(clienti[i].elem->cond_cl_q), NULL))
+        PTH(err, pthread_mutex_init(&(clienti[i].elem->mtx_cl_q), NULL))
     }
     for(i = 0; i < par.C; i++) {
         PTH(err, pthread_create((tid_clienti + i), NULL, cliente, (void *) (clienti + i) ))
@@ -291,7 +302,6 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_MANAGER
     printf("[MANAGER] clienti creati\n");
 #endif
-
     int cnt_clienti_attivi = 0;
     for(;;) {
         if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
@@ -401,8 +411,8 @@ int main(int argc, char* argv[]) {
                             break;
 
                         case DIRETTORE_APERTURA_CASSA:
-                            //set_jobs(&arg_cas, 1);
-                            //PTH(err, pthread_cond_signal(&(arg_cas.cond)))
+                            set_jobs(&arg_cas, 1);
+                            PTH(err, pthread_cond_signal(&(arg_cas.cond)))
 #ifdef DEBUG_NOTIFY
                             printf("[MANAGER] 1 cassa aperta!\n");
 #endif
@@ -413,8 +423,8 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_NOTIFY
                             printf("[MANAGER] cassa [%d] da chiudere!\n", param);
 #endif
-                            //NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
-                            //PTH(err, pthread_cond_signal(&(casse_specific[param].cond_queue)))
+                            NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
+                            PTH(err, pthread_cond_signal(&(casse_specific[param].cond_queue)))
                             break;
 
                         default: ;
@@ -428,67 +438,89 @@ int main(int argc, char* argv[]) {
     * Terminazione: cleanup
     *************************************************************/
 terminazione_supermercato:
-#ifdef DEBUG
+#ifdef DEBUG_TERM
     printf("[SUPERMERCATO] terminazione iniziata\n");
     fflush(stdout);
 #endif
-    /****************************************************************
-     * TERMINAZIONE CASSIERI
-     * sveglio tutti gli eventuali cassieri dormienti, in attesa di lavoro o in attesa sulla coda
-         i cassieri vanno svegliati sia sulla cond di JOBS
-      che sulla cond di READ
-     ****************************************************************/
 
-    /* clienti e cassieri dormienti in attesa di lavoro vengono svegliati */
+    /***********************************************************
+     * THREAD IN ATTESA DI LAVORO
+     *      clienti e cassieri dormienti in attesa di lavoro
+     *      sulle rispettive JOBS vengono svegliati
+     ***********************************************************/
     PTH(err, pthread_cond_broadcast(&(arg_cas.cond)))
     PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
 
+    /****************************************************************
+     * TERMINAZIONE CASSIERI
+     * sveglio tutti gli eventuali cassieri dormienti sulla cond della QUEUE
+     ****************************************************************/
     for(i = 0; i < par.K; i++) {
         PTH(err, pthread_cond_signal(&(casse_specific[i].cond_queue)))
         PTH(err, pthread_join(tid_casse[i], status_casse+i))
         PTHJOIN(status_casse[i], "Cassiere")
     }
-
-    pool_destroy(&arg_cas);
     free(tid_casse);
     free(status_casse);
-    free(casse_specific);
-    free(casse);
 
-    /*
-     * clienti
-     * - devo svegliare anche eventuali clienti in attesa di permesso di uscita
-     */
+    /****************************************************************
+     * TERMINAZIONE CLIENTI
+     *      i Clienti in coda sono avvisati dai rispettivi cassieri
+     *      i Clienti che ancora non si erano messi in coda escono da soli
+     *      i Clienti in attesa del permesso di uscita vengono svegliati
+     ****************************************************************/
     for(i = 0; i < par.C; i++) {
         PTH(err, pthread_cond_signal(&(clienti[i].cond)))
         PTH(err, pthread_join(tid_clienti[i], status_clienti+i))
         PTHJOIN(status_clienti[i], "Cliente")
     }
-    PTH(err, pthread_mutex_destroy(&(com_cl.mtx_id_cl)))
-    PTH(err, pthread_cond_destroy(&(com_cl.cond_id_cl)))
-
-    pool_destroy(&arg_cl);
     free(tid_clienti);
     free(status_clienti);
-    free(clienti);
-    /*
-     * poll
-     */
-    pollfd_destroy(pollfd_v);
 
-    /* CODE casse */
+    /********************************************************************
+     * Distruzione degli argomenti passati ai thread
+     *      - distruggo anche le mutex e le cond
+     ********************************************************************/
+     /* Cassieri
+      *     code e mutex/cond di ogni cassiere */
     for(i = 0; i < par.K; i++) {
+        PTH(err, pthread_cond_destroy(&(casse_specific[i].cond_queue)))
+        PTH(err, pthread_cond_destroy(&(casse_specific[i].cond_notif)))
+        PTH(err, pthread_mutex_destroy(&(casse_specific[i].mtx_cassa)))
         if(free_queue(Q[i], NO_DYNAMIC_ELEMS) != 0)
             printf("[CODA %d] Errore di terminazione\n", i);
     }
     free(Q);
-    /*
-     * signal handler
-     */
+
+    pool_destroy(&arg_cas);
+    free(casse_specific);
+    free(casse);
+
+    /* Clienti
+     * - mutex/cond comune
+     * - mutex/cond di ogni thread cliente */
+    PTH(err, pthread_mutex_destroy(&(com_cl.mtx_id_cl)))
+    PTH(err, pthread_cond_destroy(&(com_cl.cond_id_cl)))
+    for(i = 0; i < par.C; i++) {
+        PTH(err, pthread_mutex_destroy( &(clienti[i].mtx)))
+        PTH(err, pthread_cond_destroy(  &(clienti[i].cond)))
+        PTH(err, pthread_cond_destroy(  &(clienti[i].elem->cond_cl_q)))
+        PTH(err, pthread_mutex_destroy( &(clienti[i].elem->mtx_cl_q)))
+        free(clienti[i].elem);
+    }
+
+    pool_destroy(&arg_cl);
+    free(clienti);
+
+    /* signal handler */
     PTH(err, pthread_kill(tid_tsh, SIGUSR1))
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler")
 
+    /* poll */
+    pollfd_destroy(pollfd_v);
+
+    /* mutex globali */
     PTH(err, pthread_spin_destroy(&spin))
     PTH(err, pthread_mutex_destroy(&mtx_socket))
     PTH(err, pthread_mutex_destroy(&mtx_pipe))

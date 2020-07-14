@@ -4,14 +4,15 @@
 #include <pool.h>
 #include <pthread.h>
 #include <queue_linked.h>
+
+#include "../lib/lib-include/queue_linked.h"
+
 /*
 #include <myutils.h>
 
 #include <protocollo.h>
 #include <stdlib.h>
-#include "../lib/lib-include/mypthread.h"
-#include "../lib/lib-include/mysocket.h"
-#include "../lib/lib-include/queue_linked.h"
+
 #include <mypoll.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -77,6 +78,7 @@ typedef struct queue_elem {
     attesa_t stato_attesa;
     pthread_cond_t cond_cl_q;
     pthread_mutex_t mtx_cl_q;
+    int id_cliente;
 } queue_elem_t;
 
 /****
@@ -103,6 +105,7 @@ typedef struct cliente_arg {
     pthread_cond_t cond;
     pthread_mutex_t mtx;
     int permesso_uscita;
+    queue_elem_t *elem;
 } cliente_arg_t;
 
 /*
@@ -117,13 +120,17 @@ typedef struct min_queue {
  * LOG
  ************************************/
 typedef struct cliente_log {
+    int id_cliente;
     int tempo_permanenza;
     int tempo_attesa;
+    int tempo_acquisti;
     int num_cambi_cassa;
+    int num_cambi_cassa_per_chiusura;
     int num_prodotti_acquistati;
 } cliente_log_t;
 
 typedef struct casse_log {
+    int id_cassa;
     int num_clienti_serviti;
     int num_chiusure;
 

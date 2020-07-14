@@ -128,5 +128,7 @@ int get_params_from_file(param_t *ptr, char *filepath) {
 }
 
 int write_log(char *filepath, log_set_t log) {
+
+
     return 0;
 }

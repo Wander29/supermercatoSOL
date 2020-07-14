@@ -54,8 +54,6 @@ static void *sync_signal_handler(void *useless) {
                 return (void *) 0;
         }
     }
-
-    return (void *) 0;
 }
 
 inline static void usage(char *str) {
@@ -165,8 +163,6 @@ int main(int argc, char *argv[]) {
     /** Variaibili di supporto */
     int err,
         i;
-
-    exit(EXIT_FAILURE);
 
     /***************************************************************************************
     * Gestione segnali
@@ -399,7 +395,7 @@ int main(int argc, char *argv[]) {
                             MENO1(readn(smfd, &ind, sizeof(int)))
                             MENO1(readn(smfd, &param, sizeof(int)))
                             /* param >= 0, ind >= 0 */
-#ifdef DEBUG_NOTIFY
+#ifdef DEBUG_SOCKET
                             printf("[DIRETTORE] La cassa [%d] ha [%d] clienti in coda!\n", ind, param);
 #endif
                             if(code_casse[ind] < 0) { // era chiusa
@@ -411,7 +407,7 @@ int main(int argc, char *argv[]) {
                                     sotto_soglia_S1--;
                             } else if(param <= 1)     // non era sotto la soglia S1, ora sì
                                 sotto_soglia_S1++;
-#ifdef DEBUG_CASSIERE
+#ifdef DEBUG_DIRETT
                             printf("[DIRETTORE] sotto_soglia_S1 [%d]!\n", sotto_soglia_S1);
 #endif
                             code_casse[ind] = param;
@@ -426,32 +422,32 @@ int main(int argc, char *argv[]) {
  * clienti in coda in almeno una cassa (es. S2=10: apre una cassa (se possibile) se
  * c’è almeno una cassa con almeno 10 clienti in coda).
  */
-                            /*
-                             * decisione CHIUSURA casse
-                             */
 
-                            if(num_casse_aperte > 1) {
-                                if(sotto_soglia_S1 >= par.S1) {
-                                    type_msg = DIRETTORE_CHIUSURA_CASSA;
-                                    MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
-                                    MENO1(writen(smfd, &ind, sizeof(int)))
-#ifdef DEBUG_NOTIFY
-                                    printf("[DIRETTORE] Chiude cassa [%d]\n", ind);
-#endif
-                                    code_casse[ind] = -1;
-                                    sotto_soglia_S1--;
-                                    num_casse_aperte--;
-                                }
-                            }
                             /*
                              * decisione APERTURA casse
                              */
                             if(code_casse[ind] >= par.S2) {
                                 type_msg = DIRETTORE_APERTURA_CASSA;
                                 MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
-#ifdef DEBUG_NOTIFY
+#ifdef DEBUG_DIRETT
                                 printf("[DIRETTORE] Apre una cassa\n");
 #endif
+                            }
+                            /*
+                             * decisione CHIUSURA casse
+                             */
+                            else if(code_casse[ind] <= 1 && num_casse_aperte > 1) {
+                                if(sotto_soglia_S1 >= par.S1) {
+                                    type_msg = DIRETTORE_CHIUSURA_CASSA;
+                                    MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
+                                    MENO1(writen(smfd, &ind, sizeof(int)))
+#ifdef DEBUG_DIRETT
+                                    printf("[DIRETTORE] Chiude cassa [%d]\n", ind);
+#endif
+                                    code_casse[ind] = -1;
+                                    sotto_soglia_S1--;
+                                    num_casse_aperte--;
+                                }
                             }
                         }
                         default: ;
