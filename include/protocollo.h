@@ -26,10 +26,10 @@
 #define DEBUG_DIRETT
 #define DEBUG_NOTIFY
 #define DEBUG_CHANGEVERO
-*/
 #define DEBUG_TIMERS
-#define CAMBIO_CASSA
 #define DEBUG_TERM
+*/
+#define CAMBIO_CASSA
 
 typedef enum stato_supermercato {
     APERTO = 0,

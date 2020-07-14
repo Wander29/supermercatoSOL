@@ -21,7 +21,7 @@ BINDIR		=	bin/
 
 TARGETS     =  	$(BINDIR)direttore
 
-.PHONY: all clean kill test1 test2 test3
+.PHONY: all clean kill test1 test2
 .SUFFIXES: .c .o .h
 
 all: $(TARGETS)
@@ -85,24 +85,17 @@ $(LIBDIR)libsupermercato.a: 	$(SRCDIR)cliente.c $(SRCDIR)cassiere.c $(SRCDIR)not
 	rm -f cliente.o cassiere.o notificatore.o
 
 test1:
-	set -e ;\
-	valgrind --trace-children=yes --leak-check=full ./bin/direttore -c configtest1.txt ;\
-	PID_DIR=$$!
+	valgrind --trace-children=yes --leak-check=full ./bin/direttore -c configtest1.txt & \
 	sleep 15 ;\
-	kill -s SIGQUIT $${PID_DIR} ;\
-	wait $${PID_DIR} ;\
+	kill -s QUIT "$$!" ;\
+	wait $$!
 
 test2:
-	{ \
-	set -e ;\
-	msg="header:" ;\
-	for i in $$(seq 1 3) ; do msg="$$msg pre_$${i}_post" ; done ;\
-	msg="$$msg :footer" ;\
-	echo msg=$$msg ;\
-	}
-
-test3:
-	@echo "Doing tunslip" &
+	./bin/direttore -c configtest2.txt & \
+	sleep 15 ;\
+	kill -s HUP "$$!" ;\
+	wait $$! ;\
+	echo "END"
 
 clean:
 	-rm -f *.o
