@@ -1,5 +1,6 @@
-#include <parser_config.h>
-#include "../lib-include/parser_config.h"
+#include <parser_writer.h>
+#include "../include/mytypes.h"
+#include "../include/parser_writer.h"
 
 char *strtok_r(char *str, const char *delim, char **saveptr);
 
@@ -74,4 +75,8 @@ int get_params_from_file(param_t *ptr, char *filepath) {
     }
 
     return 0;
+}
+
+int write_log(char *filepath, log_set_t log) {
+
 }

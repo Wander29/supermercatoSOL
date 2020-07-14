@@ -11,20 +11,20 @@
 #include "../lib/lib-include/mypthread.h"
 #include "../lib/lib-include/mysocket.h"
 #include <mypoll.h>
-#include <parser_config.h>
 #include <pool.h>
 #include <queue_linked.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <time.h>
-
 #include <supermercato.h>
-#include <cassiere.h>
 
+#include <cassiere.h>
 #include "../include/protocollo.h"
+
 #include "../include/supermercato.h"
 #include "../include/cassiere.h"
 #include "../lib/lib-include/queue_linked.h"
+#include <parser_writer.h>
 
 #define PERC_CHQUEUE    0.75
 #define POS_MIN_CHQUEUE     1

@@ -60,9 +60,11 @@ void *cliente(void *arg) {
 
     /* Informazioni per Log */
     int id_cliente;
+    /*
     int num_cambi_cassa;
     struct timespec tempo_permanenza;
     struct timespec tempo_attesa;
+     */
     // int clock_gettime(clockid_t clockid, struct timespec *tp);
 
     /************************************************
@@ -232,10 +234,8 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
 
 static attesa_t cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, int timeout_ms) {
     int err;
-//    attesa_t ret;               /* valore di ritorno, resitutirà lo stato di attesa */
     struct timespec ts;
     MENO1(millitimespec(&ts, timeout_ms))
-    queue_t *q = C->q;
 
     PTH(err, pthread_mutex_lock(&(C->mtx_cassa))) {
         PTH(err, pthread_mutex_lock(&(e->mtx_cl_q))) {

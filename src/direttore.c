@@ -3,7 +3,7 @@
 #include <mypthread.h>
 #include <mysocket.h>
 #include <mypoll.h>
-#include <parser_config.h>
+#include <parser_writer.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 #include <sys/wait.h>
 
 #include "../include/protocollo.h"
-#include "../lib/lib-include/parser_config.h"
+#include "../include/parser_writer.h"
 #include "../lib/lib-include/mypoll.h"
 #include "../lib/lib-include/myutils.h"
 

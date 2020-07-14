@@ -5,7 +5,7 @@
 #include <mytypes.h>
 #include <mypoll.h>
 #include <protocollo.h>
-#include <parser_config.h>
+#include <parser_writer.h>
 #include <pool.h>
 #include <queue_linked.h>
 #include <cassiere.h>
@@ -25,7 +25,7 @@
 #include "../include/protocollo.h"
 #include "../lib/lib-include/pool.h"
 #include "../lib/lib-include/queue_linked.h"
-#include "../lib/lib-include/parser_config.h"
+#include "parser_writer.h"
 
 #define PTHLIBMQ(err, pth_spin_call)        \
     if( (err = pth_spin_call) != 0 ) {      \

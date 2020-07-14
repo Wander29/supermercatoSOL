@@ -7,16 +7,16 @@ CFLAGS      =   -std=c99 -g -Wall -pedantic -Wextra \
 SRCDIR      =   src/
 LIBDIR      =   lib/
 LIBSRC		= 	$(LIBDIR)lib-src/
-LIBS        =	-lqueue_linked -lpthread -lmyutils -lmypoll -lparser_config -lpool -licl_hash
+LIBS        =	-lqueue_linked -lpthread -lmyutils -lmypoll -lsupermercato -lsupermercato_com -lpool
 LDFLAGS     = 	-Wl,-rpath,$(LIBDIR)
 LIBINCLUDE  =   $(LIBDIR)lib-include/
 INCDIR		=	include/
 INCLUDE     =   $(INCDIR) -I $(LIBINCLUDE)
-LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libqueue_linked.so $(LIBDIR)libmypoll.so \
-				$(LIBDIR)libpool.so $(LIBDIR)libparser_config.so $(LIBDIR)libicl_hash.a
+
+LIBDIRETTORE =	$(LIBDIR)libmyutils.so $(LIBDIR)libmypoll.so $(LIBDIR)libsupermercato_com.a
+LIBSUPERM	=	$(LIBDIRETTORE) $(LIBDIR)libqueue_linked.so $(LIBDIR)libpool.so $(LIBDIR)libsupermercato.a
 INCUSED		=	$(LIBINCLUDE)mysocket.h $(LIBINCLUDE)mypthread.h $(INCDIR)mytypes.h
-OBJDIR		=	obj/
-OBJS		=	$(OBJDIR)cliente.o $(OBJDIR)cassiere.o $(OBJDIR)protocollo.o
+
 BINDIR		=	bin/
 
 TARGETS     =  	$(BINDIR)direttore
@@ -32,20 +32,11 @@ all: $(TARGETS)
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
 
-$(BINDIR)direttore: $(SRCDIR)direttore.c $(BINDIR)supermercato $(OBJDIR)protocollo.o
-	$(CC) $(CFLAGS) -I $(INCLUDE) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS) $(OBJDIR)protocollo.o
+$(BINDIR)direttore: $(SRCDIR)direttore.c $(BINDIR)supermercato $(LIBDIRETTORE)
+	$(CC) $(CFLAGS) -I $(INCLUDE) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS)
 
-$(BINDIR)supermercato: 	$(SRCDIR)supermercato.c $(INCDIR)supermercato.h $(LIBUSED) $(INCUSED) $(OBJS)
-	$(CC) $(CFLAGS) -I $(INCLUDE) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS) $(OBJS)
-
-$(OBJDIR)cliente.o: $(SRCDIR)cliente.c $(INCDIR)cliente.h $(OBJDIR)protocollo.o
-	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
-
-$(OBJDIR)cassiere.o: $(SRCDIR)cassiere.c $(INCDIR)cassiere.h $(OBJDIR)protocollo.o
-	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
-
-$(OBJDIR)protocollo.o: $(SRCDIR)protocollo.c $(INCDIR)protocollo.h
-	$(CC) $(CFLAGS) -I $(INCLUDE)  -c -o $@ $<
+$(BINDIR)supermercato: 	$(SRCDIR)supermercato.c $(INCDIR)supermercato.h $(LIBSUPERM) $(INCUSED)
+	$(CC) $(CFLAGS) -I $(INCLUDE) -L $(LIBDIR) $(LDFLAGS) -o $@ $< $(LIBS)
 
 $(LIBDIR)libmyutils.so: $(LIBSRC)myutils.c $(LIBINCLUDE)myutils.h
 	-rm -f myutils.o
@@ -77,11 +68,20 @@ $(LIBDIR)libpool.so: $(LIBSRC)pool.c $(LIBINCLUDE)pool.h
 	$(CC) -shared -o $@ pool.o
 	rm -f pool.o
 
-$(LIBDIR)libicl_hash.a: $(LIBSRC)icl_hash.c $(LIBINCLUDE)icl_hash.h
-	-rm -f icl_hash.o
-	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o icl_hash.o $<
-	ar rvs $@ icl_hash.o
-	rm -f icl_hash.o
+$(LIBDIR)libsupermercato_com.a: 	$(SRCDIR)protocollo.c $(SRCDIR)parser_writer.c \
+								$(INCDIR)protocollo.h $(INCDIR)parser_writer.h
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o protocollo.o $(SRCDIR)protocollo.c
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o parser_writer.o $(SRCDIR)parser_writer.c
+	ar rvs $@ protocollo.o parser_writer.o
+	rm -f protocollo.o parser_writer.o
+
+$(LIBDIR)libsupermercato.a: 	$(SRCDIR)cliente.c $(SRCDIR)cassiere.c $(SRCDIR)notificatore.c  \
+							$(INCDIR)cliente.h $(INCDIR)cassiere.h $(INCDIR)notificatore.h
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o cliente.o $(SRCDIR)cliente.c
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o cassiere.o $(SRCDIR)cassiere.c
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o notificatore.o $(SRCDIR)notificatore.c
+	ar rvs $@ cliente.o cassiere.o notificatore.o
+	rm -f cliente.o cassiere.o notificatore.o
 
 clean:
 	-rm -f *.o
@@ -96,4 +96,3 @@ cleanall: clean
 	-rm -f $(TARGETS)
 	-rm -f $(LIBDIR)*.so
 	-rm -f $(LIBDIR)*.a
-	-rm -f $(OBJS)

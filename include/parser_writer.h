@@ -1,13 +1,10 @@
-#ifndef LUDOVICO_VENTURI_PARSER_CONFIG_H
-#define LUDOVICO_VENTURI_PARSER_CONFIG_H
+#ifndef LUDOVICO_VENTURI_PARSER_WRITER_H
+#define LUDOVICO_VENTURI_PARSER_WRITER_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../lib-include/icl_hash.h"
-
-/* n. di buckets nella tabella hash */
-#define NBUCKETS      64
+#include "../include/mytypes.h"
 
 #define BUF_SIZE 256
 
@@ -29,4 +26,6 @@ typedef struct param {
 
 int get_params_from_file(param_t *ptr, char *filepath);
 
-#endif // LUDOVICO_VENTURI_PARSER_CONFIG_H
+int write_log(char *filepath, log_set_t log);
+
+#endif // LUDOVICO_VENTURI_PARSER_WRITER_H

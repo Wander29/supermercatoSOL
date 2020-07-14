@@ -1,5 +1,5 @@
-#ifndef LUDOVICO_VENTURI_CASSIERE_H
-#define LUDOVICO_VENTURI_CASSIERE_H
+#ifndef LUDOVICO_VENTURI_NOTIFICATORE_H
+#define LUDOVICO_VENTURI_NOTIFICATORE_H
 
 #include <myutils.h>
 #include "../include/mytypes.h"
@@ -21,22 +21,10 @@
 #include <cliente.h>
 
 #include <supermercato.h>
-#include <notificatore.h>
 #include "../include/protocollo.h"
-#include "../include/notificatore.h"
 #include "../include/supermercato.h"
 #include "../include/cliente.h"
 
-typedef struct ret_pop {
-    queue_elem_t *ptr;
-    attesa_t stato;
-} ret_pop_t;
+void *notificatore(void *arg);
 
-#define MAX_TEMPO_FISSO 80
-#define MIN_TEMPO_FISSO 20
-
-void *          cassiere(void *arg);
-int             set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s);
-
-
-#endif //LUDOVICO_VENTURI_CASSIERE_H
+#endif //LUDOVICO_VENTURI_NOTIFICATORE_H
