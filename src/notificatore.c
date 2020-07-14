@@ -19,10 +19,11 @@ void *notificatore(void *arg) {
     cassa_arg_t *Cassa_args = (cassa_arg_t *) arg;
     cassa_specific_t *C = Cassa_args->cassa_set;
     cassa_com_arg_t *Com = Cassa_args->shared;
-/*
+
 #ifdef DEBUG_NOTIFY
     printf("[NOTIFICATORE %d] sono nato!\n", C->index);
 #endif
+    /*
     do {
         if(notificatore_attendi_apertura_cassa(C) == 1) {
             goto terminazione_notificatore;

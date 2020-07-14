@@ -8,6 +8,7 @@
 #include <stdio.h>     //  perror
 #include <time.h>     //  nanosleep
 #include <errno.h>     //  nanosleep
+#include <ctype.h>     //  nanosleep
 
 #define msTOnsMULT  1000000
 
@@ -39,6 +40,8 @@
             exit(EXIT_FAILURE);                 \
         }                                       \
     }
+
+void strip_spaces(char* str);
 
 ssize_t readn(int fd, void *ptr, size_t n);
 /* @INPUT       fd              file descriptor da cui leggere

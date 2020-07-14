@@ -9,7 +9,7 @@
 #define SOCKET_SERVER_NAME "pleasekillmeatexit.socket"
 #define PATH_TO_SUPERMARKET "./bin/supermercato"
 #define MAX_BACKLOG 2
-
+/*
 #define DEBUG_CHQUEUE
 #define DEBUG_CLIENTE
 #define DEBUG
@@ -22,9 +22,10 @@
 #define DEBUG_MANAGER
 #define DEBUG_QUEUE
 #define DEBUG_WAKE
-#define DEBUG_NOTIFY
 #define DEBUG_MINQ
 #define DEBUG_TERM
+*/
+#define DEBUG_NOTIFY
 
 typedef enum stato_supermercato {
     APERTO = 0,

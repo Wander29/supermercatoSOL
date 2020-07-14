@@ -59,7 +59,39 @@ static void *sync_signal_handler(void *useless) {
 }
 
 inline static void usage(char *str) {
-    printf("Usage: %s [-<OPTION>]\nOPTION:\n-s\tavvia il processo supermercato\n-h\thelp\n", str);
+    printf("Usage: %s <OPTION>\nOPTION:\n-h\thelp\n\n"
+           "-c <FILE>\tpassa FILE come file di configurazione per il programma.\n"  \
+           "FILE deve essere del tipo:\n\n"                                         \
+           "#sono un commento (hashtag ad inizio riga);  verrò ignorato \n"         \
+           "#numero clienti, con C=0 non ci sono clienti\n"                         \
+           "C = x;\t\t[>=0]\n"                                                         \
+           "#[...] indica il vincolo che il parametro deve rispettare, NON deve essere presente nel file\n"            \
+           "#numero casse, con K=0 non si sono casse\n"                             \
+           "K = x;\t\t[>=0]\n"                                                          \
+           "#soglia sopra la quale rientrano i clienti, con E=0 non rientrano\n"    \
+           "E = x;\t\t[ IN [0, C] ]\n"                                                  \
+           "#tempo massimo di acquisti [ms]\n"                                      \
+           "T = x;\t\t[>10]\n"                                                        \
+           "#numero massimo prodotti acquistabili, con P=0 escono tutti senza acquisti\n"\
+           "P = x;\t\t[>=0]\n"                                                             \
+           "#ampiezza [ms] intervallo di ricerca nuova cassa dei clienti in coda\n"\
+           "S = x;\t\t[>=10]\n"                                                              \
+           "#tempo di gestione di un prodotto da parte di ogni cassiere\n"          \
+           "L = x;\t\t[>=0]\n"                                                               \
+           "#numero casse aperte inizialmente\n"                                    \
+           "J = x;\t\t[ IN [0, K] ]\n"                                                               \
+           "#ampiezza [ms] intervallo di comunicazione tra cassiere e direttore\n" \
+           "A = x;\t\t[>=0]\n"                                                             \
+           "#soglia chiusura casse\n"                                               \
+           "S1 = x;\t\t[>=1]\n"                                                              \
+           "#soglia apertura casse\n"                                               \
+           "S2 = x;\t\t[>=1]\n"                                                     \
+           "#nome file di LOG, estensione csv, se esiste lo sovrascrive\n"          \
+"Z = str.csv\n"                                                                                \
+           "NON è necessario che i parametri siano in questo ordine, si devono rispettare le seguenti dipendenze:\n" \
+           "prima C poi E;\tprima K poi J;\n"                                       \
+           "è accettato sia  K=x; che K = x;\n" \
+           "Devono essere presenti TUTTI i parametri, NON ripetuti\n\n", str);
 }
 
 static void cleanup(void) {
@@ -96,21 +128,25 @@ static void cleanup(void) {
  *  attende la terminazione del supermercato e successivamente termina
  ************************************************************************************************/
 int main(int argc, char *argv[]) {
-
     /***************************************************************************************
      * Controllo parametri di ingresso
     ****************************************************************************************/
-    if (argc > 3 || argc < 2) {
+    if (argc < 2 || argc > 3) {
         usage(argv[0]);
         exit(EXIT_FAILURE);
     }
-    char *fileconfig;
+
+    /** Parametri di configurazione */
+    param_t par;
 
     if (argv[1][0] == '-' && argv[1][2] == '\0') {
         switch (argv[1][1]) {
             case 'c':
-                fileconfig = argv[2];
-                printf("%s\n", fileconfig);
+                if(argc != 3) {
+                    usage(argv[0]);
+                    exit(EXIT_FAILURE);
+                }
+                MENO1LIB(get_params_from_file(&par, argv[2]), -1)
                 break;
 
             case 'h':
@@ -130,9 +166,6 @@ int main(int argc, char *argv[]) {
     int err,
         i;
 
-    /** Parametri di configurazione */
-    param_t par;
-    MENO1(get_params_from_file(&par, fileconfig))
     exit(EXIT_FAILURE);
 
     /***************************************************************************************

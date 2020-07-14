@@ -45,6 +45,15 @@ ssize_t writen(int fd, void *ptr, size_t n) {
     return(n - nleft); /* return >= 0 */
 }
 
+void strip_spaces(char* str) {
+    int i = 0, j = 0;
+    while (str[j] != '\0') {
+        while (str[j] != '\0' && isspace(str[j])) { j++; }
+        str[i++] = str[j++];
+    }
+    str[i] = '\0';
+}
+
 int millitimespec(struct timespec *ts, const int timeout_ms) {
     if(timeout_ms <= 0) {
         fprintf(stderr, "MILLISLEEP: timeout_ms must be > 0\n");

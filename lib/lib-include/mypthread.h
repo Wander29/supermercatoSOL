@@ -2,6 +2,7 @@
 #define LUDOVICO_VENTURI_MYPTHREAD_H
 
 #include <stdio.h>     //  perror
+#include <pthread.h>     //  errno
 #include <errno.h>     //  errno
 
 #define PTH(r, pth_call)			                    \
