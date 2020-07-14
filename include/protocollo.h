@@ -27,8 +27,8 @@
 #define DEBUG_NOTIFY
 #define DEBUG_CHANGEVERO
 #define DEBUG_TIMERS
-#define DEBUG_TERM
 */
+#define DEBUG_TERM
 #define CAMBIO_CASSA
 
 typedef enum stato_supermercato {

@@ -7,20 +7,7 @@
 #include <queue_linked.h>
 #include "../lib-include/queue_linked.h"
 
-int start_queue(queue_t **Q) {
-    *Q = calloc(1, sizeof(queue_t));
-    if(*Q == NULL) {
-        // fprintf(stderr, "CALLOC fallita: %s\n", __func__);
-        return -1;
-    }
-    (*Q)->nelems = 0;
-    (*Q)->tail = NULL;
-    (*Q)->head = NULL;
-
-    return 0;
-}
-
-queue_t *start_queue2(void) {
+queue_t *start_queue(void) {
     queue_t *Q = calloc(1, sizeof(queue_t));
     if(Q == NULL) {
         // fprintf(stderr, "CALLOC fallita: %s\n", __func__);

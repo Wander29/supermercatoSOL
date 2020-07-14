@@ -92,7 +92,7 @@ test1:
 
 test2:
 	./bin/direttore -c configtest2.txt & \
-	sleep 15 ;\
+	sleep 25 ;\
 	kill -s HUP "$$!" ;\
 	wait $$! ;\
 	echo "END"

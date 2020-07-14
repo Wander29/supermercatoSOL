@@ -36,7 +36,6 @@ typedef struct ret_pop {
 #define MIN_TEMPO_FISSO 20
 
 void *          cassiere(void *arg);
-int             set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s);
-
+int             set_stato_cassa(cassa_public_t *cassa, const stato_cassa_t s);
 
 #endif //LUDOVICO_VENTURI_CASSIERE_H

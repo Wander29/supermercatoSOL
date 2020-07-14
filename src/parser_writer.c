@@ -128,7 +128,13 @@ int get_params_from_file(param_t *ptr, char *filepath) {
 }
 
 int write_log(char *filepath, log_set_t log) {
+    queue_t **clienti = log.log_clienti;
+    cliente_log_t *log_cl = (cliente_log_t *) get_from_queue(clienti[0]);
 
+    printf("[CLIENTE %d] attesa [%d]ms\tpermanenza [%d]ms\n", \
+                log_cl->id_cliente, log_cl->tempo_attesa, log_cl->tempo_permanenza);
+
+    free(log_cl);
 
     return 0;
 }

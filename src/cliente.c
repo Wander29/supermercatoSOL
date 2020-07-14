@@ -2,8 +2,8 @@
 
 static int              cliente_attesa_lavoro(pool_set_t *P);
 static int              cliente_attendi_permesso_uscita(cliente_arg_t *t);
-static stato_cassa_t    cliente_push(cassa_specific_t *C, queue_elem_t *new_elem);
-static attesa_t         cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, int timeout_ms);
+static stato_cassa_t    cliente_push(cassa_public_t *C, queue_elem_t *new_elem);
+static attesa_t         cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int timeout_ms, int *cnt_cambi);
 static int              get_and_inc_last_id_cl(client_com_arg_t *com);
 
 void *cliente(void *arg) {
@@ -41,7 +41,7 @@ void *cliente(void *arg) {
     ****************************************************************************/
     cliente_arg_t *C = (cliente_arg_t *) arg;
     pool_set_t *P = C->shared->pool_set;
-    cassa_specific_t *Casse = C->shared->casse;
+    cassa_public_t *Casse = C->shared->casse;
 
     queue_elem_t *elem = C->elem;
 
@@ -52,6 +52,7 @@ void *cliente(void *arg) {
     int x;
 
     /* Informazioni per Log */
+    queue_t *log_queue = C->log_cl;
     cliente_log_t *log_cl;
     struct timeval  entrata_supermercato,
                     inizio_attesa,
@@ -78,6 +79,9 @@ void *cliente(void *arg) {
         log_cl = NULL; /* vorrei evitare qualsiasi ottimizzazione del compilatore */
         log_cl = calloc(1, sizeof(cliente_log_t));
 
+        log_cl->num_cambi_cassa                 = -1;
+        log_cl->num_cambi_cassa_per_chiusura    = -1;
+
         running = 1;
         NOTZERO(set_permesso_uscita(C, 0))
         NOTZERO(set_stato_attesa(elem, IN_ATTESA))
@@ -100,8 +104,8 @@ void *cliente(void *arg) {
         /*
          * inizializzazione valori casuali
          */
-        log_cl->num_prodotti_acquistati = rand_r(&seedp) % (C->shared->P + 1);
-        log_cl->tempo_acquisti            = (rand_r(&seedp) % (C->shared->T - MIN_TEMPO_ACQUISTI + 1)) + MIN_TEMPO_ACQUISTI;
+        log_cl->num_prodotti_acquistati     = rand_r(&seedp) % (C->shared->P + 1);
+        log_cl->tempo_acquisti              = (rand_r(&seedp) % (C->shared->T - MIN_TEMPO_ACQUISTI + 1)) + MIN_TEMPO_ACQUISTI;
 #ifdef DEBUG_RAND
         printf("[CLIENTE %d] p: [%d]\tt: [%d]\n",C->index, p, t);
 #endif
@@ -158,13 +162,13 @@ void *cliente(void *arg) {
             elem->id_cliente     = log_cl->id_cliente;
             stato_cassa_t st;
             do {
+                log_cl->num_cambi_cassa++;
+                log_cl->num_cambi_cassa_per_chiusura++;
                 for(;;) {
                     x = rand_r(&seedp) % (C->shared->numero_casse);
 
-                    st = cliente_push(Casse + x, elem);
-                    if(st == APERTA )
+                    if( (st = cliente_push(Casse + x, elem)) == APERTA )
                         goto attendi_servizio;
-
                     else if(st == (stato_cassa_t) -1) {
                         fprintf(stderr, "ERRORE: cliente_push");
                         return ((void *) -1);
@@ -179,12 +183,12 @@ void *cliente(void *arg) {
                     }
                 }
 
-attendi_servizio:
+                attendi_servizio:
                 if(inizio_attesa.tv_usec == 0) {
                     gettimeofday(&inizio_attesa, NULL);
                 }
 
-                stato_att = cliente_attendi_servizio(Casse+x, elem, C->shared->S);
+                stato_att = cliente_attendi_servizio(Casse+x, elem, C->shared->S, &(log_cl->num_cambi_cassa));
                 if (stato_att < 0){
                     fprintf(stderr, "ERRORE [CLIENTE %d]: cliente_attendi_servizio\n", C->index);
                     return (void *) -1;
@@ -222,9 +226,9 @@ attendi_servizio:
                 log_cl->id_cliente, log_cl->tempo_attesa, log_cl->tempo_permanenza);
 #endif
         running = 0;
-        /* aggiungo il record alla LOG queue del cliente */
-        //aggiungi RECORD DEL LOG
-                free(log_cl);
+
+    /* LOG: aggiungo il record alla LOG_squeue del thread cliente */
+        insert_into_queue(log_queue, log_cl);
 
         type_msg = CLIENTE_USCITA;
         pipe_write(&type_msg, NULL);
@@ -274,9 +278,9 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
     return 0;
 }
 
-static attesa_t cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, int timeout_ms) {
+static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int timeout_ms, int *cnt_cambi) {
     int err;
-    stato_cassa_t ret_minq, ret_orig;
+    stato_cassa_t ret_minq;
     struct timespec ts;
     MENO1(millitimespec(&ts, timeout_ms))
 
@@ -342,29 +346,12 @@ static attesa_t cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, i
                                 switch (ret_minq) {
                                     case APERTA: /* mi sono spostato nella coda più conveniente, prendo il lock, per la wait */
                                         C = minq.ptr_q;
+                                        (*cnt_cambi)++;
                                         PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
                                         break;
 
-                                    case CHIUSA: /* provo a reinserirmi nella coda originale, in fondo */
-                                        ret_orig = cliente_push(C, e);
-                                        switch (ret_orig) {
-                                            case APERTA:
-                                                PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
-                                                break;
-
-                                            case CHIUSA:
-                                                if (get_stato_supermercato() == CHIUSURA_IMMEDIATA)
-                                                    return SM_IN_CHIUSURA;
-                                                else
-                                                    return CASSA_IN_CHIUSURA;
-                                                break;
-
-                                            default:
-                                                fprintf(stderr, "ERRORE CLIENT: cliente_push, minq\n");
-                                                return (attesa_t) -1;
-                                                break;
-                                        }
-                                        break;
+                                    case CHIUSA: /* mi rimetterò in fila in una delle casse aperte */
+                                        return CASSA_IN_CHIUSURA;
 
                                     default: /* errore */
                                         fprintf(stderr, "ERRORE CLIENT: cliente_push, minq\n");
@@ -411,7 +398,7 @@ static int cliente_attendi_permesso_uscita(cliente_arg_t *t) {
     return 0;
 }
 
-static stato_cassa_t cliente_push(cassa_specific_t *C, queue_elem_t *new_elem) {
+static stato_cassa_t cliente_push(cassa_public_t *C, queue_elem_t *new_elem) {
     int r;          // retval, per errori
     queue_t *q = C->q;
 
@@ -466,21 +453,7 @@ int set_stato_attesa(queue_elem_t *e, const attesa_t new_stato) {
     return 0;
 }
 
-int set_stato_attesa_cassa(cassa_specific_t *C, queue_elem_t *e, const attesa_t new_stato) {
-    int err;
-
-    PTHLIB(err, (pthread_mutex_lock(&(C->mtx_cassa)))) {
-#ifdef DEBUG
-        printf("CODA [%d], servo il cliente [%d]\n", C->index, e->id_cliente);
-        print_queue_clients(C);
-#endif
-        e->stato_attesa = new_stato;
-    } PTHLIB(err, (pthread_mutex_unlock(&(C->mtx_cassa))))
-
-    return 0;
-}
-
-void print_queue_clients(cassa_specific_t *C) {
+void print_queue_clients(cassa_public_t *C) {
     queue_t *Q = C->q;
     node_t *ptr = Q->head;
     queue_elem_t *elem;

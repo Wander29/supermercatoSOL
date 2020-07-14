@@ -41,13 +41,12 @@ enum deallocazione_t {DYNAMIC_ELEMS=0, NO_DYNAMIC_ELEMS=1};
 
 int insert_into_queue(queue_t *Q, void *new_elem);
 void *get_from_queue(queue_t *Q);
-queue_t *start_queue2(void);
 
-int start_queue(queue_t **Q);
-/* @INPUT       Q               ptr all'indirizzo della coda da inizializzare (o reinizializzare)
- * @EFFECTS     inizializza una coda FIFO concorrente, salvando il puntatore in Q
- * @RETURNS     0               successo
- *              -1              se non riesce ad allocare memoria dinamicamente per la coda
+queue_t *start_queue(void);
+/* @INPUT
+ * @EFFECTS     inizializza una coda FIFO concorrente, restituendone il puntatore
+ * @RETURNS     ptr               successo
+ *              NULL              se non riesce ad allocare memoria per la coda
  * !NOTES       dovrebbe essere chiamata solamente da un thread per coda, tipicamente dal main
  */
 

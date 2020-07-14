@@ -1,9 +1,8 @@
 #include "../include/cassiere.h"
 
 static int      cassiere_attesa_lavoro(pool_set_t *P);
-static int      cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val);
-static int      cassiere_sveglia_clienti(cassa_specific_t *C, attesa_t stato);
-// static int      get_nelems_queue(cassa_specific_t *C);
+static int      cassiere_pop_cliente(cassa_public_t *C, ret_pop_t *val);
+static int      cassiere_sveglia_clienti(cassa_public_t *C, attesa_t stato);
 
 /**********************************************************************************************************
  * LOGICA DEL CASSIERE
@@ -34,7 +33,7 @@ void *cassiere(void *arg) {
      *      cond, mutex
     ****************************************************************************/
     cassa_arg_t *Cassa_args = (cassa_arg_t *) arg;
-    cassa_specific_t *C = Cassa_args->cassa_set;
+    cassa_public_t *C = Cassa_args->cassa_set;
     cassa_com_arg_t *Com = Cassa_args->shared;
     pool_set_t *P = Com->pool_set;
 
@@ -79,7 +78,7 @@ void *cassiere(void *arg) {
         if(tid_notificatore == (pthread_t ) -1) {
             PTH(err, pthread_create(&tid_notificatore, NULL, notificatore, arg))
         } else {
-            PTH(err, pthread_cond_signal(&(C->cond_notif))) /* signal al notificatore */
+            PTH(err, pthread_cond_signal(&(Cassa_args->cond_notif))) /* signal al notificatore */
         }
 
         /* setta la cassa APERTA e la setta come la più conveniente in cui aspettare */
@@ -137,7 +136,7 @@ void *cassiere(void *arg) {
 
 terminazione_cassiere:
     NOTZERO(set_stato_cassa(C, CHIUSA))
-    PTH(err, pthread_cond_signal(&(C->cond_notif))) /* sveglio eventualmente il notificatore */
+    PTH(err, pthread_cond_signal(&(Cassa_args->cond_notif))) /* sveglio eventualmente il notificatore */
 
     if(tid_notificatore != (pthread_t) -1) {
         PTH(err, pthread_join(tid_notificatore, &status_notificatore))
@@ -151,7 +150,7 @@ terminazione_cassiere:
     return (void *) 0;
 }
 
-int set_stato_cassa(cassa_specific_t *cassa, const stato_cassa_t s) {
+int set_stato_cassa(cassa_public_t *cassa, const stato_cassa_t s) {
     int err;
 
     PTHLIB(err, pthread_mutex_lock(&(cassa->mtx_cassa))) {
@@ -183,7 +182,7 @@ static int cassiere_attesa_lavoro(pool_set_t *P) {
     return 0;
 }
 
-static int cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val) {
+static int cassiere_pop_cliente(cassa_public_t *C, ret_pop_t *val) {
     int nelems;
     
     if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
@@ -230,7 +229,7 @@ static int cassiere_pop_cliente(cassa_specific_t *C, ret_pop_t *val) {
     return 0;
 }
 
-static int cassiere_sveglia_clienti(cassa_specific_t *C, attesa_t stato) {
+static int cassiere_sveglia_clienti(cassa_public_t *C, attesa_t stato) {
     int err;
     queue_elem_t *curr;
     queue_t *q = C->q;
@@ -248,16 +247,3 @@ static int cassiere_sveglia_clienti(cassa_specific_t *C, attesa_t stato) {
 
     return 0;
 }
-
-/*
-static int get_nelems_queue(cassa_specific_t *C) {
-    int err,
-        ret;
-
-    PTHLIB(err, pthread_mutex_lock(&(C->mtx_cassa))) {
-        ret = C->q->nelems;
-    } PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
-
-    return ret;
-}
- */

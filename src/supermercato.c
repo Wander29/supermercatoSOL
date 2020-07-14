@@ -194,12 +194,6 @@ int main(int argc, char* argv[]) {
    *************************************************************/
     PTH(err, pthread_spin_init(&spin, PTHREAD_PROCESS_PRIVATE))
 
-    queue_t **Q;
-    EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
-    for(i = 0; i < par.K; i++) {
-        EQNULL(Q[i] = start_queue2())
-    }
-
     pthread_t *tid_casse;       /* tid dei cassieri*/
     EQNULL(tid_casse = calloc(par.K, sizeof(pthread_t)))
     void **status_casse;        /* conterrà i valori di ritorno dei thread cassieri */
@@ -208,6 +202,24 @@ int main(int argc, char* argv[]) {
     /***********************************************************
      * Argomenti passati ai thread CASSIERI
      ***********************************************************/
+    /** Argomenti per il LOG */
+    log_set_t log_set;
+    log_set.tot_clienti_serviti     = 0;
+    log_set.tot_prodotti_acquistati = 0;
+    log_set.C                       = par.C;
+    log_set.K                       = par.K;
+    EQNULL(log_set.log_casse = calloc(par.K, sizeof(cassa_log_t)))
+    EQNULL(log_set.log_clienti = calloc(par.C, sizeof(queue_t *)))
+
+    /** Code per le casse */
+    queue_t **Q;
+    EQNULL(Q = calloc(par.K, sizeof(queue_t *)))
+    for(i = 0; i < par.K; i++) {
+        EQNULL(log_set.log_casse[i].aperture        = start_queue())
+        EQNULL(log_set.log_casse[i].clienti_serviti = start_queue())
+        EQNULL(Q[i]                                 = start_queue())
+    }
+
     /** argomenti del POOL */
     pool_set_t arg_cas;
     pool_start(&arg_cas);
@@ -220,8 +232,8 @@ int main(int argc, char* argv[]) {
     com_casse.A               = par.A;
 
     /** argomenti SPECIFICI, riempiti nel ciclo */
-    cassa_specific_t *casse_specific;
-    EQNULL(casse_specific = calloc(par.K, sizeof(cassa_specific_t)))
+    cassa_public_t *casse_public;
+    EQNULL(casse_public = calloc(par.K, sizeof(cassa_public_t)))
 
     cassa_arg_t *casse;
     EQNULL(casse = calloc(par.K, sizeof(cassa_arg_t)))
@@ -231,17 +243,18 @@ int main(int argc, char* argv[]) {
         casse[i].shared = &com_casse;
 
         /* specifici */
-        PTH(err, pthread_mutex_init(&(casse_specific[i].mtx_cassa), NULL))
-        PTH(err, pthread_cond_init(&(casse_specific[i].cond_notif), NULL))
-        PTH(err, pthread_cond_init(&(casse_specific[i].cond_queue), NULL))
-        casse_specific[i].index = i;
-        casse_specific[i].q     = Q[i];
-        casse_specific[i].stato = CHIUSA;
+        casse[i].log_cas = log_set.log_casse + i;
+        PTH(err, pthread_mutex_init(&(casse_public[i].mtx_cassa), NULL))
+        PTH(err, pthread_cond_init(&(casse_public[i].cond_queue), NULL))
+        PTH(err, pthread_cond_init(&(casse[i].cond_notif), NULL))
+        casse_public[i].index = i;
+        casse_public[i].q     = Q[i];
+        casse_public[i].stato = CHIUSA;
 
-        casse[i].cassa_set = casse_specific + i;
+        casse[i].cassa_set = casse_public + i;
     }
     for(i = 0; i < par.K; i++) {
-        PTH(err, pthread_create((tid_casse + i), NULL, cassiere, (void *) (casse+i) ))
+        PTH(err, pthread_create((tid_casse + i), NULL, cassiere, (void *) (casse + i) ))
     }
 
 #ifdef DEBUG
@@ -252,7 +265,6 @@ int main(int argc, char* argv[]) {
     * - inizializzazione pipe di comunicazione
    *  - thread pool di C clienti
    *************************************************************/
-
     pthread_t *tid_clienti;       /* tid dei clienti*/
     EQNULL(tid_clienti = calloc(par.C, sizeof(pthread_t)))
     void **status_clienti;        /* conterrà i valori di ritorno dei thread clienti */
@@ -270,7 +282,7 @@ int main(int argc, char* argv[]) {
     /** argomenti COMUNI */
     client_com_arg_t com_cl;
     com_cl.numero_casse = par.K;
-    com_cl.casse = casse_specific;
+    com_cl.casse = casse_public;
     com_cl.pool_set = &arg_cl;
     com_cl.T = par.T;
     com_cl.P = par.P;
@@ -285,6 +297,10 @@ int main(int argc, char* argv[]) {
     EQNULL(clienti = calloc(par.C, sizeof(cliente_arg_t)))
 
     for(i = 0; i < par.C; i++) {
+        /* LOG */
+        EQNULL(log_set.log_clienti[i] = start_queue())
+        clienti[i].log_cl = log_set.log_clienti[i];
+
         clienti[i].shared = &com_cl;
         clienti[i].index = i;
         clienti[i].permesso_uscita = 0;
@@ -423,8 +439,8 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_NOTIFY
                             printf("[MANAGER] cassa [%d] da chiudere!\n", param);
 #endif
-                            NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
-                            PTH(err, pthread_cond_signal(&(casse_specific[param].cond_queue)))
+                            NOTZERO(set_stato_cassa(casse_public + param, CHIUSA))
+                            PTH(err, pthread_cond_signal(&(casse_public[param].cond_queue)))
                             break;
 
                         default: ;
@@ -456,7 +472,7 @@ terminazione_supermercato:
      * sveglio tutti gli eventuali cassieri dormienti sulla cond della QUEUE
      ****************************************************************/
     for(i = 0; i < par.K; i++) {
-        PTH(err, pthread_cond_signal(&(casse_specific[i].cond_queue)))
+        PTH(err, pthread_cond_signal(&(casse_public[i].cond_queue)))
         PTH(err, pthread_join(tid_casse[i], status_casse+i))
         PTHJOIN(status_casse[i], "Cassiere")
     }
@@ -484,16 +500,16 @@ terminazione_supermercato:
      /* Cassieri
       *     code e mutex/cond di ogni cassiere */
     for(i = 0; i < par.K; i++) {
-        PTH(err, pthread_cond_destroy(&(casse_specific[i].cond_queue)))
-        PTH(err, pthread_cond_destroy(&(casse_specific[i].cond_notif)))
-        PTH(err, pthread_mutex_destroy(&(casse_specific[i].mtx_cassa)))
+        PTH(err, pthread_cond_destroy(&(casse_public[i].cond_queue)))
+        PTH(err, pthread_mutex_destroy(&(casse_public[i].mtx_cassa)))
+        PTH(err, pthread_cond_destroy(&(casse[i].cond_notif)))
         if(free_queue(Q[i], NO_DYNAMIC_ELEMS) != 0)
             printf("[CODA %d] Errore di terminazione\n", i);
     }
     free(Q);
 
     pool_destroy(&arg_cas);
-    free(casse_specific);
+    free(casse_public);
     free(casse);
 
     /* Clienti
@@ -511,6 +527,25 @@ terminazione_supermercato:
 
     pool_destroy(&arg_cl);
     free(clienti);
+
+    write_log(par.Z, log_set);
+
+    /* LOG clienti*/
+    for(i = 0; i < par.C; i++) {
+        if(free_queue(log_set.log_clienti[i], DYNAMIC_ELEMS) != 0)
+            printf("[CODA %d] Errore di terminazione\n", i);
+    }
+    free(log_set.log_clienti);
+
+    /* LOG cassieri */
+    for(i = 0; i < par.K; i++) {
+        if(free_queue(log_set.log_casse[i].aperture, DYNAMIC_ELEMS) != 0)
+            printf("[CODA %d] Errore di terminazione\n", i);
+
+        if(free_queue(log_set.log_casse[i].clienti_serviti, DYNAMIC_ELEMS) != 0)
+            printf("[CODA %d] Errore di terminazione\n", i);
+    }
+    free(log_set.log_casse);
 
     /* signal handler */
     PTH(err, pthread_kill(tid_tsh, SIGUSR1))

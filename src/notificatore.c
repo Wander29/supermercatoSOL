@@ -1,7 +1,7 @@
 #include "../include/notificatore.h"
 
-static int      notificatore_attendi_apertura_cassa(cassa_specific_t *c);
-static int      notificatore_notifica(cassa_specific_t *c, int timeout);
+static int      notificatore_attendi_apertura_cassa(cassa_arg_t *cassa);
+static int      notificatore_notifica(cassa_public_t *c, int timeout);
 
 void *notificatore(void *arg) {
     /*******************************************************************
@@ -17,11 +17,11 @@ void *notificatore(void *arg) {
      *      var. di condizione della cassa
      *******************************************************************/
     cassa_arg_t *Cassa_args = (cassa_arg_t *) arg;
-    cassa_specific_t *C = Cassa_args->cassa_set;
+    cassa_public_t *C = Cassa_args->cassa_set;
     cassa_com_arg_t *Com = Cassa_args->shared;
 
     do {
-        if(notificatore_attendi_apertura_cassa(C) == 1) {
+        if(notificatore_attendi_apertura_cassa(Cassa_args) == 1) {
             goto terminazione_notificatore;
         }
 
@@ -41,7 +41,7 @@ void *notificatore(void *arg) {
     return (void *) NULL;
 }
 
-static int notificatore_notifica(cassa_specific_t *c, int timeout) {
+static int notificatore_notifica(cassa_public_t *c, int timeout) {
     int err,
         num_clienti,
         index = c->index;
@@ -61,12 +61,13 @@ static int notificatore_notifica(cassa_specific_t *c, int timeout) {
     }
 }
 
-static int notificatore_attendi_apertura_cassa(cassa_specific_t *c) {
+static int notificatore_attendi_apertura_cassa(cassa_arg_t *cassa) {
     int err;
+    cassa_public_t *c = cassa->cassa_set;
 
     PTHLIB(err, pthread_mutex_lock(&(c->mtx_cassa))) {
         while(c->stato != APERTA) {
-            PTHLIB(err, pthread_cond_wait(&(c->cond_notif), &(c->mtx_cassa)))
+            PTHLIB(err, pthread_cond_wait(&(cassa->cond_notif), &(c->mtx_cassa)))
 
             PTHLIB(err, pthread_mutex_unlock(&(c->mtx_cassa)))
             if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)

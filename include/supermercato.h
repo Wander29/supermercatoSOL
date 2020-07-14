@@ -29,7 +29,7 @@
 
 #define PTHLIBMQ(err, pth_spin_call)        \
     if( (err = pth_spin_call) != 0 ) {      \
-        tmp.ptr_q   = (cassa_specific_t *) -1;       \
+        tmp.ptr_q   = (cassa_public_t *) -1;       \
         tmp.num     = -1;                   \
         pthread_spin_unlock(&spin);          \
         return tmp;                         \
@@ -88,7 +88,7 @@ inline static min_queue_t get_min_queue(void) {
 }
 
 /* POP */
-inline static int testset_min_queue(cassa_specific_t *q, const int num_to_test) {
+inline static int testset_min_queue(cassa_public_t *q, const int num_to_test) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -105,7 +105,7 @@ inline static int testset_min_queue(cassa_specific_t *q, const int num_to_test) 
 }
 
 /* APERTURA CASSA */
-inline static int set_min_queue(cassa_specific_t *q, const int num_to_test) {
+inline static int set_min_queue(cassa_public_t *q, const int num_to_test) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -120,7 +120,7 @@ inline static int set_min_queue(cassa_specific_t *q, const int num_to_test) {
 }
 
 /* CHIUSURA cassa */
-inline static int is_min_queue_testreset(cassa_specific_t *q) {
+inline static int is_min_queue_testreset(cassa_public_t *q) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {
@@ -137,7 +137,7 @@ inline static int is_min_queue_testreset(cassa_specific_t *q) {
 }
 
 /* PUSH */
-inline static int is_min_queue_testinc(cassa_specific_t *q) {
+inline static int is_min_queue_testinc(cassa_public_t *q) {
     int err;
 
     PTHLIB(err, pthread_spin_lock(&spin)) {

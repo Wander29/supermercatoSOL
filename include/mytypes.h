@@ -31,6 +31,47 @@ typedef enum pipe_msg_code {
     SIG_RICEVUTO = 900
 } pipe_msg_code_t;
 
+
+/************************************
+ * LOG
+ ************************************/
+typedef struct cliente_log {
+    int id_cliente;
+    int tempo_permanenza;
+    int tempo_attesa;
+    int tempo_acquisti;
+    int num_cambi_cassa;
+    int num_cambi_cassa_per_chiusura;
+    int num_prodotti_acquistati;
+} cliente_log_t;
+
+typedef struct cassa_log {
+    int id_cassa;
+    int num_prodotti_elaborati;
+    int num_clienti_serviti;
+    int num_chiusure;
+
+    queue_t *aperture;
+    queue_t *clienti_serviti;
+} cassa_log_t;
+
+typedef struct cliente_servito_log {
+    int tempo_servizio;
+    int id_cliente;
+} cliente_servito_log_t;
+
+typedef struct log_set {
+    int tot_clienti_serviti;
+    int tot_prodotti_acquistati;
+
+    queue_t        **log_clienti;
+    cassa_log_t     *log_casse;
+
+    int K;
+    int C;
+} log_set_t;
+
+
 /************************************
  * Argomento ai thread Cassieri
  ************************************/
@@ -39,14 +80,13 @@ typedef enum stato_cassa {
     APERTA
 } stato_cassa_t;
 
-typedef struct cassa_specific {
-    pthread_cond_t cond_queue;
-    pthread_cond_t cond_notif;
+typedef struct cassa_public {
     pthread_mutex_t mtx_cassa;
+    pthread_cond_t cond_queue;
     queue_t *q;
     stato_cassa_t stato;
     int index;
-} cassa_specific_t;
+} cassa_public_t;
 
 typedef struct cassa_com_arg {
     pool_set_t *pool_set;
@@ -59,7 +99,9 @@ typedef struct cassa_arg {
     cassa_com_arg_t *shared;
 
     /* specifico per ogni cassa */
-    cassa_specific_t *cassa_set;
+    cassa_public_t *cassa_set;
+    pthread_cond_t cond_notif;
+    cassa_log_t *log_cas;
 } cassa_arg_t;
 
 /************************************
@@ -86,7 +128,7 @@ typedef struct queue_elem {
  */
 typedef struct client_com_arg {
     pool_set_t *pool_set;
-    cassa_specific_t *casse;
+    cassa_public_t *casse;
     int numero_casse;
     int T;
     int P;
@@ -106,45 +148,15 @@ typedef struct cliente_arg {
     pthread_mutex_t mtx;
     int permesso_uscita;
     queue_elem_t *elem;
+    queue_t      *log_cl;
 } cliente_arg_t;
 
 /*
  * Gestione della cassa (forse) più conveniente (non OTTIMA)
  */
 typedef struct min_queue {
-    cassa_specific_t *ptr_q;
+    cassa_public_t *ptr_q;
     int num;
 } min_queue_t;
-
-/************************************
- * LOG
- ************************************/
-typedef struct cliente_log {
-    int id_cliente;
-    int tempo_permanenza;
-    int tempo_attesa;
-    int tempo_acquisti;
-    int num_cambi_cassa;
-    int num_cambi_cassa_per_chiusura;
-    int num_prodotti_acquistati;
-} cliente_log_t;
-
-typedef struct casse_log {
-    int id_cassa;
-    int num_clienti_serviti;
-    int num_chiusure;
-
-    queue_t *aperture;
-    queue_t *clienti_serviti;
-} casse_log_t;
-
-typedef struct log_set {
-    int tot_clienti_serviti;
-    int tot_prodotti_acquistati;
-
-    queue_t *clienti_log;
-    queue_t *casse_log;
- } log_set_t;
-
 
 #endif //LUDOVICO_VENTURI_MYTYPES_H

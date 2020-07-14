@@ -34,7 +34,6 @@
 void *      cliente(void *arg);
 int         set_permesso_uscita(cliente_arg_t *c, const int new_perm);
 int         set_stato_attesa(queue_elem_t *e, const attesa_t new_stato);
-int set_stato_attesa_cassa(cassa_specific_t *C, queue_elem_t *e, const attesa_t new_stato);
-void print_queue_clients(cassa_specific_t *C);
+void        print_queue_clients(cassa_public_t *C);
 
 #endif //LUDOVICO_VENTURI_CLIENTE_H
