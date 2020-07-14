@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     * Lettura parametri di configurazione
     *************************************************************/
     param_t par;
-    MENO1(get_params_from_file(&par))
+    MENO1(get_params_from_file(&par, argv[1]))
 
     /***************************************************************************************
     * Gestione segnali
@@ -401,8 +401,8 @@ int main(int argc, char* argv[]) {
                             break;
 
                         case DIRETTORE_APERTURA_CASSA:
-                            set_jobs(&arg_cas, 1);
-                            PTH(err, pthread_cond_signal(&(arg_cas.cond)))
+                            //set_jobs(&arg_cas, 1);
+                            //PTH(err, pthread_cond_signal(&(arg_cas.cond)))
 #ifdef DEBUG_NOTIFY
                             printf("[MANAGER] 1 cassa aperta!\n");
 #endif
@@ -413,8 +413,8 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG_NOTIFY
                             printf("[MANAGER] cassa [%d] da chiudere!\n", param);
 #endif
-                            NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
-                            PTH(err, pthread_cond_signal(&(casse_specific[param].q->cond_read)))
+                            //NOTZERO(set_stato_cassa(casse_specific + param, CHIUSA))
+                            //PTH(err, pthread_cond_signal(&(casse_specific[param].cond_queue)))
                             break;
 
                         default: ;
@@ -444,7 +444,7 @@ terminazione_supermercato:
     PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
 
     for(i = 0; i < par.K; i++) {
-        PTH(err, pthread_cond_signal(&(casse_specific[i].q->cond_read)))
+        PTH(err, pthread_cond_signal(&(casse_specific[i].cond_queue)))
         PTH(err, pthread_join(tid_casse[i], status_casse+i))
         PTHJOIN(status_casse[i], "Cassiere")
     }

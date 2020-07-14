@@ -94,11 +94,12 @@ void *cliente(void *arg) {
         /*
          * inizializzazione valori casuali
          */
-        p = rand_r(&seedp) % (C->shared->P + 1);
+        // p = rand_r(&seedp) % (C->shared->P + 1);
         t = (rand_r(&seedp) % (C->shared->T - MIN_TEMPO_ACQUISTI + 1)) + MIN_TEMPO_ACQUISTI;
 #ifdef DEBUG_RAND
         printf("[CLIENTE %d] p: [%d]\tt: [%d]\n",C->index, p, t);
 #endif
+        p = 0;
         /*
          * fa acquisti
          */
@@ -152,7 +153,7 @@ void *cliente(void *arg) {
                     }
                 } while(err != (int) APERTA && get_stato_supermercato() != CHIUSURA_IMMEDIATA);
 
-                stato_att = cliente_attendi_servizio(&elem, C->shared->S, Casse+x);
+                stato_att = cliente_attendi_servizio(Casse+x, &elem, C->shared->S);
                 if (stato_att < 0){
                     fprintf(stderr, "ERRORE [CLIENTE %d]: cliente_attendi_servizio\n", C->index);
                     return (void *) -1;
@@ -229,90 +230,9 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
     return 0;
 }
 
-/*
-static attesa_t cliente_attendi_servizio(queue_elem_t *e, int timeout_ms, cassa_specific_t *cas) {
-    int err;
-    attesa_t ret;
-    struct timespec ts;
-    MENO1(millitimespec(&ts, timeout_ms))
-    queue_t *q = cas->q;
-
-    PTHLIBR(err, pthread_mutex_lock(&(cas->mtx_cassa)), -1) {
-        while(e->stato_attesa == IN_ATTESA) {
-
-            if( (err = pthread_cond_timedwait(&(e->cond_cl_q), &(q->mtx_queue), &ts)) != 0 && err != ETIMEDOUT) {
-                fprintf(stderr, "ERRORE CLIENT: pthread_cond_timedwait\n");
-                PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-                return (attesa_t) -1;
-            }
-            /*******************************************************************
-             * CONTROLLO CAMBIO CASSA
-             * Stato attuale (io==cliente):
-             *      Q[i]    cassa in cui mi trovo
-             *      e       elemento della coda che mi contiene
-             *
-             *      lock(Q[i]) -> la ho già dalla timedwait
-             *      if(e.stato == IN_ATTESA)
-             *          x = posizione nella coda corrente (sono l'x-esimo in coda)
-             *          IF(la coda più conveniente ha almeno un 25% di clienti in meno in coda)
-             *              mi rimuovo da questa coda
-             *              provo a inserirmi nell'altra
-             *      else
-             *          unlock(Q[i])
-             *          ret e.stato
-             *******************************************************************/
-            /*
-            if(e->stato_attesa == IN_ATTESA) {
-                queue_position_t curr_pos = queue_get_position(q, (void *) e);
-                //printf("[CLIENTE %d], curr pos [%d]\n", e->id_cl,curr_pos.pos );
-                if(curr_pos.pos > 1) {
-                    min_queue_t minq = get_min_queue();
-
-                    if(minq.num <= (float)((curr_pos.pos)*(0.75)) ) {
-#ifdef DEBUG_CHQUEUE
-                        //print_queue(q);
-#endif
-                        if(queue_remove_specific_elem(q, curr_pos.ptr_in_queue) == -1) {
-                            fprintf(stderr, "ERRORE CLIENT: queue_remove_specific_elem\n");
-                            PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-                            return (attesa_t) -1;
-                        }
-
-                        PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-                        if( (err = cliente_push(minq.ptr_q, e)) == CHIUSA) {
-                            if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
-                                return SM_IN_CHIUSURA;
-                            if(cliente_push(cas, e) == CHIUSA) {
-                                if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
-                                    return SM_IN_CHIUSURA;
-                            }
-                            return cliente_attendi_servizio(e, timeout_ms, cas);
-                        } else if(err == -1) {
-                            fprintf(stderr, "ERRORE CLIENT: cliente_push\n");
-                            return (attesa_t) -1;
-                        } else if(err == APERTA) {
-                            return cliente_attendi_servizio(e, timeout_ms, minq.ptr_q);
-                        }
-
-#ifdef DEBUG_CHQUEUE
-                        //printf("[CHQUEUE] rimuovo il [%d]\n", curr_pos.pos);
-                        //print_queue(q);
-#endif
-                    }
-                } /* ignoro il caso -1, verosimilmente si sta per chiudere */
-            //}
-            /*
-
-        }
-        ret = e->stato_attesa;
-    } PTHLIB(err, pthread_mutex_unlock(&(q->mtx_queue)))
-
-    return ret;
-}
-*/
 static attesa_t cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, int timeout_ms) {
     int err;
-    attesa_t ret;               /* valore di ritorno, resitutirà lo stato di attesa */
+//    attesa_t ret;               /* valore di ritorno, resitutirà lo stato di attesa */
     struct timespec ts;
     MENO1(millitimespec(&ts, timeout_ms))
     queue_t *q = C->q;
@@ -328,10 +248,77 @@ static attesa_t cliente_attendi_servizio(cassa_specific_t *C, queue_elem_t *e, i
                         PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                         return e->stato_attesa;
 
-                    case SERVIZIO_IN_CORSO:
+                    case SERVIZIO_IN_CORSO: /* potrà solo andare a SERVITO(il cliente corrente viene sempre servito) */
+                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                        PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
+                        PTH(err, pthread_mutex_lock(&(e->mtx_cl_q)))
                         break;
 
                     case IN_ATTESA:
+                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                    /*******************************************************************
+                     * CONTROLLO CAMBIO CASSA
+                     * Stato attuale (io==cliente):
+                     *      Q[i]    cassa in cui mi trovo
+                     *      e       elemento della coda che mi contiene
+                     *
+                     *      lock(Q[i]) -> la ho già dalla timedwait
+                     *      x = posizione nella coda corrente (sono l'(x+1)-esimo in coda)
+                     *      IF(la coda più conveniente ha almeno un 25% di clienti in meno in coda)
+                     *         mi rimuovo da questa coda
+                     *         provo a inserirmi nell'altra
+                     *      else
+                     *          unlock(Q[i])
+                     *          ret e.stato
+                     *******************************************************************/
+#ifdef DIOG
+                        queue_position_t curr_pos = queue_get_position(q, (void *) e);
+
+                        if(curr_pos.pos > POS_MIN_CHQUEUE) { // Se ho almeno 2 clienti davanti a me
+                            min_queue_t minq = get_min_queue();
+
+                            if (minq.num <= (float) ((curr_pos.pos) * (PERC_CHQUEUE))) {
+#ifdef DEBUG_CHQUEUE
+                                //print_queue(q);
+#endif
+                                if (queue_remove_specific_elem(q, curr_pos.ptr_in_queue) == -1) {
+                                    fprintf(stderr, "ERRORE CLIENT: queue_remove_specific_elem\n");
+                                    PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                    return (attesa_t) -1;
+                                }
+                                PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                /* PUNTO CRITICO */
+                                if ( (err = cliente_push(minq.ptr_q, e)) == CHIUSA) {
+                                /* provo a reinserirmi nella coda di partenza, in coda */
+                                    if ( (err = cliente_push(C, e)) == CHIUSA) {
+                                        if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
+                                            return SM_IN_CHIUSURA;
+                                        else
+                                            return CASSA_IN_CHIUSURA;
+                                    } else if(err == APERTA) { /* SE mi sono rimesso in coda alla stessa cassa */
+                                        PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
+                                    } else {
+                                        fprintf(stderr, "ERRORE CLIENT: cliente_push, current\n");
+                                        return (attesa_t) -1;
+                                    } /* chiusura ELSE: push in current queue */
+
+                                } else if(err == APERTA) { /* SE mi sono messo in coda nella min_queue */
+                                    C = minq.ptr_q;
+                                    PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
+                                } else {
+                                    fprintf(stderr, "ERRORE CLIENT: cliente_push, minq\n");
+                                    return (attesa_t) -1;
+                                } /* chiusura ELSE: push in minq queue */
+                            }
+                        }
+#endif
+
+                        if( (err = pthread_cond_timedwait(&(e->cond_cl_q), &(C->mtx_cassa), &ts)) != 0 && err != ETIMEDOUT) {
+                            fprintf(stderr, "ERRORE CLIENT: pthread_cond_timedwait\n");
+                            PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                            return (attesa_t) -1;
+                        }
+                        PTH(err, pthread_mutex_lock(&(e->mtx_cl_q)))
                         break;
 
                     default: ;

@@ -6,7 +6,7 @@ else
   SIG=SIGQUIT
 fi
 
-./bin/direttore &
+./bin/direttore -c config.txt &
 PID_DIR=$!
 sleep 6
 kill -s ${SIG} ${PID_DIR}

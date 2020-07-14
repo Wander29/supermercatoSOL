@@ -1,6 +1,16 @@
 #ifndef LUDOVICO_VENTURI_PARSER_CONFIG_H
 #define LUDOVICO_VENTURI_PARSER_CONFIG_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "../lib-include/icl_hash.h"
+
+/* n. di buckets nella tabella hash */
+#define NBUCKETS      64
+
+#define BUF_SIZE 256
+
 typedef struct param {
     int K,              /*  casse totali */
         J,              /*  casse inizialmente aperte */
@@ -17,6 +27,6 @@ typedef struct param {
  *        es. S2=10: apre una cassa (se possibile) se c’è almeno una cassa con almeno 10 clienti in coda*/
 } param_t;
 
-int get_params_from_file(param_t *ptr);
+int get_params_from_file(param_t *ptr, char *filepath);
 
 #endif // LUDOVICO_VENTURI_PARSER_CONFIG_H

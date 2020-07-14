@@ -15,6 +15,7 @@
 #include "../include/protocollo.h"
 #include "../lib/lib-include/parser_config.h"
 #include "../lib/lib-include/mypoll.h"
+#include "../lib/lib-include/myutils.h"
 
 /** var. globali */
 static int pipefd_dir[2];       /* pipe di comunicazione fra signal handler e main */
@@ -99,44 +100,30 @@ int main(int argc, char *argv[]) {
     /***************************************************************************************
      * Controllo parametri di ingresso
     ****************************************************************************************/
-    if (argc > 2) {
+    if (argc > 3 || argc < 2) {
         usage(argv[0]);
         exit(EXIT_FAILURE);
     }
+    char *fileconfig;
 
-    if (argc == 2) {
-        if (argv[1][0] == '-' && argv[1][2] == '\0') {
-            switch (argv[1][1]) {
-            /*
-                case 's':
-                    pid_sm = fork();
-                    switch (pid_sm) {
-                        case 0:
-                            execl(PATH_TO_SUPERMARKET, "supermercato", (char *) NULL);
-                        case -1:
-                            perror("fork");
-                            exit(EXIT_FAILURE);
-                            break;
-                        default:
-#ifdef DEBUG
-                            printf("[DIRETTORE] Supermercato aperto!\n");
-#endif
-                            break;
-                    }
-                    break;
-            */
-                case 'h':
-                    usage(argv[0]);
-                    exit(EXIT_FAILURE);
-                    break;
-                default:
-                    printf("Opzione non valida\n");
-                    exit(EXIT_FAILURE);
-            }
-        } else {
-            printf("Opzione non valida\n");
-            exit(EXIT_FAILURE);
+    if (argv[1][0] == '-' && argv[1][2] == '\0') {
+        switch (argv[1][1]) {
+            case 'c':
+                fileconfig = argv[2];
+                printf("%s\n", fileconfig);
+                break;
+
+            case 'h':
+                usage(argv[0]);
+                exit(EXIT_FAILURE);
+                break;
+            default:
+                printf("Opzione non valida\n");
+                exit(EXIT_FAILURE);
         }
+    } else {
+        printf("Opzione non valida\n");
+        exit(EXIT_FAILURE);
     }
 
     /** Variaibili di supporto */
@@ -145,7 +132,8 @@ int main(int argc, char *argv[]) {
 
     /** Parametri di configurazione */
     param_t par;
-    MENO1(get_params_from_file(&par))
+    MENO1(get_params_from_file(&par, fileconfig))
+    exit(EXIT_FAILURE);
 
     /***************************************************************************************
     * Gestione segnali
@@ -181,7 +169,7 @@ int main(int argc, char *argv[]) {
 
     switch ( (pid_sm = fork()) ) {
         case 0:                 /* figlio */
-            execl(PATH_TO_SUPERMARKET, "supermercato", (char *) NULL);
+            execl(PATH_TO_SUPERMARKET, "supermercato", argv[2], (char *) NULL);
             perror("exec");
             exit(EXIT_FAILURE);
             break;

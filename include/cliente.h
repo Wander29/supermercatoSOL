@@ -26,6 +26,8 @@
 #include "../include/cassiere.h"
 #include "../lib/lib-include/queue_linked.h"
 
+#define PERC_CHQUEUE    0.75
+#define POS_MIN_CHQUEUE     1
 #define MIN_TEMPO_ACQUISTI 10
 
 void *      cliente(void *arg);

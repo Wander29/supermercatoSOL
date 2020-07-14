@@ -1,0 +1,22 @@
+#numero clienti
+C = 100;
+#numero casse
+K=10;
+#soglia sopra la quale rientrano i clienti
+E = 2;
+#tempo massimo di acquisti
+T = 200;
+#numero massimo prodotti acquistabili
+P = 100;
+#ampiezza in ms intervallo di ricerca nuova cassa dei clienti in coda
+S = 20;
+#tempo di gestione di un prodotto da parte di ogni cassiere
+L = 5;
+#numero casse aperte inizialmente
+J = 1;
+#ampiezza in ms intervallo di comunicazione tra cassiere e direttore
+A = 400;
+#soglia chiusura casse
+S1 = 2;
+#soglia apertura casse
+S2 = 10;

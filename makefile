@@ -7,13 +7,13 @@ CFLAGS      =   -std=c99 -g -Wall -pedantic -Wextra \
 SRCDIR      =   src/
 LIBDIR      =   lib/
 LIBSRC		= 	$(LIBDIR)lib-src/
-LIBS        =	-lconcurrent_queue -lpthread -lmyutils -lmypoll -lparser_config -lpool
+LIBS        =	-lqueue_linked -lpthread -lmyutils -lmypoll -lparser_config -lpool -licl_hash
 LDFLAGS     = 	-Wl,-rpath,$(LIBDIR)
 LIBINCLUDE  =   $(LIBDIR)lib-include/
 INCDIR		=	include/
 INCLUDE     =   $(INCDIR) -I $(LIBINCLUDE)
 LIBUSED		=	$(LIBDIR)libmyutils.so $(LIBDIR)libqueue_linked.so $(LIBDIR)libmypoll.so \
-				$(LIBDIR)libpool.so $(LIBDIR)libparser_config.so
+				$(LIBDIR)libpool.so $(LIBDIR)libparser_config.so $(LIBDIR)libicl_hash.a
 INCUSED		=	$(LIBINCLUDE)mysocket.h $(LIBINCLUDE)mypthread.h $(INCDIR)mytypes.h
 OBJDIR		=	obj/
 OBJS		=	$(OBJDIR)cliente.o $(OBJDIR)cassiere.o $(OBJDIR)protocollo.o
@@ -76,6 +76,12 @@ $(LIBDIR)libpool.so: $(LIBSRC)pool.c $(LIBINCLUDE)pool.h
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -fPIC -o pool.o $<
 	$(CC) -shared -o $@ pool.o
 	rm -f pool.o
+
+$(LIBDIR)libicl_hash.a: $(LIBSRC)icl_hash.c $(LIBINCLUDE)icl_hash.h
+	-rm -f icl_hash.o
+	$(CC) $(CFLAGS) -I $(INCLUDE) -c -o icl_hash.o $<
+	ar rvs $@ icl_hash.o
+	rm -f icl_hash.o
 
 clean:
 	-rm -f *.o
