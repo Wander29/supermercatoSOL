@@ -18,15 +18,15 @@
         return -1;                              \
 }
 
-#define MISS(v)                        \
+#define MISS(v)                                 \
     if(ptr->v == -1) {                          \
         fprintf(stderr, "%s mancante\n", #v);   \
         return -1;                              \
 }
 
-#define VINC(exp)               \
-    if(val exp) {                          \
-        fprintf(stderr, " val %s\n", #exp);   \
+#define VINC(exp)                               \
+    if(val exp) {                               \
+        fprintf(stderr, " val %s\n", #exp);     \
         return -1;                              \
 }
 
@@ -35,10 +35,10 @@
 typedef struct param {
     int K,              /*  casse totali */
         J,              /*  casse inizialmente aperte */
-        C,              /*  numero clienti massimo nel supermercato */
-        E,              /*  */
-        T,              /*  */
-        P,              /*  numero prodotti massimo acquistati da un cliente */
+        C,              /*  numero massimo clienti nel supermercato */
+        E,              /*  soglia di clienti usciti sopra la quale possono rientrare E*/
+        T,              /*  tempo massimo acquisti cliente*/
+        P,              /*  numero prodotti massimo acquistabili da un cliente */
         S,              /*  intervallo di tempo in cui ogni cliente decide se cambiare coda*/
         L,              /*  tempo gestione di un singolo prodtto di ogni cassiere */
         A,              /*  intervallo di comunicazione col Direttore da parte dei cassieri */

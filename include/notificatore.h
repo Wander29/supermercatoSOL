@@ -18,6 +18,10 @@
 #include "../include/protocollo.h"
 #include "../include/supermercato.h"
 
+#ifndef STABILIZATION_TIME
+    #define STABILIZATION_TIME 300
+#endif
+
 void *notificatore(void *arg);
 
 #endif //LUDOVICO_VENTURI_NOTIFICATORE_H

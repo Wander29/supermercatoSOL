@@ -25,7 +25,7 @@ void *notificatore(void *arg) {
             goto terminazione_notificatore;
         }
 
-        MENO1(millisleep(500 + Com->A))
+        MENO1(millisleep(STABILIZATION_TIME + Com->A))
         if(notificatore_notifica(C, Com->A) == -1) {
             fprintf(stderr, "ERRORE: notificatore_notifica\n");
             return (void *) -1;

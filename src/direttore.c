@@ -8,14 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-
-#include "../include/protocollo.h"
-#include "../include/parser_writer.h"
-#include "../lib/lib-include/mypoll.h"
-#include "../lib/lib-include/myutils.h"
 
 /** var. globali */
 static int pipefd_dir[2];       /* pipe di comunicazione fra signal handler e main */
@@ -78,9 +72,9 @@ inline static void usage(char *str) {
            "J = x;\t\t[ IN [0, K] ]\n"                                                               \
            "#ampiezza [ms] intervallo di comunicazione tra cassiere e direttore\n" \
            "A = x;\t\t[>=0]\n"                                                             \
-           "#soglia chiusura casse\n"                                               \
+           "#soglia chiusura casse: definisce il numero di casse con al più un cliente in coda\n"                                               \
            "S1 = x;\t\t[>=1]\n"                                                              \
-           "#soglia apertura casse\n"                                               \
+           "#soglia apertura casse: definisce il numero di clienti in coda in almeno una cassa\n"                                               \
            "S2 = x;\t\t[>=1]\n"                                                     \
            "#nome file di LOG, estensione csv, se esiste lo sovrascrive\n"          \
 "Z = str.csv\n"                                                                                \
@@ -175,11 +169,11 @@ int main(int argc, char *argv[]) {
 
     sigset_t mask;
     MENO1(sigfillset(&mask))
-    MENO1(sigdelset(&mask, SIGPIPE))
+    MENO1(sigdelset(&mask, SIGPIPE))        /* voglio ignorarlo */
     PTH(err, pthread_sigmask(SIG_SETMASK, &mask, NULL))
 
     /*
-     * inizializzazione PIPE per tsh
+     * inizializzazione PIPE per TSH
      */
     MENO1(pipe(pipefd_dir))
 
@@ -205,12 +199,8 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
             break;
         default:                /* padre */
-#ifdef DEBUG
-            printf("[DIRETTORE] Supermercato aperto!\n");
-#endif
             break;
     }
-
 
     /***************************************************************************************
      * Comunicazione col supermercato: creazione socket di comunicazione
@@ -282,9 +272,6 @@ int main(int argc, char *argv[]) {
      *    SIGQUIT  gestisce le richieste sospese
      * attende la terminazione del supermercato e successivamente termina
     ****************************************************************************************/
-#ifdef DEBUG
-    printf("[DIRETTORE] In attesa di una connessione\n");
-#endif
     int sotto_soglia_S1     = 0,
         num_casse_aperte    = 0;
 
@@ -292,22 +279,22 @@ int main(int argc, char *argv[]) {
         /*
         * MULTIPLEXING: attendo I/O su vari fd
         */
-        if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, si blocca */
+        if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, è bloccante */
             if(errno == EINTR) {
                 /*
                  * in caso di interruzione per segnali non gestiti dall'handler, NON dovrebbe accadere mai
                  */
-                printf("[SERVER] chiusura server\n");
+                printf("[DIRETTORE] chiusura direttore\n");
                 break;
             } else {
-                perror("accept");
+                perror("poll");
                 exit(EXIT_FAILURE);
             }
         }
 
         /* il cnt di fd monitorati può cambiare durante il ciclo
          * => è necessario mantenerlo consistente durante una scansione dell'array
-         * in caso di chiusure => va decrementato*/
+         * in caso di chiusure => va decrementato, in caso di aggiunte NO */
         int current_pollfd_array_size = polled_fd;
 
         for(i=0; i < current_pollfd_array_size; i++) {
@@ -323,9 +310,6 @@ int main(int argc, char *argv[]) {
                     /*
                      * manda il segnale ricevuto al supermercato
                      */
-#ifdef DEBUG
-                    printf("\n[DIRETTORE] ricevuto Segnale [%d]!\n", sig_captured);
-#endif
                     MENO1(kill(pid_sm, sig_captured))
 
                 }
@@ -349,20 +333,14 @@ int main(int argc, char *argv[]) {
                     /*
                      * ricevuta comunicazione dal supermercato
                      */
-                    sock_msg_code_t type_msg = 0;        /* tipo messaggio ricevuto */
-                    int param;                       /* parametro del messaggio */
+                    sock_msg_code_t type_msg = 0;           /* tipo messaggio ricevuto */
+                    int param;                              /* parametro del messaggio */
                     MENO1(readn(smfd, &type_msg, sizeof(sock_msg_code_t)))
-#ifdef DEBUG
-                    printf("[DIRETTORE] SOCKET [%d]!\n", type_msg);
-#endif
                     switch(type_msg) {
-                        case MANAGER_IN_CHIUSURA: {
+                        case MANAGER_IN_CHIUSURA:
                                 MENO1(waitpid(pid_sm, &status_sm, 0))
-#ifdef DEBUG
-                                printf("[DIRETTORE] Il supermercato è terminato!\n");
-#endif
                                 goto terminazione_direttore;
-                            }
+
                         case CLIENTE_SENZA_ACQUISTI:
                             /*
                              * assumo che il direttore faccia SEMPRE uscire i clienti
@@ -370,14 +348,12 @@ int main(int argc, char *argv[]) {
                              *  -leggo l'id cliente
                              */
                             MENO1(readn(smfd, &param, sizeof(int)))
+
                             type_msg = DIRETTORE_PERMESSO_USCITA;
                             MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
                             MENO1(writen(smfd, &param, sizeof(int)))
-
-#ifdef DEBUG
-                            printf("[DIRETTORE] il cliente [%d] può uscire!\n", param);
-#endif
                             break;
+
                         case CASSIERE_NUM_CLIENTI: {
                             int ind;
                             /*
@@ -386,43 +362,28 @@ int main(int argc, char *argv[]) {
                             MENO1(readn(smfd, &ind, sizeof(int)))
                             MENO1(readn(smfd, &param, sizeof(int)))
                             /* param >= 0, ind >= 0 */
-#ifdef DEBUG_SOCKET
-                            printf("[DIRETTORE] La cassa [%d] ha [%d] clienti in coda!\n", ind, param);
-#endif
-                            if(code_casse[ind] < 0) { // era chiusa
+
+                            if(code_casse[ind] < 0) {           // era chiusa
                                 num_casse_aperte++;
                                 if(param <= 1)
                                     sotto_soglia_S1++;
-                            } else if(code_casse[ind] <= 1) { // se era APERTA e sotto la soglia S1
+                            } else if(code_casse[ind] <= 1) {   // se era APERTA e sotto la soglia S1
                                 if (param > 1)
                                     sotto_soglia_S1--;
-                            } else if(param <= 1)     // non era sotto la soglia S1, ora sì
+                            } else if(param <= 1)               // non era sotto la soglia S1, ora sì
                                 sotto_soglia_S1++;
-#ifdef DEBUG_DIRETT
-                            printf("[DIRETTORE] sotto_soglia_S1 [%d]!\n", sotto_soglia_S1);
-#endif
+
                             code_casse[ind] = param;
 /*
- * Il direttore, sulla base delle informazioni ricevute dai cassieri, decide se aprire o
- * chiudere casse (al massimo le casse aperte sono K, ed almeno 1 cassa deve rimanere aperta).
- * La decisione viene presa sulla base di alcuni valori soglia S1 ed S2 definiti dallo
- * studente nel file di configurazione. S1 stabilisce la soglia per la chiusura di
- * una cassa, nello specifico, definisce il numero di casse con al più un cliente in coda
- * (es. S1=2: chiude una cassa se ci sono almeno 2 casse che hanno al più un cliente).
- * S2 stabilisce la soglia di apertura di una cassa, nello specifico, definisce il numero di
- * clienti in coda in almeno una cassa (es. S2=10: apre una cassa (se possibile) se
- * c’è almeno una cassa con almeno 10 clienti in coda).
+ * es. S1=2: chiude una cassa se ci sono almeno 2 casse che hanno al più un cliente
+ * es. S2=10: apre una cassa (se possibile) se c’è almeno una cassa con almeno 10 clienti in coda
  */
-
                             /*
                              * decisione APERTURA casse
                              */
                             if(code_casse[ind] >= par.S2) {
                                 type_msg = DIRETTORE_APERTURA_CASSA;
                                 MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
-#ifdef DEBUG_DIRETT
-                                printf("[DIRETTORE] Apre una cassa\n");
-#endif
                             }
                             /*
                              * decisione CHIUSURA casse
@@ -432,9 +393,7 @@ int main(int argc, char *argv[]) {
                                     type_msg = DIRETTORE_CHIUSURA_CASSA;
                                     MENO1(writen(smfd, &type_msg, sizeof(sock_msg_code_t)))
                                     MENO1(writen(smfd, &ind, sizeof(int)))
-#ifdef DEBUG_DIRETT
-                                    printf("[DIRETTORE] Chiude cassa [%d]\n", ind);
-#endif
+
                                     code_casse[ind] = -1;
                                     sotto_soglia_S1--;
                                     num_casse_aperte--;
@@ -459,10 +418,6 @@ terminazione_direttore:
     PTH(err, pthread_kill(tid_tsh, SIGUSR1))
     PTH(err, pthread_join(tid_tsh, &status_tsh))
     PTHJOIN(status_tsh, "Signal Handler Direttore")
-
-#ifdef DEBUG_TERM
-    printf("[DIRETTORE] CHIUSURA CORRETTA\n");
-#endif
 
     return 0;
 }

@@ -9,6 +9,11 @@
 #include <signal.h>
 #include <fcntl.h>
 
+#include "../include/protocollo.h"
+#include "../include/parser_writer.h"
+#include "../lib/lib-include/mypoll.h"
+#include "../lib/lib-include/myutils.h"
+
 /**********************************************************************************************************
  * LOGICA DEL SUPERMERCATO
  *  - 0) legge parametri di configurazione
@@ -31,20 +36,19 @@
 /** Var. GLOBALI */
 int dfd = -1;                /* file descriptor del socket col direttore, accessibile dal cleanup */
 int pipefd_sm[2];            /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
-min_queue_t min_queue = { NULL, -1 };   /* conterrà */
-
+min_queue_t min_queue = { NULL, -1 };   /* conterrà le informazioni sulla coda
+                                                    * apparentemente più conveniente in cui inserirsi */
 stato_sm_t stato_supermercato = APERTO;
-pthread_mutex_t mtx_stato_supermercato = PTHREAD_MUTEX_INITIALIZER;
-
 
 /** LOCK */
-pthread_mutex_t mtx_socket   = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mtx_pipe     = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mtx_stato_supermercato  = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mtx_socket              = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mtx_pipe                = PTHREAD_MUTEX_INITIALIZER;
 pthread_spinlock_t spin;
 
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
- * - aspetta la ricezione di segnali specificati da una maschera
+ * - aspetta la ricezione di segnali specificati da una maschera: SIGQUIT, SIGHUP, SIGUSR1
  * - una volta ricevuto un segnale esegue l'azione da svolgere
  *****************************************************/
 static void *sync_signal_handler(void *useless) {
@@ -88,10 +92,13 @@ static void cleanup(void) {
 }
 
 int main(int argc, char* argv[]) {
+    /***************************************************************************************
+     * Controllo parametri di ingresso
+    ****************************************************************************************/
     if (argc != 2) {
         printf("Usage: %s non va eseguito direttamente. È necessario che venga forkato " \
                "dal processo direttore, il quale deve passare come argomento alla fork" \
-               "il path al file di configurazione", argv[0]);
+               "il path al file di configurazione\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -103,7 +110,7 @@ int main(int argc, char* argv[]) {
     * Lettura parametri di configurazione
     *************************************************************/
     param_t par;
-    MENO1(get_params_from_file(&par, argv[1]))
+    MENO1LIB(get_params_from_file(&par, argv[1]), -1)
 
     /***************************************************************************************
     * Gestione segnali
@@ -138,7 +145,7 @@ int main(int argc, char* argv[]) {
     *************************************************************/
     SOCKETAF_UNIX(dfd)
 
-    atexit(cleanup);
+    atexit(cleanup);            /* all'uscita eliminerà anche il socket */
 
     struct sockaddr_un serv_addr;
     SOCKADDR_UN(serv_addr, SOCKET_SERVER_NAME)
@@ -152,14 +159,11 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
     }
-#ifdef DEBUG
-    printf("[SUPERMERCATO] comunicazione col direttore OK!\n");
-#endif
     /*
-     * scritture del supermercato sul socket:
+     * scritture del supermercato sul socket e pipe:
      *      sono concorrenti, in quanto sia clienti che
      *      cassieri vogliono scriverci
-     *      mentre il manager (main) è colui che riceve i messaggi
+     *      mentre il manager (main) è colui che riceve i messaggi, è l'unico a leggere
      */
     /*************************************************************************************************
     * MULTIPLEXING, tramite POLL:

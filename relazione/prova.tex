@@ -68,54 +68,49 @@
 \clearpage
 
 \section{Introduzione}
-Il processo principale del supermercato è il Direttore, sarà lui a far partire il processo supermercato, se si dovesse eseguire solamente il supermercato si avrebbe una chiusura dovuta alla mancata connessione al Socket di comunicazione.\\
-
+I dettagli implementativi delle scelte sono riportati sui commenti nel codice, in questa relazione ho cercato di spiegarle concettualmente (sono comunque presenti nel codice commenti riassuntivi che provano a spiegare la logica).\\
 Per quanto mi fosse possibile ho cercato di incapsulare i dati al fine di garantire il privilegio minimo sulle variabili, nonostante ciò per utilizzare delle funzioni di cleanup (e per altri scopi) ho preferito lasciare alcune variabili globali.\\
-Non sono state utilizzate librerie esterne, ho però inserito le funzioni \textit{readn, writen} presenti sulla pagina del corso (la fonte è riportata nel codice) e la funzione \textit{timeval\_subtract} \footnote{https://www.gnu.org/software/libc/manual/html\_node/Calculating-Elapsed-Time.html}.
+Non sono state utilizzate librerie esterne, ho però inserito le funzioni \textit{readn, writen} presenti sulla pagina del corso (la fonte è riportata nel codice) e la funzione \textit{timeval\_subtract} \footnote{https://www.gnu.org/software/libc/manual/html\_node/Calculating-Elapsed-Time.html}.\\
 
+Il processo principale del supermercato è il Direttore, sarà lui a far partire il processo supermercato; se si dovesse eseguire solamente il supermercato si otterrebbe una chiusura dovuta alla mancata connessione al Socket di comunicazione.
 \section{Direttore}
 Il processo Direttore, a regime, ha 2 thread:
 \begin{itemize}
-\item thread main 
-\item thread signal handler (TSH)
+\item thread \textbf{main} 
+\item thread \textbf{signal handler (TSH)}
 \end{itemize}
-Tutti i segnali vengono mascherati nel main così da lasciare la loro gestione al TSH, ad eccezione del segnale \textit{SIGPIPE} che viene ignorato installando un gestore SIG\_IGN.\\
-Il TSH gestisce i segnali SIGQUIT e SIGHUP avvisando il thread main del loro arrivo attraverso una \textit{pipe unnamed} adibita a tale scopo. Sarà quindi il main effettivamente a reindirizzare i segnali al processo supermercato. Il passaggio dal TSH al main potrebbe risultare superlfuo, ho preso questa strada poichè reputo che il TSH si debba occupare esclusivamente della gestione interna dei segnali.\\
-Viene utilizzato sia nel Direttore che nel Supermercato il segnale \textit{SIGUSR1} per far terminare il rispettivo TSH in seguito all'imminente terminazione del processo.
+Il direttore forka il processo Supermercato passandogli come parametro il file di configurazione.\\
 La comunicazione con il processo direttore avviene tramite l'utilizzo di un \textit{Socket AF\_UNIX}.\\
-Dato che il thread main deve anche attendere comunicazione dal TSH dalla pipe, utilizzo la \textit{poll} per il multiplexing, ascoltando così sia dal fd del socket che da quello della pipe.\\
+Dato che il thread main deve anche attendere eventuali comunicazioni del TSH dalla pipe, utilizzo la \textit{poll} per il multiplexing, ascoltando così sia dal fd del socket che da quello della pipe.\\
 La comunicazione con il Supermercato avviene rispettando un protocollo di comunicazione, si inviano in ordine:
 \begin{itemize}
 \item tipo del messaggio da inviare (di tipo \textit{sock\_msg\_code\_t})
-\item 0 o più parametri interi a seconda del tipo di messaggio
+\item 0 o più parametri interi a seconda del tipo di messaggio\\
 \end{itemize}
-Alla chiusura del supermercato il direttore attende la terminazione del processo supermercato (suo figlio); sucessivamente vengono chiusi i vari \textit{fd} usati (pipe e socket di ascolto/comunicazione) e viene cancellato il socket.
+I vari tipi di comunicazioni sono spiegati da commenti nel codice.
+All'arrivo di un segnale SIGHUP rimane in attesa di altre comunicazioni dai cassieri/clienti: rimane possibile per il direttore decidere di aprire/chiudere casse amche nel momento che intercorre fra l'arrivo di SIGHUP e il servizio di tutti i clienti nel supermercato.\\
+Assumo che il Direttore decida sempre di far uscire i clienti che richiedono il permesso di uscita.
 
+Il Direttore non accede direttamente alle informazioni delle casse, su di loro conosce soltanto ciò che gli viene detto dai cassieri (in particolare dai \textit{notificatori}).
 
-\section{Thread Pool}
-I clienti ed i cassieri vengono implementati come thread sempre 'vivi' all'interno del programma: vengono creati inizialmente K cassieri e C clienti e non ne verrano spawnati dinamicamente altri. Quando un cliente esce dal supermercato non viene terminato, esso va in attesa su una variabile di condizione. Per i cassieri il discorso è analogo, se la loro cassa è chiusa, attendono.\\
-Per garantire il funzionamento di questo metodo ho strutturato i thread relativi ai clienti e ai cassieri utilizzando due \textit{thread pool}. \\Li gestisco attraverso una struttura dati da me definita di tipo \textit{pool\_set\_t} che contiene oltre ad una lock ed una condition variable, il contatore di \textit{jobs} disponibili.\\
-Prima di eseguire il proprio lavoro un thread (cassiere o cliente) deve controllare che sia disponibile un lavoro: se \textit{jobs > 0} allora il thread prende il lavoro e decrementa \textit{jobs} di 1. \\ Se invece \textit{jobs == 0} il thread si mette in attesa sulla condition variable del \textit{pool\_set\_t}.
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=1]{pool_res.png}
-	\label{fig:0}
-\end{figure}
-\subsection{Concorrenza}
-Chiaramente la variabile \textit{jobs} contenuta in \textit{pool\_set\_t} genera una race condition:
+Alla chiusura del supermercato il direttore attende la terminazione del processo Supermercato (suo figlio); sucessivamente vengono chiusi i vari \textit{fd} usati (pipe e socket di ascolto/comunicazione) e viene cancellato il socket.
+\subsection{Segnali}
+Tutti i segnali vengono mascherati nel main così da lasciare la loro gestione al TSH, ad eccezione del segnale \textit{SIGPIPE} che viene ignorato installando un gestore SIG\_IGN.\\
+Il TSH gestisce i segnali SIGQUIT e SIGHUP avvisando il thread main del loro arrivo attraverso una \textit{pipe unnamed} adibita a tale scopo. Sarà quindi il main effettivamente a reindirizzare i segnali al processo supermercato. Il passaggio dal TSH al main potrebbe risultare superlfuo, ho preso questa strada poichè reputo che il TSH si debba occupare esclusivamente della gestione interna dei segnali.\\
+Viene utilizzato sia nel Direttore che nel Supermercato il segnale \textit{SIGUSR1} per far terminare il rispettivo TSH in previsione dell'imminente terminazione del processo.
+\section{Supermercato}
+Il processo supermercato, a regime, è strutturato a livello di thread in:
 \begin{itemize}
-\item \textbf{jobs}	letta e scritta da tutti i thread del pool di appartenenza; inizializzata e scritta dal \textit{manager}
-\end{itemize} 
-Per accedervi è necessario acquisire la \textit{lock} sulla mutex relativa al pool\_set. 
-Le variabili di pool nel programma sono 2: una per i cassieri ed una per i clienti. Esse sono scollegate fra loro infatti i cassieri controlleranno solo la loro variabile di pool e viceversa.\\
-Il \textit{manager} può modificare \textit{jobs} dei 2 pool nel seguente modo:
-\begin{itemize}
-\item \textbf{clienti}	ogni E clienti che escono dal supermercato vengono resi disponibili E lavori (\textit{jobs += E})
-\item \textbf{casse}	quando riceve la comunicazione dal direttore di aprire una cassa, incrementa di 1 \textit{jobs}
+\item \textbf{thread signal handler (TSH)}
+\item \textbf{manager}
+\item \textbf{C clienti}
+\item \textbf{K cassieri}, ognuno di loro genera un relativo \textit{notificatore}
+\item \textbf{K notificatori}
 \end{itemize}
-
-\section{Manager}
-\subsection{Comunicazione con i Clienti}
+La gestione dei segnali avviene analogamente a quella del direttore. La differenza sta nella gestione degli stessi: se riceve SIGHUP il supermercato va nello stato \textit{CHIUSURA\_SOFT}, in cui i notificatori continuano il proprio lavoro e quindi le casse potrebbero venire aperte e/o chiuse. Se viene ricevuto SIGQUIT il supermercato va nello stato \textit{CHIUSURA\_IMMEDIATA} e vengono gestiti solamente i clienti che i cassieri stanno già servendo.\\
+All'uscita chiude il fd di comunicazione con il Direttore e i fd della pipe.
+Il \textit{manager} è colui gestisce i vari thread creati, fa da intermediario fra i clienti ed il direttore e fra le casse e 
+\subsection{Comunicazione interna al Supermercato}
 Il manager gestisce le comunicazioni dai clienti. Essi comunicano la loro entrata, la loro uscita e l'eventuale richiesta del permesso di uscita nel caso in cui non abbiano effettuato acquisti.\\
 Tale comunicazione è gestita con una \textit{unnamed pipe} aperta da entrambe le estremità in ogni thread. 
 \subsubsection{Concorrenza}
@@ -131,9 +126,31 @@ La comunicazione avviene seguendo un protocollo: viene inviato un messaggio di t
 	\label{fig:pipemsg}
 \end{figure}
 
+\subsection{Thread Pool}
+I clienti ed i cassieri vengono implementati come thread sempre 'vivi' all'interno del programma: vengono creati inizialmente K cassieri e C clienti e non ne verrano spawnati dinamicamente altri. Quando un cliente esce dal supermercato non viene terminato, esso va in attesa su una variabile di condizione. Per i cassieri il discorso è analogo, se la loro cassa è chiusa, attendono.\\
+Per garantire il funzionamento di questo metodo ho strutturato i thread relativi ai clienti e ai cassieri utilizzando due \textit{thread pool}. \\Li gestisco attraverso una struttura dati da me definita di tipo \textit{pool\_set\_t} che contiene oltre ad una lock ed una condition variable, il contatore di \textit{jobs} disponibili.\\
+Prima di eseguire il proprio lavoro un thread (cassiere o cliente) deve controllare che sia disponibile un lavoro: se \textit{jobs > 0} allora il thread prende il lavoro e decrementa \textit{jobs} di 1. \\ Se invece \textit{jobs == 0} il thread si mette in attesa sulla condition variable del \textit{pool\_set\_t}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=1]{pool_res.png}
+	\label{fig:0}
+\end{figure}
+\subsubsection{Concorrenza}
+Chiaramente la variabile \textit{jobs} contenuta in \textit{pool\_set\_t} genera una race condition:
+\begin{itemize}
+\item \textbf{jobs}	letta e scritta da tutti i thread del pool di appartenenza; inizializzata e scritta dal \textit{manager}
+\end{itemize} 
+Per accedervi è necessario acquisire la \textit{lock} sulla mutex relativa al pool\_set. 
+Le variabili di pool nel programma sono 2: una per i cassieri ed una per i clienti. Esse sono scollegate fra loro infatti i cassieri controlleranno solo la loro variabile di pool e viceversa.\\
+Il \textit{manager} può modificare \textit{jobs} dei 2 pool nel seguente modo:
+\begin{itemize}
+\item \textbf{clienti}	ogni E clienti che escono dal supermercato vengono resi disponibili E lavori (\textit{jobs += E})
+\item \textbf{casse}	quando riceve la comunicazione dal direttore di aprire una cassa, incrementa di 1 \textit{jobs}
+\end{itemize}
 
-\section{Cliente}
-\subsection{Cambio cassa}
+
+\subsection{Cliente}
+\subsubsection{Cambio cassa}
 Ho reputato opportuno impostare un limite di 10 cambi cassa per cliente. Può accadere (raramente dalle mie osservazioni) che un cliente decida di cambiare cassa ogni S ms, causando più overhead che guadagno. Se la cassa viene chiusa cambierà comunque cassa anche se lo ha già fatto 10 o più volte.
 
 Ho utilizzato i \textit{pthread\_spin\_lock}
@@ -141,7 +158,7 @@ Ho utilizzato i \textit{pthread\_spin\_lock}
 L'algoritmo non è ottimo, se trova una cassa posso solo dire che è migliore della mia. Non ho implementato una soluzione ottima dato che i vincoli principali da rispettare sono l'efficienza e il non causare deadlock:\\
 se un cliente in coda ogni S millisecondi (con S=20/30) si sveglia e volesse controllare tutte le casse dovrebbe acquisire la lock di tutte le casse! Ma ogni client vorrebbe farlo, quindi si creerebbero deadlock. 
 Quindi un cliente si sveglia, acquisisce la lock sulla sua cassa, controlla la sua posizione e controlla quanto vale lo stato della cassa\textit{min\_queue}. 
-\subsection{Concorrenza}
+\subsubsection{Concorrenza}
 \begin{itemize}
 \item elem: \textbf{stato\_attesa}
 \item \textbf{permesso\_uscita} scritto solamente dal Manager e letto dal rispettivo cliente; reinizializzato dal cliente\\
@@ -150,7 +167,9 @@ Quindi un cliente si sveglia, acquisisce la lock sulla sua cassa, controlla la s
 \end{itemize}
 
 
-\section{Cassiere}
+\subsection{Cassiere}
+\subsubsection{Notificatore}
+Aspettano STABILIZATION\_TIME (impostabile con una define, di default 300ms) prima di iniziare ad inviare notifiche al direttore ogni qualvolta la cassa si riapre (o viene aperta per la prima volta) per evitare che la cassa venga subito richiusa a casua dei suoi iniziali 0 clienti.
 
 \begin{figure}[h]
 	\centering
@@ -162,7 +181,7 @@ Quindi un cliente si sveglia, acquisisce la lock sulla sua cassa, controlla la s
 la scelta di  usare un'ulteriore struttura dati è 
 per  incapsulamente e riservatezza dei dati 
 delle che dovranno essere letti dai clienti 
-\subsection{Concorrenza}
+\subsubsection{Concorrenza}
 Nel cassiere le variabili accedute in lettura e scrittura da più thread sono:
 \begin{itemize}
 \item q
