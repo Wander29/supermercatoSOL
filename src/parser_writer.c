@@ -150,7 +150,7 @@ int write_log(char *filepath, log_set_t log) {
      *              .cassa_log_t: contiene 2 code unbounded
      *
      * - somma il numero di clienti totali e il numero di prodotti venduti
-     * - 
+     * -
      *******************************************************************/
 
     /* recupero struttura del LOG */

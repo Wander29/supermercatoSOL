@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <queue_linked.h>
 
 #include "../include/mytypes.h"
 #include "../lib/lib-include/myutils.h"
