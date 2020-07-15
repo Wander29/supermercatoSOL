@@ -73,7 +73,7 @@ void *cliente(void *arg) {
 
         /* lavoro ottenuto! */
         type_msg = CLIENTE_ENTRATA;
-        pipe_write(&type_msg, NULL);
+        pipe_write(&type_msg, 0);
 
         /* reinizializzazione valori */
         log_cl = NULL; /* vorrei evitare qualsiasi ottimizzazione del compilatore */
@@ -135,7 +135,7 @@ void *cliente(void *arg) {
             printf("[CLIENTE %d] Non ho fatto acquisti, voglio uscire!\n", C->index);
     #endif
             type_msg = CLIENTE_RICHIESTA_PERMESSO;
-            MENO1(pipe_write(&type_msg, &(C->index)))
+            MENO1(pipe_write(&type_msg, 1, &(C->index)))
 
             if( cliente_attendi_permesso_uscita(C) == 1 ) { /* termina */
 #ifdef DEBUG_TERM
@@ -228,7 +228,7 @@ void *cliente(void *arg) {
         MENO1LIB(insert_into_queue(log_queue, log_cl), (void *)-1)
 
         type_msg = CLIENTE_USCITA;
-        pipe_write(&type_msg, NULL);
+        pipe_write(&type_msg, 0);
 
         if(get_stato_supermercato() != APERTO) {
 #ifdef DEBUG_TERM
@@ -241,7 +241,7 @@ void *cliente(void *arg) {
 terminazione_cliente:
     if(running == 1) {
         type_msg = CLIENTE_USCITA;
-        pipe_write(&type_msg, NULL);
+        pipe_write(&type_msg, 0);
     }
 
 #ifdef DEBUG_TERM
@@ -277,7 +277,6 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
 
 static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int timeout_ms, int *cnt_cambi) {
     int err;
-    stato_cassa_t ret_minq;
     struct timespec ts;
     MENO1(millitimespec(&ts, timeout_ms))
 
@@ -322,6 +321,7 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                      *          ret e.stato
                      *******************************************************************/
 #ifdef CAMBIO_CASSA
+                        stato_cassa_t ret_minq;
                         if(*(cnt_cambi) < 10) {
                             queue_position_t curr_pos = queue_get_position(C->q, (void *) e);
                             if(curr_pos.pos == -1) {
@@ -358,13 +358,19 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                                     }
                                 }
                             }
+
+                            if( (err = pthread_cond_timedwait(&(e->cond_cl_q), &(C->mtx_cassa), &ts)) != 0 && err != ETIMEDOUT) {
+                                fprintf(stderr, "ERRORE CLIENT: pthread_cond_timedwait\n");
+                                PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                return (attesa_t) -1;
+                            }
+                        } else { /* dopo 10 cambi aspetto normalmente */
+                            PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
                         }
 #endif
-                        if( (err = pthread_cond_timedwait(&(e->cond_cl_q), &(C->mtx_cassa), &ts)) != 0 && err != ETIMEDOUT) {
-                            fprintf(stderr, "ERRORE CLIENT: pthread_cond_timedwait\n");
-                            PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
-                            return (attesa_t) -1;
-                        }
+#ifndef CAMBIO_CASSA
+                        PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
+#endif
                         PTH(err, pthread_mutex_lock(&(e->mtx_cl_q)))
                         break;
 

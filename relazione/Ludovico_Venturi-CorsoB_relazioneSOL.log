@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2020.5.10)  13 JUL 2020 09:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2020.5.10)  15 JUL 2020 16:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -532,15 +532,11 @@ Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 113.
 Package rerunfilecheck Info: File `Ludovico_Venturi-CorsoB_relazioneSOL.out' ha
 s not changed.
 (rerunfilecheck)             Checksum: B694779DE0ACA98825055746CB23D011;286.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
  7544 strings out of 492167
  106042 string characters out of 6131558
- 229925 words of memory out of 5000000
+ 229926 words of memory out of 5000000
  11817 multiletter control sequences out of 15000+600000
  10698 words of font info for 39 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191

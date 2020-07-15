@@ -1,5 +1,13 @@
-#include "../include/supermercato.h"
-#include "../include/cassiere.h"
+#include <supermercato.h>
+#include <parser_writer.h>
+#include <mypoll.h>
+#include <protocollo.h>
+#include <pool.h>
+#include <cassiere.h>
+#include <cliente.h>
+
+#include <signal.h>
+#include <fcntl.h>
 
 /**********************************************************************************************************
  * LOGICA DEL SUPERMERCATO
@@ -23,7 +31,10 @@
 /** Var. GLOBALI */
 int dfd = -1;                /* file descriptor del socket col direttore, accessibile dal cleanup */
 int pipefd_sm[2];            /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
-min_queue_t min_queue = { NULL, -1 };
+min_queue_t min_queue = { NULL, -1 };   /* conterrà */
+
+stato_sm_t stato_supermercato = APERTO;
+pthread_mutex_t mtx_stato_supermercato = PTHREAD_MUTEX_INITIALIZER;
 
 
 /** LOCK */
@@ -53,15 +64,12 @@ static void *sync_signal_handler(void *useless) {
         PTH(err, sigwait(&mask, &sig_captured))
         switch(sig_captured) {
             case SIGQUIT: /* chiusura immediata */
-                puts("SIGQUIT");
-                MENO1LIB(pipe_write(&msg, &sig_captured), ((void *)-1))
+                MENO1LIB(pipe_write(&msg, 1, &sig_captured), ((void *)-1))
                 break;
             case SIGHUP:
-                puts("SIGHUP");
-                MENO1LIB(pipe_write(&msg, &sig_captured), ((void *)-1))
+                MENO1LIB(pipe_write(&msg, 1, &sig_captured), ((void *)-1))
                 break;
             default: /* SIGUSR1*/
-                puts("SIGUSR1");
                 return (void *) 0;
         }
     }
@@ -80,13 +88,13 @@ static void cleanup(void) {
 }
 
 int main(int argc, char* argv[]) {
-#ifdef DEBUG
-    printf("[SUPERMERCATO] nato!\n");
-#endif
-    /* TO DO
-     * lettura file config passato da exec
-     *
-     */
+    if (argc != 2) {
+        printf("Usage: %s non va eseguito direttamente. È necessario che venga forkato " \
+               "dal processo direttore, il quale deve passare come argomento alla fork" \
+               "il path al file di configurazione", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
     /* Variabili di supporto */
     int i,                      /* indice dei cicli */
         err;                    /* conterrà i valori di ritorno di alcune chiamate (es: pthread) */
@@ -317,6 +325,7 @@ int main(int argc, char* argv[]) {
     printf("[MANAGER] clienti creati\n");
 #endif
     int cnt_clienti_attivi = 0;
+    int cnt_usciti = 0;
     for(;;) {
         if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
             break;
@@ -368,6 +377,7 @@ int main(int argc, char* argv[]) {
 
                         case CLIENTE_USCITA:
                             cnt_clienti_attivi--;
+                            cnt_usciti++;
 #ifdef DEBUG_PIPE
                             printf("[MANAGER] CLIENTE_USCITA: [%d]\n", cnt_clienti_attivi);
 #endif
@@ -377,14 +387,19 @@ int main(int argc, char* argv[]) {
                                 MENO1(socket_write(&type_msg_sock, 0))
                                 goto terminazione_supermercato;
                             }
-                            if(par.C - cnt_clienti_attivi == par.E) {
+                            //if(par.C - cnt_clienti_attivi == par.E) {
+                            if(cnt_usciti == par.E) {
 #ifdef DEBUG_WAIT
                                 printf("[MANAGER] C[%d] - cnt_clienti_attivi[%d] = E[%d]\n", par.C, cnt_clienti_attivi, par.E);
 #endif
                                 NOTZERO(ch_jobs(&arg_cl, par.E))
-                                for(i = 0; i < par.E; i++) {
+                                PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
+                                /*
+                                 * for(i = 0; i < par.E; i++) {
                                     PTH(err, pthread_cond_signal(&(arg_cl.cond)))
                                 }
+                                 */
+                                cnt_usciti = 0;
                             }
                             break;
 

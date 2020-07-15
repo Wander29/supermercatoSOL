@@ -21,8 +21,14 @@
 #include "../include/protocollo.h"
 */
 
+typedef enum stato_supermercato {
+    APERTO = 0,
+    CHIUSURA_IMMEDIATA,
+    CHIUSURA_SOFT
+} stato_sm_t;
+
 /************************************
- * PIPE: PROTOCOLLO comunicazione
+ * PIPE: tipo comunicazione
  ************************************/
 typedef enum pipe_msg_code {
     CLIENTE_RICHIESTA_PERMESSO = 0,
@@ -31,6 +37,18 @@ typedef enum pipe_msg_code {
     SIG_RICEVUTO = 900
 } pipe_msg_code_t;
 
+/************************************
+ * SOCKET: tipo comunicazione
+ ************************************/
+typedef enum sock_msg_code {
+/*  1) tipo messaggio           |   2) tipo del parametro        */
+    MANAGER_IN_CHIUSURA     = 0,        /* // */
+    CASSIERE_NUM_CLIENTI    = 100,      /* int: id cassa, int: numero clienti in coda */
+    CLIENTE_SENZA_ACQUISTI  = 200,      /* int: id thread cliente */
+    DIRETTORE_APERTURA_CASSA= 300,      /* // */
+    DIRETTORE_CHIUSURA_CASSA,           /* int: id cassa */
+    DIRETTORE_PERMESSO_USCITA           /* int: id thread cliente */
+} sock_msg_code_t;
 
 /************************************
  * LOG

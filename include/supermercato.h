@@ -3,29 +3,18 @@
 
 #include <myutils.h>
 #include <mytypes.h>
-#include <mypoll.h>
-#include <protocollo.h>
-#include <parser_writer.h>
-#include <pool.h>
+#include <mypthread.h>
+#include <mysocket.h>
 #include <queue_linked.h>
-#include <cassiere.h>
-#include <cliente.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <pthread.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <time.h>
+#include <stdarg.h>
 
-#include "../lib/lib-include/mypthread.h"
-#include "../lib/lib-include/mysocket.h"
-#include "../include/mytypes.h"
-#include "../include/protocollo.h"
-#include "../lib/lib-include/pool.h"
-#include "../lib/lib-include/queue_linked.h"
-#include "parser_writer.h"
+#ifndef NO_CAMBIO_CASSA
+    #define CAMBIO_CASSA
+#endif
 
 #define PTHLIBMQ(err, pth_spin_call)        \
     if( (err = pth_spin_call) != 0 ) {      \
@@ -47,11 +36,74 @@
 extern int dfd;                 /* file descriptor del socket col direttore */
 extern int pipefd_sm[2];        /* fd per la pipe, su pipefd_sm[0] lettura, su pipefd_sm[1] scrittura  */
 extern min_queue_t min_queue;   /* conterrà il ptr alla coda con minor numero di clienti */
+extern stato_sm_t stato_supermercato;
 
 /** LOCK */
 extern pthread_mutex_t mtx_socket;
 extern pthread_mutex_t mtx_pipe;
 extern pthread_spinlock_t spin;
+extern pthread_mutex_t mtx_stato_supermercato;
+
+/* Funzioni */
+inline static stato_sm_t get_stato_supermercato(void) {
+    int err;
+    stato_sm_t ret;
+
+    PTHLIB(err, pthread_mutex_lock(&mtx_stato_supermercato))
+        ret = stato_supermercato;
+    PTHLIB(err, pthread_mutex_unlock(&mtx_stato_supermercato))
+
+    return ret;
+}
+
+inline static int set_stato_supermercato(const stato_sm_t x) {
+    int err;
+
+    PTHLIB(err, pthread_mutex_lock(&mtx_stato_supermercato))
+        stato_supermercato = x;
+    PTHLIB(err, pthread_mutex_unlock(&mtx_stato_supermercato))
+
+    return 0;
+}
+
+/* scrittura in mutua esclusione di 1 o + messaggi sulla pipe
+ * fra Manager-Clienti-TSH(supermercato) seguendo il protocollo di comunicazone */
+inline static int pipe_write(pipe_msg_code_t *type, int cnt, ...) {
+    int err;
+    va_list l;
+    va_start(l, cnt);
+
+    PTHLIB(err, pthread_mutex_lock(&mtx_pipe)) {
+        MENO1LIB(writen(pipefd_sm[1], type, sizeof(pipe_msg_code_t)), -1)
+        while(cnt-- > 0) {
+            int *tmp = va_arg(l, int *);
+            MENO1LIB(writen(pipefd_sm[1], tmp, sizeof(int)), -1)
+        }
+    } PTHLIB(err, pthread_mutex_unlock(&mtx_pipe))
+
+    va_end(l);
+    return 0;
+}
+
+/* scrittura in mutua esclusione di 1 o + messaggi (a seconda del tipo di messaggio)
+ * da parte dei thread del supermercato */
+inline static int socket_write(sock_msg_code_t *type, int cnt, ...){
+    int err;
+    va_list l;
+    va_start(l, cnt);
+
+    PTHLIB(err, pthread_mutex_lock(&mtx_socket)) {
+        MENO1LIB(writen(dfd, type, sizeof(sock_msg_code_t)), -1)
+
+        while(cnt-- > 0) {
+            int *tmp = va_arg(l, int *);
+            MENO1LIB(writen(dfd, tmp, sizeof(int)), -1)
+        }
+    } PTHLIB(err, pthread_mutex_unlock(&mtx_socket))
+
+    va_end(l);
+    return 0;
+}
 
 /*******************************************************************************
  * MIN QUEUE, con spinlock
@@ -95,9 +147,6 @@ inline static int testset_min_queue(cassa_public_t *q, const int num_to_test) {
         if(min_queue.num == -1 || min_queue.num > num_to_test) {
             min_queue.ptr_q = q;
             min_queue.num   = num_to_test;
-#ifdef DEBUG_MINQ
-            printf("[MINQ] cambiata, ora ha [%d] clienti!\n", min_queue.num);
-#endif
         }
     } PTHLIB(err, pthread_spin_unlock(&spin))
 
@@ -111,9 +160,6 @@ inline static int set_min_queue(cassa_public_t *q, const int num_to_test) {
     PTHLIB(err, pthread_spin_lock(&spin)) {
         min_queue.ptr_q = q;
         min_queue.num   = num_to_test;
-#ifdef DEBUG_MINQ
-        printf("[MINQ] cambiata, ora ha [%d] clienti!\n", min_queue.num);
-#endif
     } PTHLIB(err, pthread_spin_unlock(&spin))
 
     return 0;
@@ -127,9 +173,6 @@ inline static int is_min_queue_testreset(cassa_public_t *q) {
         if(min_queue.ptr_q == q) {
             min_queue.ptr_q = NULL;
             min_queue.num   = -1;
-#ifdef DEBUG_MINQ
-            printf("[MINQ] resettata, ora ha [%d] clienti!\n", min_queue.num);
-#endif
         }
     } PTHLIB(err, pthread_spin_unlock(&spin))
 
@@ -143,66 +186,9 @@ inline static int is_min_queue_testinc(cassa_public_t *q) {
     PTHLIB(err, pthread_spin_lock(&spin)) {
         if(min_queue.ptr_q == q) {
             min_queue.num++;
-#ifdef DEBUG_MINQ
-            printf("[MINQ] incrementata, ora ha [%d] clienti!\n", min_queue.num);
-#endif
         }
     } PTHLIB(err, pthread_spin_unlock(&spin))
 
-    return 0;
-}
-
-/* scrittura in mutua esclusione di 1 o + messaggi sulla pipe
- * fra Manager-Clienti-TSH(supermercato) seguendo il protocollo di comunicazone */
-inline static int pipe_write(pipe_msg_code_t *type, int *param) {
-    int err;
-
-    PTH(err, pthread_mutex_lock(&mtx_pipe))
-
-    if(writen(pipefd_sm[1], type, sizeof(pipe_msg_code_t)) == -1) {
-        perror("writen");
-        return -1;
-    }
-    if(param != NULL) {
-        if(writen(pipefd_sm[1], param, sizeof(int)) == -1) {
-            perror("writen");
-            return -1;
-        }
-    }
-
-    PTH(err, pthread_mutex_unlock(&mtx_pipe))
-    return 0;
-}
-
-/* scrittura in mutua esclusione di 1 o + messaggi (a seconda del tipo di messaggio)
- * da parte dei thread del supermercato */
-inline static int socket_write(sock_msg_code_t *type, int cnt, ...){
-    int err;
-    va_list l;
-    va_start(l, cnt);
-
-    PTH(err, pthread_mutex_lock(&mtx_socket))
-
-    if(writen(dfd, type, sizeof(sock_msg_code_t)) == -1) {
-        perror("writen");
-        return -1;
-    }
-#ifdef DEBUG_SOCKET
-    printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *type);
-#endif
-    while(cnt-- > 0) {
-        int *tmp = va_arg(l, int *);
-        if(writen(dfd, tmp, sizeof(int)) == -1) {
-            perror("writen");
-            return -1;
-        }
-#ifdef DEBUG_SOCKET
-        printf("[SUPERMERCATO] HO scritto sul socket [%d]\n", *tmp);
-#endif
-    }
-    PTH(err, pthread_mutex_unlock(&mtx_socket))
-
-    va_end(l);
     return 0;
 }
 

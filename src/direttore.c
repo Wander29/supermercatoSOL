@@ -25,13 +25,13 @@ static int smfd = -1;           /* supermercato fd*/
 /*****************************************************
  * SIGNAL HANDLER SINCRONO
  * - aspetta la ricezione di segnali specificati da una maschera
+ *      - gestisce SIGQUIT, SIGHUP e SIGUSR1
  * - una volta ricevuto un segnale scrive sulla pipe il segnale ricevuto
  *****************************************************/
 static void *sync_signal_handler(void *useless) {
     int err;
     sigset_t mask;
     MENO1(sigemptyset(&mask))
-    MENO1(sigaddset(&mask, SIGINT))
     MENO1(sigaddset(&mask, SIGQUIT))
     MENO1(sigaddset(&mask, SIGHUP))
     MENO1(sigaddset(&mask, SIGUSR1))
@@ -43,10 +43,8 @@ static void *sync_signal_handler(void *useless) {
     for(;;) {
         PTH(err, sigwait(&mask, &sig_captured))
         switch(sig_captured) {
-            // case SIGINT:
-                // sig_captured = SIGQUIT;    /* utile per gestire più segnali come SIGQUIT (ad es. SIGINT) */
-                   // __attribute__((fallthrough));
             case SIGQUIT:
+                // __attribute__((fallthrough));
             case SIGHUP:
                 MENO1(writen(pipefd_dir[1], &sig_captured, sizeof(int)))
                 break;
@@ -63,8 +61,8 @@ inline static void usage(char *str) {
            "#sono un commento (hashtag ad inizio riga);  verrò ignorato \n"         \
            "#numero clienti, con C=0 non ci sono clienti\n"                         \
            "C = x;\t\t[>=0]\n"                                                         \
-           "#[...] indica il vincolo che il parametro deve rispettare, NON deve essere presente nel file\n"            \
-           "#numero casse, con K=0 non si sono casse\n"                             \
+           "#[...] indica il vincolo che il parametro deve rispettare, NON deve essere scritto nel file\n"            \
+           "#numero casse, con K=0 non ci sono casse\n"                             \
            "K = x;\t\t[>=0]\n"                                                          \
            "#soglia sopra la quale rientrano i clienti, con E=0 non rientrano\n"    \
            "E = x;\t\t[ IN [0, C] ]\n"                                                  \
@@ -291,19 +289,13 @@ int main(int argc, char *argv[]) {
         num_casse_aperte    = 0;
 
     for(;;) {
-        if (get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
-#ifdef DEBUG
-            printf("[DIRETTORE] sto per terminare!\n");
-#endif
-            break;
-        }
         /*
         * MULTIPLEXING: attendo I/O su vari fd
         */
         if(poll(pollfd_v, polled_fd, -1) == -1) {       /* aspetta senza timeout, si blocca */
-            if(errno == EINTR && get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
+            if(errno == EINTR) {
                 /*
-                 * in caso di interruzione per segnali non gestiti dall'handler
+                 * in caso di interruzione per segnali non gestiti dall'handler, NON dovrebbe accadere mai
                  */
                 printf("[SERVER] chiusura server\n");
                 break;
@@ -334,7 +326,6 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
                     printf("\n[DIRETTORE] ricevuto Segnale [%d]!\n", sig_captured);
 #endif
-                    // set_stato_supermercato(CHIUSURA_IMMEDIATA);
                     MENO1(kill(pid_sm, sig_captured))
 
                 }
