@@ -153,7 +153,7 @@ int write_log(char *filepath, log_set_t *log) {
      *              .cassa_log_t: contiene 2 code unbounded
      *
      * - somma il numero di clienti totali e il numero di prodotti venduti
-     * -
+     * - scrive sul file in formato csv, scrivendo END a fine di ogni categoria, e a fine LOG
      *******************************************************************/
 
     /* recupero struttura del LOG */
@@ -224,7 +224,7 @@ int write_log(char *filepath, log_set_t *log) {
     /* CLIENTI */
     LT0( (err = fprintf(f,    "CLIENTI,ID_CLIENTE,TEMPO_PERMANENZA,TEMPO_ATTESA," \
                                 "NUM_CAMBI_CASSA,PRODOTTI_ACQUISTATI\n")), err)
-    // TODO scrivere i millisecondi nel LOG e fare l'operazione nello script
+
     for(i = 0; i < num_clienti_totali; i++) {
         LT0( (err = fprintf(f, "%d,%.3f,%.3f,%d,%d\n", \
                     cli_v[i]->id_cliente, \

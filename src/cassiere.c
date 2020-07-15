@@ -53,13 +53,10 @@ void *cassiere(void *arg) {
     void *status_notificatore;
 
     unsigned seedp = C->index + (unsigned) time(NULL);
+    ret_pop_t cli;
 
     /** parametri del Cassiere */
     int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
-#ifdef DEBUG_RAND
-    printf("[CASSA %d] tempo fisso: [%d]\n", i, tempo_fisso);
-#endif
-    ret_pop_t cli;
 
     /************************************************
      * Vita del Cassiere
@@ -72,17 +69,12 @@ void *cassiere(void *arg) {
 
         /* attende il lavoro */
         if( (err = cassiere_attesa_lavoro(P)) == 1) { // termina
-#ifdef DEBUG
-            printf("[CASSA %d] terminato per chiusura supemercato, ero sulla JOBS!\n", C->index);
-#endif
             goto terminazione_cassiere;
         }
-        else if(err < 0)
+        else if(err < 0) {
             fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", C->index);
+        }
 
-#ifdef DEBUG_NOTIFY
-        printf("[CASSA %d] APERTA!\n", i);
-#endif
         /************************************************************************
          * Quando OTTIENE il lavoro
          *  - se è la prima apertura, avvia il thread notificatore associato
@@ -110,9 +102,6 @@ void *cassiere(void *arg) {
         for(;;) {
             if((cassiere_pop_cliente(C, &cli)) == -1) {
                 if (SM_IN_CHIUSURA == cli.stato) {
-#ifdef DEBUG_TERM
-                    printf("[CASSA %d] esco, ero sulla COND_READ!\n", C->index);
-#endif
                     MENO1LIB(cassiere_sveglia_clienti(C, SM_IN_CHIUSURA), (void *) -1)
                     goto terminazione_per_chiusura_sm;
                 }
@@ -126,11 +115,10 @@ void *cassiere(void *arg) {
                     log_cas->num_chiusure++;
 
                     gettimeofday(&chiusura, NULL);
-
                     tempo_apertura = NULL;
                     EQNULL(tempo_apertura = calloc(1, sizeof(int)))
-                    TIMEVAL_DIFF(&result, &chiusura, &apertura)
 
+                    TIMEVAL_DIFF(&result, &chiusura, &apertura)
                     *tempo_apertura =  result.tv_sec * sTOmsMULT + result.tv_usec / msTOusMULT; /* in ms */
                     MENO1LIB(insert_into_queue(log_cas->aperture, tempo_apertura), (void *)-1)
 
@@ -155,9 +143,6 @@ void *cassiere(void *arg) {
              *      - sveglio il cliente
              **************************************************/
             servizio->tempo_servizio = tempo_fisso + cli.ptr->num_prodotti * Com->tempo_prodotto;
-#ifdef DEBUG_RAND
-            printf("[CASSA %d] sto per aspettare [%d]ms!\n", C->index, tempo_servizio);
-#endif
             MENO1(millisleep(servizio->tempo_servizio))
             /*
              * Cliente SERVITO,
@@ -195,10 +180,6 @@ terminazione_cassiere:
         PTHJOIN(status_notificatore, "Notificatore cassiere")
     }
 
-#ifdef DEBUG_TERM
-    printf("[CASSIERE %d] TERMINATO CORRETTAMENTE!\n", C->index);
-#endif
-
     return (void *) 0;
 }
 
@@ -215,21 +196,21 @@ int set_stato_cassa(cassa_public_t *cassa, const stato_cassa_t s) {
 static int cassiere_attesa_lavoro(pool_set_t *P) {
     int err;
 
-    PTH(err, pthread_mutex_lock(&(P->mtx))) {
+    PTHLIB(err, pthread_mutex_lock(&(P->mtx))) {
         while(P->jobs == 0){
-            PTH(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
+            PTHLIB(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
             /*
              * SE la cassa era chiusa, e viene svegliata dal Manager
              * per la chiusura del supermercato => termina
              */
-            PTH(err, pthread_mutex_unlock(&(P->mtx)))
+            PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
             if(get_stato_supermercato() == CHIUSURA_IMMEDIATA)
                 return 1;
 
-            PTH(err, pthread_mutex_lock(&(P->mtx)))
+            PTHLIB(err, pthread_mutex_lock(&(P->mtx)))
         }
         P->jobs--;
-    } PTH(err, pthread_mutex_unlock(&(P->mtx)))
+    } PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
 
     return 0;
 }

@@ -16,8 +16,8 @@
 
 /**********************************************************************************************************
  * LOGICA DEL SUPERMERCATO
- *  - 0) legge parametri di configurazione
- *  - 1) gestione segnali
+ *  - egge parametri di configurazione
+ *  - gestione segnali
  *  - MANAGER: è il thread principale ( funzione main() ), gestisce gli altri thread
  *  - genera K thread cassieri
  *      si mettono tutti in attesa su una var. di condizione
@@ -150,13 +150,13 @@ int main(int argc, char* argv[]) {
     struct sockaddr_un serv_addr;
     SOCKADDR_UN(serv_addr, SOCKET_SERVER_NAME)
 
-    int num_tentativi = 0;
-    while(connect(dfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == -1 && (num_tentativi++ < 5)) {
-        if(errno == ENOENT) { // se il server non è ancora stato creato
-            sleep(1);
-        } else {
+    int num_tentativi = 0;      /* tento la connessione al massimo 5 volte, aspettando quindi 5 secondi al massimo */
+    while(connect(dfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == -1) {
+        if(num_tentativi++ > 5 || errno != ENOENT) {
             perror("connect");
             exit(EXIT_FAILURE);
+        } else {
+            sleep(1);
         }
     }
     /*
@@ -177,8 +177,8 @@ int main(int argc, char* argv[]) {
      *      - clienti               per richiedere al direttore il permesso di uscita:
      *                                  sarà il manager ad inoltrare la richiesta, ricevere la risposta
      *                                  e a far uscire il cliente
+     *                              per avvisare della propria entrata/uscita
    *************************************************************************************************/
-
     struct pollfd *pollfd_v;    /* array di pollfd */
     EQNULL(pollfd_v = start_pollfd())
     int polled_fd = 0;          /* conterrà il numero di fd che si stanno monitorando */
@@ -186,18 +186,16 @@ int main(int argc, char* argv[]) {
 
     tmp.fd = dfd;
     tmp.events = POLLIN;        /* attende eventi di lettura non con alta priorità */
-    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    MENO1LIB(pollfd_add(&pollfd_v, tmp, &polled_fd), -1)
 
     tmp.fd = pipefd_sm[0];
     tmp.events = POLLIN;
-    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    MENO1LIB(pollfd_add(&pollfd_v, tmp, &polled_fd), -1)
 
     pipe_msg_code_t type_msg_pipe;
     sock_msg_code_t type_msg_sock;
     int param;
-#ifdef DEBUG
-    printf("[SUPERMERCATO] multiplexing started OK!\n");
-#endif
+
     /*************************************************************
    * Generazione cassieri
     * - dichiarazione delle code (inizializzate e distrutte nel main)
@@ -232,7 +230,7 @@ int main(int argc, char* argv[]) {
 
     /** argomenti del POOL */
     pool_set_t arg_cas;
-    pool_start(&arg_cas);
+    MENO1LIB(pool_start(&arg_cas), -1)
     arg_cas.jobs = par.J;   /* casse attive inizialmente */
 
     /** argomenti COMUNI a tutte le casse */
@@ -267,9 +265,6 @@ int main(int argc, char* argv[]) {
         PTH(err, pthread_create((tid_casse + i), NULL, cassiere, (void *) (casse + i) ))
     }
 
-#ifdef DEBUG
-    printf("[SUPERMERCATO] cassieri generati!\n");
-#endif
     /*************************************************************
    * Generazione Client
     * - inizializzazione pipe di comunicazione
@@ -285,9 +280,8 @@ int main(int argc, char* argv[]) {
      ***********************************************************/
     /** argomenti del POOL */
     pool_set_t arg_cl;
-    MENO1(pool_start(&arg_cl))
+    MENO1LIB(pool_start(&arg_cl), -1)
     arg_cl.jobs = par.C;
-
 
     /** argomenti COMUNI */
     client_com_arg_t com_cl;
@@ -325,9 +319,7 @@ int main(int argc, char* argv[]) {
     for(i = 0; i < par.C; i++) {
         PTH(err, pthread_create((tid_clienti + i), NULL, cliente, (void *) (clienti + i) ))
     }
-#ifdef DEBUG_MANAGER
-    printf("[MANAGER] clienti creati\n");
-#endif
+
     int cnt_clienti_attivi = 0;
     int cnt_usciti = 0;
     for(;;) {
@@ -344,7 +336,7 @@ int main(int argc, char* argv[]) {
                 printf("[SUPERMERCATO] chiusura supermercato\n");
                 break;
             } else {
-                perror("accept");
+                perror("poll");
                 exit(EXIT_FAILURE);
             }
         }
@@ -357,60 +349,40 @@ int main(int argc, char* argv[]) {
             if (pollfd_v[i].revents & POLLIN) {      /* fd pronto per la lettura! */
                 int fd_curr = pollfd_v[i].fd;
 
-                if (fd_curr == pipefd_sm[0]) {
+                if (fd_curr == pipefd_sm[0]) { /* messaggio sulla PIPE */
                     MENO1(readn(pipefd_sm[0], &type_msg_pipe, sizeof(pipe_msg_code_t)))
-#ifdef DEBUG_MANAGER
-                    printf("[MANAGER] PIPE [%d]!\n", type_msg_pipe);
-#endif
                     switch (type_msg_pipe) {
+
                         case CLIENTE_RICHIESTA_PERMESSO:
                             MENO1(readn(pipefd_sm[0], &param, sizeof(int)))
                             type_msg_sock = CLIENTE_SENZA_ACQUISTI;
-#ifdef DEBUG_PIPE
-                            printf("[MANAGER] CLIENTE_RICHIESTA_PERMESSO: [%d]\n", param);
-#endif
                             MENO1(socket_write(&type_msg_sock, 1, &param))
                             break;
 
-                        case CLIENTE_ENTRATA:
+                        case CLIENTE_ENTRATA: // è necessario ai fini del progetto
                             cnt_clienti_attivi++;
-#ifdef DEBUG_PIPE
-                            printf("[MANAGER] CLIENTE_ENTRATA: [%d]\n", cnt_clienti_attivi);
-#endif
                             break;
 
                         case CLIENTE_USCITA:
                             cnt_clienti_attivi--;
                             cnt_usciti++;
-#ifdef DEBUG_PIPE
-                            printf("[MANAGER] CLIENTE_USCITA: [%d]\n", cnt_clienti_attivi);
-#endif
                             if(get_stato_supermercato() != APERTO && cnt_clienti_attivi == 0) {
                                 set_stato_supermercato(CHIUSURA_IMMEDIATA);
                                 type_msg_sock = MANAGER_IN_CHIUSURA;
                                 MENO1(socket_write(&type_msg_sock, 0))
                                 goto terminazione_supermercato;
                             }
-                            //if(par.C - cnt_clienti_attivi == par.E) {
                             if(cnt_usciti == par.E) {
-#ifdef DEBUG_WAIT
-                                printf("[MANAGER] C[%d] - cnt_clienti_attivi[%d] = E[%d]\n", par.C, cnt_clienti_attivi, par.E);
-#endif
+                                /*
+                                 * fornisco E lavori, faccio una broadcast ma solamente E clienti lavoreranno
+                                 */
                                 NOTZERO(ch_jobs(&arg_cl, par.E))
                                 PTH(err, pthread_cond_broadcast(&(arg_cl.cond)))
-                                /*
-                                 * for(i = 0; i < par.E; i++) {
-                                    PTH(err, pthread_cond_signal(&(arg_cl.cond)))
-                                }
-                                 */
                                 cnt_usciti = 0;
                             }
                             break;
 
                         case SIG_RICEVUTO:
-#ifdef DEBUG_PIPE
-                            printf("[MANAGER] SIG_RICEVUTO\n");
-#endif
                             MENO1(readn(pipefd_sm[0], &param, sizeof(int)))
                             if(param == SIGHUP) {
                                 set_stato_supermercato(CHIUSURA_SOFT);
@@ -427,17 +399,14 @@ int main(int argc, char* argv[]) {
                         default:;
                     }
                 }
-                else if(fd_curr == dfd) {
+                else if(fd_curr == dfd) { /* Socket di comunicazione col direttore */
+                    /*
+                     * messaggio dal Direttore
+                     */
                     MENO1(readn(dfd, &type_msg_sock, sizeof(sock_msg_code_t)))
-#ifdef DEBUG_SOCKET
-                    printf("[MANAGER] SOCKET [%d]!\n", type_msg_sock);
-#endif
                     switch(type_msg_sock) {
                         case DIRETTORE_PERMESSO_USCITA:
                             MENO1(readn(dfd, &param, sizeof(int)))
-#ifdef DEBUG_MANAGER
-                            printf("[MANAGER] Ricevuto PERMESSO di uscire per il cliente [%d]\n", param);
-#endif
                             NOTZERO(set_permesso_uscita(clienti+param, 1))
                             PTH(err, pthread_cond_signal(&(clienti[param].cond)))
 
@@ -446,16 +415,11 @@ int main(int argc, char* argv[]) {
                         case DIRETTORE_APERTURA_CASSA:
                             set_jobs(&arg_cas, 1);
                             PTH(err, pthread_cond_signal(&(arg_cas.cond)))
-#ifdef DEBUG_NOTIFY
-                            printf("[MANAGER] 1 cassa aperta!\n");
-#endif
                             break;
 
                         case DIRETTORE_CHIUSURA_CASSA:
                             MENO1(readn(dfd, &param, sizeof(int)))
-#ifdef DEBUG_NOTIFY
-                            printf("[MANAGER] cassa [%d] da chiudere!\n", param);
-#endif
+
                             NOTZERO(set_stato_cassa(casse_public + param, CHIUSA))
                             PTH(err, pthread_cond_signal(&(casse_public[param].cond_queue)))
                             break;
@@ -471,10 +435,6 @@ int main(int argc, char* argv[]) {
     * Terminazione: cleanup
     *************************************************************/
 terminazione_supermercato:
-#ifdef DEBUG_TERM
-    printf("[SUPERMERCATO] terminazione iniziata\n");
-    fflush(stdout);
-#endif
 
     /***********************************************************
      * THREAD IN ATTESA DI LAVORO
@@ -525,7 +485,7 @@ terminazione_supermercato:
     }
     free(Q);
 
-    pool_destroy(&arg_cas);
+    MENO1LIB(pool_destroy(&arg_cas), -1)
     free(casse_public);
     free(casse);
 
@@ -542,31 +502,15 @@ terminazione_supermercato:
         free(clienti[i].elem);
     }
 
-    pool_destroy(&arg_cl);
+    MENO1LIB(pool_destroy(&arg_cl), -1)
     free(clienti);
 
     MENO1LIB(write_log(par.Z, &log_set), -1)
 
-    /* LOG clienti*/
-    /*
-    for(i = 0; i < par.C; i++) {
-        if(free_queue(log_set.log_clienti[i], DYNAMIC_ELEMS) != 0)
-            printf("[CODA %d] Errore di terminazione\n", i);
-    }
-     */
+    /* LOG :    sono liberati all'interno di write_log al momento
+     *          dell'estrazione delle informazioni dalle strutture */
     free(log_set.log_clienti);
     free(log_set.log_casse);
-
-    /* LOG cassieri
-    for(i = 0; i < par.K; i++) {
-        if(free_queue(log_set.log_casse[i].aperture, DYNAMIC_ELEMS) != 0)
-            printf("[CODA %d] Errore di terminazione\n", i);
-
-        if(free_queue(log_set.log_casse[i].clienti_serviti, DYNAMIC_ELEMS) != 0)
-            printf("[CODA %d] Errore di terminazione\n", i);
-    }
-    free(log_set.log_casse);
-     */
 
     /* signal handler */
     PTH(err, pthread_kill(tid_tsh, SIGUSR1))
@@ -582,8 +526,5 @@ terminazione_supermercato:
     PTH(err, pthread_mutex_destroy(&mtx_pipe))
     PTH(err, pthread_mutex_destroy(&mtx_stato_supermercato))
 
-#ifdef DEBUG_TERM
-    fprintf(stderr, "[SUPERMERCATO] CHIUSURA CORRETTA\n");
-#endif
     return 0;
 }

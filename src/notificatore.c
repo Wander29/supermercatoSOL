@@ -33,11 +33,7 @@ void *notificatore(void *arg) {
 
     }  while(get_stato_supermercato() != CHIUSURA_IMMEDIATA);
 
-    terminazione_notificatore:
-#ifdef DEBUG_TERM
-    printf("[NOTIFICATORE %d] TERMINATO CORRETTAMENTE!\n", C->index);
-    fflush(stdout);
-#endif
+terminazione_notificatore:
     return (void *) NULL;
 }
 

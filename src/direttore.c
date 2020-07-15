@@ -235,11 +235,11 @@ int main(int argc, char *argv[]) {
 
     tmp.fd = listen_ssfd;
     tmp.events = POLLIN;        /* attende eventi di lettura non con alta priorità */
-    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    MENO1LIB(pollfd_add(&pollfd_v, tmp, &polled_fd), -1)
 
     tmp.fd = pipefd_dir[0];
     tmp.events = POLLIN;
-    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+    MENO1LIB(pollfd_add(&pollfd_v, tmp, &polled_fd), -1)
 
     /*
      * gestione casse
@@ -320,9 +320,9 @@ int main(int argc, char *argv[]) {
                     MENO1(smfd = accept(listen_ssfd, NULL, 0))  /* socket di comunicazione col supermercato */
                     tmp.fd = smfd;
                     tmp.events = POLLIN;
-                    MENO1(pollfd_add(&pollfd_v, tmp, &polled_fd))
+                    MENO1LIB(pollfd_add(&pollfd_v, tmp, &polled_fd), -1)
 
-                    MENO1(pollfd_remove(pollfd_v, i, &polled_fd))
+                    MENO1LIB(pollfd_remove(pollfd_v, i, &polled_fd), -1)
                     current_pollfd_array_size--;
 
                     MENO1(shutdown(listen_ssfd, SHUT_RDWR))
