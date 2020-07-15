@@ -3,11 +3,11 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include <time.h>     //  nanosleep
+#include <sys/time.h>     //  nanosleep
 #include <stdlib.h>     // exit, EXIT_FAILURE
 #include <unistd.h>     // ssize_t, read/write
 #include <stdio.h>     //  perror
-#include <time.h>     //  nanosleep
-#include <sys/time.h>     //  nanosleep
 #include <errno.h>     //  nanosleep
 #include <ctype.h>     //  nanosleep
 
@@ -15,7 +15,6 @@
 #define sTOmsMULT   1000
 #define msTOusMULT  1000
 #define msTOsMULT   1000
-
 
 #define MENO1(v) \
     if( (v) == -1 ) { perror(#v); exit(EXIT_FAILURE); }

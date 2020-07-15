@@ -1,8 +1,6 @@
 #include <parser_writer.h>
 #include "../include/parser_writer.h"
 
-char *strtok_r(char *str, const char *delim, char **saveptr);
-
 int get_params_from_file(param_t *ptr, char *filepath) {
     FILE *f;
     char buf[BUF_SIZE];
