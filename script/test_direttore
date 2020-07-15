@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# -ne 0 ]; then
+  SIG=SIGHUP
+else
+  SIG=SIGQUIT
+fi
+
+./bin/direttore -c ./config/config.txt &
+PID_DIR=$!
+sleep 10
+kill -s ${SIG} ${PID_DIR}
+wait ${PID_DIR}

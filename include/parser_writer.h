@@ -7,6 +7,7 @@
 
 #include "../include/mytypes.h"
 #include "../lib/lib-include/myutils.h"
+#include "../lib/lib-include/queue_linked.h"
 
 #define CHECK(v)                                \
     if(ptr->v != -1) {                          \

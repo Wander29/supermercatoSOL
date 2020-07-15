@@ -20,8 +20,9 @@ INCUSED		=	$(LIBINCLUDE)mysocket.h $(LIBINCLUDE)mypthread.h $(INCDIR)mytypes.h
 BINDIR		=	bin/
 
 TARGETS     =  	$(BINDIR)direttore
+LOGNAME 	=	log.csv
 
-.PHONY: all clean kill test1 test2
+.PHONY: all clean kill test1 test2 test3
 .SUFFIXES: .c .o .h
 
 all: $(TARGETS)
@@ -85,17 +86,18 @@ $(LIBDIR)libsupermercato.a: 	$(SRCDIR)cliente.c $(SRCDIR)cassiere.c $(SRCDIR)not
 	rm -f cliente.o cassiere.o notificatore.o
 
 test1:
-	valgrind --trace-children=yes --leak-check=full ./bin/direttore -c configtest1.txt & \
+	valgrind --trace-children=yes --leak-check=full ./bin/direttore -c ./config/configtest1.txt & \
 	sleep 15 ;\
 	kill -s QUIT "$$!" ;\
 	wait $$!
 
 test2:
-	./bin/direttore -c configtest2.txt & \
-	sleep 25 ;\
+	-chmod +x ./script/analisi.sh ;\
+	./bin/direttore -c ./config/configtest2.txt & \
+	sleep 5 ;\
 	kill -s HUP "$$!" ;\
 	wait $$! ;\
-	echo "END"
+	./script/analisi.sh $(LOGNAME) | less
 
 clean:
 	-rm -f *.o
@@ -103,6 +105,7 @@ clean:
 	-rm -f ~*
 	-rm -f vgcore*
 	-rm -f out*
+	-rm -f *.csv
 
 kill: clean
 	-killall -r supermercato -r memcheck

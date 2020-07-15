@@ -310,6 +310,7 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                         PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
                     /*******************************************************************
                      * CONTROLLO CAMBIO CASSA
+                     * si può cambiare cassa un massimo di 10 volte (compresi i cambi per chiusura)
                      * Stato attuale (io==cliente):
                      *      Q[i]    cassa in cui mi trovo
                      *      e       elemento della coda che mi contiene
@@ -324,38 +325,40 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                      *          ret e.stato
                      *******************************************************************/
 #ifdef CAMBIO_CASSA
-                        queue_position_t curr_pos = queue_get_position(C->q, (void *) e);
-                        if(curr_pos.pos == -1) {
-                            fprintf(stderr, "ERRORE: queue_get_position\n");
-                            PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
-                            return -1;
-                        }
-
-                        if(curr_pos.pos > POS_MIN_CHQUEUE) { // Se ho almeno 2 clienti davanti a me
-                            min_queue_t minq = get_min_queue();
-
-                            if (minq.num >= 0 && minq.num <= ((curr_pos.pos) * (PERC_CHQUEUE))) {
-                                if (queue_remove_specific_elem(C->q, curr_pos.ptr_in_queue) == -1) {
-                                    fprintf(stderr, "ERRORE CLIENT: queue_remove_specific_elem\n");
-                                    PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
-                                    return (attesa_t) -1;
-                                }
-
+                        if(*(cnt_cambi) < 10) {
+                            queue_position_t curr_pos = queue_get_position(C->q, (void *) e);
+                            if(curr_pos.pos == -1) {
+                                fprintf(stderr, "ERRORE: queue_get_position\n");
                                 PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
-                                ret_minq = cliente_push(minq.ptr_q, e);
-                                switch (ret_minq) {
-                                    case APERTA: /* mi sono spostato nella coda più conveniente, prendo il lock, per la wait */
-                                        C = minq.ptr_q;
-                                        (*cnt_cambi)++;
-                                        PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
-                                        break;
+                                return -1;
+                            }
 
-                                    case CHIUSA: /* mi rimetterò in fila in una delle casse aperte */
-                                        return CASSA_IN_CHIUSURA;
+                            if(curr_pos.pos > POS_MIN_CHQUEUE) { // Se ho almeno 2 clienti davanti a me
+                                min_queue_t minq = get_min_queue();
 
-                                    default: /* errore */
-                                        fprintf(stderr, "ERRORE CLIENT: cliente_push, minq\n");
+                                if (minq.num >= 0 && minq.num <= ((curr_pos.pos) * (PERC_CHQUEUE))) {
+                                    if (queue_remove_specific_elem(C->q, curr_pos.ptr_in_queue) == -1) {
+                                        fprintf(stderr, "ERRORE CLIENT: queue_remove_specific_elem\n");
+                                        PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                                         return (attesa_t) -1;
+                                    }
+
+                                    PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                    ret_minq = cliente_push(minq.ptr_q, e);
+                                    switch (ret_minq) {
+                                        case APERTA: /* mi sono spostato nella coda più conveniente, prendo il lock, per la wait */
+                                            C = minq.ptr_q;
+                                            (*cnt_cambi)++;
+                                            PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
+                                            break;
+
+                                        case CHIUSA: /* mi rimetterò in fila in una delle casse aperte */
+                                            return CASSA_IN_CHIUSURA;
+
+                                        default: /* errore */
+                                            fprintf(stderr, "ERRORE CLIENT: cliente_push, minq\n");
+                                            return (attesa_t) -1;
+                                    }
                                 }
                             }
                         }

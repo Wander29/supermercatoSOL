@@ -1,0 +1,28 @@
+#numero clienti
+C = 10;
+#numero casse
+K = 4;
+#soglia sopra la quale rientrano i clienti
+E = 5;
+#tempo massimo di acquisti
+T = 200;
+#numero massimo prodotti acquistabili
+P = 10;
+#ampiezza in ms intervallo di ricerca nuova cassa dei clienti in coda
+S = 200;
+#tempo di gestione di un prodotto da parte di ogni cassiere
+L = 3;
+#numero casse aperte inizialmente
+J = 2;
+#ampiezza in ms intervallo di comunicazione tra cassiere e direttore
+A = 400;
+#soglia chiusura casse
+S1 = 2;
+#soglia apertura casse
+S2 = 5;
+#nome file di LOG, se esiste lo sovrascrive
+Z = log.csv;
+#test1: K=2, C=20, E=5, T=500, P=80, S=30 
+#15s, SIGQUIT
+#test2: K=6, C=50, E=3, T=200, P=100, S=20
+#25s, SIGHUP

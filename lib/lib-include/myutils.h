@@ -14,6 +14,7 @@
 #define msTOnsMULT  1000000
 #define sTOmsMULT   1000
 #define msTOusMULT  1000
+#define msTOsMULT   1000
 
 
 #define MENO1(v) \

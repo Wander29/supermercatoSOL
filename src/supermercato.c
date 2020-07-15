@@ -531,10 +531,12 @@ terminazione_supermercato:
     write_log(par.Z, log_set);
 
     /* LOG clienti*/
+    /*
     for(i = 0; i < par.C; i++) {
         if(free_queue(log_set.log_clienti[i], DYNAMIC_ELEMS) != 0)
             printf("[CODA %d] Errore di terminazione\n", i);
     }
+     */
     free(log_set.log_clienti);
 
     /* LOG cassieri */

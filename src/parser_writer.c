@@ -127,14 +127,110 @@ int get_params_from_file(param_t *ptr, char *filepath) {
     return 0;
 }
 
+static int cmp_log_clienti(const void *p1, const void *p2) {
+    cliente_log_t *c1 = *(cliente_log_t **) p1;
+    cliente_log_t *c2 = *(cliente_log_t **) p2;
+
+    return ((c1->id_cliente) - (c2->id_cliente));
+}
+
 int write_log(char *filepath, log_set_t log) {
+    FILE *f;
+    if( (f = fopen(filepath, "w")) == NULL) {
+        perror("fopen");
+        return -1;
+    }
+    int i, err, j;
+    /*******************************************************************
+     * SCRITTURA LOG su file
+     * - raccoglie i dati dei LOG dalle varie strutture
+     *      .clienti: C code unbounded
+     *              ordina i clienti per ID_CLIENTE
+     *      .cassieri: array di K elementi di tipo cassa_log_t
+     *              .cassa_log_t: contiene 2 code unbounded
+     *
+     * - somma il numero di clienti totali e il numero di prodotti venduti
+     * - 
+     *******************************************************************/
+
+    /* recupero struttura del LOG */
+    /* Clienti */
     queue_t **clienti = log.log_clienti;
-    cliente_log_t *log_cl = (cliente_log_t *) get_from_queue(clienti[0]);
+    int num_clienti_totali = 0;
+    for(i = 0; i < log.C; i++)
+        num_clienti_totali += clienti[i]->nelems;
+    printf("CLIENTI TOT: [%d]\n", num_clienti_totali);
 
-    printf("[CLIENTE %d] attesa [%d]ms\tpermanenza [%d]ms\n", \
-                log_cl->id_cliente, log_cl->tempo_attesa, log_cl->tempo_permanenza);
+    cliente_log_t **cli_v;
+    if( (cli_v = calloc(num_clienti_totali, sizeof(cliente_log_t *))) == NULL) {
+        fprintf(stderr, "ERRORE: calloc\n");
+        return -1;
+    }
 
-    free(log_cl);
+    for(i = 0, j = 0; i < log.C; i++) {
+        while(clienti[i]->nelems > 0) {
+            cli_v[j++] = (cliente_log_t *) get_from_queue(clienti[i]);
+            printf("id cl [%d]\n", cli_v[j-1]->id_cliente);
+        }
+        free_queue(clienti[i], DYNAMIC_ELEMS);
+    }
+    qsort( &cli_v[0], num_clienti_totali, sizeof(cliente_log_t *), cmp_log_clienti);
+
+    /* inizio scrittura */
+    err = fprintf(f, "SUPERMERCATO,TOT_CLIENTI_SERVITI,TOT_PRODOTTI_VENDUTI\n");
+    if(err < 0) {
+        fprintf(stderr, "ERRORE: fprintf\n");
+        return err;
+    }
+
+    err = fprintf(f, "%d,%d\n", num_clienti_totali, 100);
+    if(err < 0) {
+        fprintf(stderr, "ERRORE: fprintf\n");
+        return err;
+    }
+
+    err = fprintf(f, "END\n");
+    if(err < 0) {
+        fprintf(stderr, "ERRORE: fprintf\n");
+        return err;
+    }
+
+    err = fprintf(f, "CLIENTI,ID_CLIENTE,TEMPO_PERMANENZA,TEMPO_ATTESA,NUM_CAMBI_CASSA,PRODOTTI_ACQUISTATI\n");
+    if(err < 0) {
+        fprintf(stderr, "ERRORE: fprintf\n");
+        return err;
+    }
+
+    for(i = 0; i < num_clienti_totali; i++) {
+        err = fprintf(f, "%d,%.3f,%.3f,%d,%d\n", \
+                    cli_v[i]->id_cliente, \
+                    (cli_v[i]->tempo_permanenza / (float) msTOsMULT),
+                    cli_v[i]->tempo_attesa < 0 ? -1 : (cli_v[i]->tempo_attesa / (float) msTOsMULT), \
+                    cli_v[i]->num_cambi_cassa, \
+                    cli_v[i]->num_prodotti_acquistati );
+
+        if(err < 0) {
+            fprintf(stderr, "ERRORE: fprintf\n");
+            return err;
+        }
+
+        free(cli_v[i]);
+    }
+    err = fprintf(f, "END\n");
+    if(err < 0) {
+        fprintf(stderr, "ERRORE: fprintf\n");
+        return err;
+    }
+
+    free(cli_v);
+
+    /* Cassieri */
+
+
+    if(fclose(f) != 0) {
+        perror("fclose");
+        return -1;
+    }
 
     return 0;
 }
