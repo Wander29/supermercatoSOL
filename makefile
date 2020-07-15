@@ -7,7 +7,7 @@ CFLAGS      =   -std=c99 -g -Wall -pedantic -Wextra \
 SRCDIR      =   src/
 LIBDIR      =   lib/
 LIBSRC		= 	$(LIBDIR)lib-src/
-LIBS        =	-lqueue_linked -lpthread -lmyutils -lmypoll -lsupermercato -lsupermercato_com -lpool
+LIBS        =	-lpthread -lmyutils -lmypoll -lsupermercato -lsupermercato_com -lpool -lqueue_linked
 LDFLAGS     = 	-Wl,-rpath,$(LIBDIR)
 LIBINCLUDE  =   $(LIBDIR)lib-include/
 INCDIR		=	include/
@@ -57,12 +57,6 @@ $(LIBDIR)libmypoll.so: $(LIBSRC)mypoll.c $(LIBINCLUDE)mypoll.h
 	$(CC) -shared -o $@ mypoll.o
 	rm -f mypoll.o
 
-$(LIBDIR)libparser_config.so: $(LIBSRC)parser_config.c $(LIBINCLUDE)parser_config.h
-	-rm -f parser_config.o
-	$(CC) $(CFLAGS) -I $(INCLUDE) -c -fPIC -o parser_config.o $<
-	$(CC) -shared -o $@ parser_config.o
-	rm -f parser_config.o
-
 $(LIBDIR)libpool.so: $(LIBSRC)pool.c $(LIBINCLUDE)pool.h
 	-rm -f pool.o
 	$(CC) $(CFLAGS) -I $(INCLUDE) -c -fPIC -o pool.o $<
@@ -94,7 +88,7 @@ test1:
 test2:
 	-chmod +x ./script/analisi.sh ;\
 	./bin/direttore -c ./config/configtest2.txt & \
-	sleep 5 ;\
+	sleep 25 ;\
 	kill -s HUP "$$!" ;\
 	wait $$! ;\
 	./script/analisi.sh $(LOGNAME) | less

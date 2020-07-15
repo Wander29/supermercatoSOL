@@ -37,25 +37,39 @@ void *cassiere(void *arg) {
     cassa_com_arg_t *Com = Cassa_args->shared;
     pool_set_t *P = Com->pool_set;
 
+    /* struttura del LOG di una cassa */
+    cliente_servito_log_t *servizio;
+    int *tempo_apertura;
+    struct timeval  apertura,
+                    chiusura,
+                    result;
+
+    cassa_log_t *log_cas = Cassa_args->log_cas;
+    log_cas->id_cassa               = C->index;
+    log_cas->num_chiusure           = 0;
+    log_cas->num_prodotti_elaborati = 0;
+
     pthread_t tid_notificatore = -1;
     void *status_notificatore;
-    int i = C->index;
 
-    unsigned seedp = i + (unsigned) time(NULL);
+    unsigned seedp = C->index + (unsigned) time(NULL);
 
     /** parametri del Cassiere */
     int tempo_fisso = (rand_r(&seedp) % (MAX_TEMPO_FISSO - MIN_TEMPO_FISSO + 1)) + MIN_TEMPO_FISSO; // 20 - 80 ms
 #ifdef DEBUG_RAND
     printf("[CASSA %d] tempo fisso: [%d]\n", i, tempo_fisso);
 #endif
-
-    int tempo_servizio;
     ret_pop_t cli;
 
     /************************************************
      * Vita del Cassiere
      ************************************************/
     for(;;) {
+        /* reinizializzo struttura per calcolare i tempi */
+        memset(&apertura, 0, sizeof(struct timeval));
+        memset(&chiusura, 0, sizeof(struct timeval));
+        memset(&result, 0, sizeof(struct timeval));
+
         /* attende il lavoro */
         if( (err = cassiere_attesa_lavoro(P)) == 1) { // termina
 #ifdef DEBUG
@@ -64,7 +78,7 @@ void *cassiere(void *arg) {
             goto terminazione_cassiere;
         }
         else if(err < 0)
-            fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", i);
+            fprintf(stderr, "Errore durante l'attesa di un lavoro per la cassa [%d]\n", C->index);
 
 #ifdef DEBUG_NOTIFY
         printf("[CASSA %d] APERTA!\n", i);
@@ -85,6 +99,8 @@ void *cassiere(void *arg) {
         MENO1LIB(set_stato_cassa(C, APERTA), (void *) -1)
         MENO1LIB(set_min_queue(C, 0), (void *) -1)
 
+        gettimeofday(&apertura, NULL);
+
         /********************************************************************************
          * GESTIONE CLIENTI(cassa APERTA)
          * - controlla che la cassa non sia stata chiusa || che il supermercato non
@@ -98,14 +114,26 @@ void *cassiere(void *arg) {
                     printf("[CASSA %d] esco, ero sulla COND_READ!\n", C->index);
 #endif
                     MENO1LIB(cassiere_sveglia_clienti(C, SM_IN_CHIUSURA), (void *) -1)
-                    goto terminazione_cassiere;
+                    goto terminazione_per_chiusura_sm;
                 }
                 else if (CASSA_IN_CHIUSURA == cli.stato) {
-
                     /* se era la coda più conveniente resetto min_queue */
                     MENO1LIB(is_min_queue_testreset(C), (void *)-1)
 
                     MENO1LIB(cassiere_sveglia_clienti(C, CASSA_IN_CHIUSURA), (void *)-1)
+
+                    /* LOG: misuro l'intervallo di tempo di apertura */
+                    log_cas->num_chiusure++;
+
+                    gettimeofday(&chiusura, NULL);
+
+                    tempo_apertura = NULL;
+                    EQNULL(tempo_apertura = calloc(1, sizeof(int)))
+                    TIMEVAL_DIFF(&result, &chiusura, &apertura)
+
+                    *tempo_apertura =  result.tv_sec * sTOmsMULT + result.tv_usec / msTOusMULT; /* in ms */
+                    MENO1LIB(insert_into_queue(log_cas->aperture, tempo_apertura), (void *)-1)
+
                     break;
                 }
                 else {
@@ -114,6 +142,10 @@ void *cassiere(void *arg) {
                     return (void *) -1;
                 }
             }
+            /* struttura per il LOG: servizio di 1 cliente */
+            servizio = NULL;
+            EQNULL(servizio = calloc(1, sizeof(cliente_servito_log_t)))
+            servizio->id_cliente = cli.ptr->id_cliente;
 
             /**************************************************
              * Cliente estratto dalla coda
@@ -122,17 +154,37 @@ void *cassiere(void *arg) {
              *      - simulo il servizio con una nanosleep
              *      - sveglio il cliente
              **************************************************/
-            tempo_servizio = tempo_fisso + cli.ptr->num_prodotti * Com->tempo_prodotto;
+            servizio->tempo_servizio = tempo_fisso + cli.ptr->num_prodotti * Com->tempo_prodotto;
 #ifdef DEBUG_RAND
             printf("[CASSA %d] sto per aspettare [%d]ms!\n", C->index, tempo_servizio);
 #endif
-            MENO1(millisleep(tempo_servizio))
+            MENO1(millisleep(servizio->tempo_servizio))
+            /*
+             * Cliente SERVITO,
+             *  -inserimento nel LOG
+             *  -va svegliato
+             */
+
+            /* LOG: prodotti vanno incrementati prima che il clienti si svegli
+             *  elem verrà riusato e modificato*/
+            log_cas->num_prodotti_elaborati += cli.ptr->num_prodotti;
 
             NOTZERO((set_stato_attesa(cli.ptr, SERVITO)))
-            //set_stato_attesa_cassa(C, cli.ptr, SERVITO);
             PTH(err, pthread_cond_signal(&(cli.ptr->cond_cl_q)))
+
+            MENO1LIB(insert_into_queue(log_cas->clienti_serviti, servizio), (void *) -1)
         }
     }
+
+terminazione_per_chiusura_sm:
+    gettimeofday(&chiusura, NULL);
+
+    tempo_apertura = NULL;
+    EQNULL(tempo_apertura = calloc(1, sizeof(int)))
+    TIMEVAL_DIFF(&result, &chiusura, &apertura)
+
+    *tempo_apertura =  result.tv_sec * sTOmsMULT + result.tv_usec / msTOusMULT; /* in ms */
+    MENO1LIB(insert_into_queue(log_cas->aperture, tempo_apertura), (void *)-1)
 
 terminazione_cassiere:
     NOTZERO(set_stato_cassa(C, CHIUSA))
@@ -144,7 +196,7 @@ terminazione_cassiere:
     }
 
 #ifdef DEBUG_TERM
-    printf("[CASSIERE %d] TERMINATO CORRETTAMENTE!\n", i);
+    printf("[CASSIERE %d] TERMINATO CORRETTAMENTE!\n", C->index);
 #endif
 
     return (void *) 0;

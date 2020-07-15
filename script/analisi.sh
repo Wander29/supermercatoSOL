@@ -19,18 +19,15 @@ do
   case "$tipo_log" in
     ( "SUPERMERCATO" )
         #LOG supermercato
-        #header
+        #header e record insieme
         printf "\n${divider20} SUPERMERCATO ${divider20}\n"
         printf "|${divider0}::${divider0}|\n"
         printf "| %19s | %20s |\n" "" ""
         printf "| %19s | %20s |\n" \
                 "TOT CLIENTI SERVITI" "TOT PRODOTTI VENDUTI"
-        printf "| %19s | %20s |\n" "" ""
-        printf "|${divider0}::${divider0}|\n"
-        #record
 
         read -r tot_cl tot_prodotti
-        printf "| %10d%9s   %10d%10s |" \
+        printf "| %10d%9s | %10d%10s |" \
               $tot_cl "" $tot_prodotti ""
         printf "\n${divider20}==============${divider20}\n\n"
         read -r end other
@@ -69,12 +66,60 @@ do
         done
         ;;
 
-    ( "CASSIERE" )
+    ( "CASSIERI" )
         #LOG cassieri
         #header
-        printf "\n${divider2} CASSIERI ${divider2}\n"
-        printf "|${divider}:${divider}| \n"
+        printf "\n${divider20}============= CASSIERI ${divider20}=============\n"
+        printf "|${divider0}${divider0}:::${divider0}| \n"
+
+        printf "| %-5s | %-9s | %-7s | %-9s | %-11s | %-8s | \n" "" "" "" "" "" ""
+
+        printf "| %1s%-4s | %-9s | %-7s | %-9s | %-11s | %-8s | \n" \
+                "" "ID" "PRODOTTI " "CLIENTI" "TOT TEMPO" \
+                "TEMPO MEDIO" "NUM"
+        printf "| %5s | %-9s | %-7s | %-9s | %-11s | %-8s | \n" \
+                "CASSA" "ELABORATI" "SERVITI" "APERTURA" "SERVIZIO" "CHIUSURE"
+
+        printf "| %-5s | %-9s | %-7s | %9s | %11s | %-8s | \n" "" "" "" "[sec]" "[sec]" ""
+        printf "|${divider0}${divider0}:::${divider0}| \n"
+
         #record
+        while read -r id prod cli chius lista
+        do
+          if [ "$id" == "END" ]; then
+            printf "${divider20}${divider20}${divider20}${divider20}====\n"
+            break;
+          fi
+
+          WAY=1
+          TEMPO_AP=0
+          MEDIA_SERV=0
+          #tokenizzo lista
+          for word in $lista; do
+            if [ "$word" != "LISTA" ]; then
+              if [ "$word" == "END" ]; then
+                if [ $WAY -eq 1 ]; then
+                  WAY=2
+                  #tempo totale apertura pronto
+                  TEMPO_AP=$(bc -l <<< "scale=3; $TEMPO_AP/1000")
+                else
+                  MEDIA_SERV=$(bc -l <<< "scale=3; $MEDIA_SERV/($cli * 1000)")
+                  break;
+                fi
+              fi
+
+              if [ $WAY -eq 1 ]; then
+                ((TEMPO_AP=TEMPO_AP+word))
+              else
+                ((MEDIA_SERV=MEDIA_SERV+word))
+              fi
+
+            fi
+          done
+
+          printf "| %2s%-3d | %-9s | %-7s | %-9s | 0%-10s | %-8s | \n" \
+                "" $id  $prod $cli $TEMPO_AP $MEDIA_SERV $chius
+        done
         ;;
 
     ( * )

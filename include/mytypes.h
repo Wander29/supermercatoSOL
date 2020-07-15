@@ -48,7 +48,7 @@ typedef struct cliente_log {
 typedef struct cassa_log {
     int id_cassa;
     int num_prodotti_elaborati;
-    int num_clienti_serviti;
+    // int num_clienti_serviti;
     int num_chiusure;
 
     queue_t *aperture;
@@ -61,9 +61,6 @@ typedef struct cliente_servito_log {
 } cliente_servito_log_t;
 
 typedef struct log_set {
-    int tot_clienti_serviti;
-    int tot_prodotti_acquistati;
-
     queue_t        **log_clienti;
     cassa_log_t     *log_casse;
 

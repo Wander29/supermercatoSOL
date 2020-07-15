@@ -19,7 +19,7 @@ A = 400;
 #soglia chiusura casse
 S1 = 2;
 #soglia apertura casse
-S2 = 5;
+S2 = 2;
 #nome file di LOG, se esiste lo sovrascrive
 Z = log.csv;
 #test1: K=2, C=20, E=5, T=500, P=80, S=30 

@@ -86,14 +86,11 @@ void *cliente(void *arg) {
         NOTZERO(set_permesso_uscita(C, 0))
         NOTZERO(set_stato_attesa(elem, IN_ATTESA))
 
-        entrata_supermercato.tv_sec     = 0;
-        entrata_supermercato.tv_usec    = 0;
-        inizio_attesa.tv_sec            = 0;
-        inizio_attesa.tv_usec           = 0;
-        uscita.tv_sec                   = 0;
-        uscita.tv_usec                  = 0;
-        result.tv_sec                   = 0;
-        result.tv_usec                  = 0;
+        /* reinizializzo struttura per calcolare i tempi */
+        memset(&entrata_supermercato, 0, sizeof(struct timeval));
+        memset(&inizio_attesa, 0, sizeof(struct timeval));
+        memset(&uscita, 0, sizeof(struct timeval));
+        memset(&result, 0, sizeof(struct timeval));
 
         /* si prende un nuovo id_cliente in mutua esclusione */
         log_cl->id_cliente = get_and_inc_last_id_cl(C->shared);
@@ -228,7 +225,7 @@ void *cliente(void *arg) {
         running = 0;
 
     /* LOG: aggiungo il record alla LOG_squeue del thread cliente */
-        insert_into_queue(log_queue, log_cl);
+        MENO1LIB(insert_into_queue(log_queue, log_cl), (void *)-1)
 
         type_msg = CLIENTE_USCITA;
         pipe_write(&type_msg, NULL);

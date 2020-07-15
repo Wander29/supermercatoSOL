@@ -2,10 +2,11 @@
 #define LUDOVICO_VENTURI_PARSER_WRITER_H
 
 #include <myutils.h>
+#include <queue_linked.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <queue_linked.h>
+#include <ctype.h>
 
 #include "../include/mytypes.h"
 #include "../lib/lib-include/myutils.h"
@@ -49,6 +50,6 @@ typedef struct param {
 } param_t;
 
 int get_params_from_file(param_t *ptr, char *filepath);
-int write_log(char *filepath, log_set_t log);
+int write_log(char *filepath, log_set_t *log);
 
 #endif // LUDOVICO_VENTURI_PARSER_WRITER_H

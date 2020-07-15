@@ -204,8 +204,6 @@ int main(int argc, char* argv[]) {
      ***********************************************************/
     /** Argomenti per il LOG */
     log_set_t log_set;
-    log_set.tot_clienti_serviti     = 0;
-    log_set.tot_prodotti_acquistati = 0;
     log_set.C                       = par.C;
     log_set.K                       = par.K;
     EQNULL(log_set.log_casse = calloc(par.K, sizeof(cassa_log_t)))
@@ -528,7 +526,7 @@ terminazione_supermercato:
     pool_destroy(&arg_cl);
     free(clienti);
 
-    write_log(par.Z, log_set);
+    MENO1LIB(write_log(par.Z, &log_set), -1)
 
     /* LOG clienti*/
     /*
@@ -538,8 +536,9 @@ terminazione_supermercato:
     }
      */
     free(log_set.log_clienti);
+    free(log_set.log_casse);
 
-    /* LOG cassieri */
+    /* LOG cassieri
     for(i = 0; i < par.K; i++) {
         if(free_queue(log_set.log_casse[i].aperture, DYNAMIC_ELEMS) != 0)
             printf("[CODA %d] Errore di terminazione\n", i);
@@ -548,6 +547,7 @@ terminazione_supermercato:
             printf("[CODA %d] Errore di terminazione\n", i);
     }
     free(log_set.log_casse);
+     */
 
     /* signal handler */
     PTH(err, pthread_kill(tid_tsh, SIGUSR1))

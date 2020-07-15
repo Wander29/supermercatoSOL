@@ -22,8 +22,8 @@
 #define MENO1LIB(v, ret) \
     if( (v) == -1 ) { fprintf(stderr, "ERROR: %s\n", #v); return (ret); }
 
-#define LT0(v) /* LT0 == less than 0 */         \
-    if( (v) < 0 )       { perror(#v); exit(EXIT_FAILURE); }
+#define LT0(v, ret) /* LT0 == less than 0 */         \
+    if( (v) < 0 )   { fprintf(stderr, "ERROR: %s\n", #v); return (ret); }
 
 #define NOTZERO(v)                              \
     if( (v) != 0 )      { perror(#v); exit(EXIT_FAILURE); }
