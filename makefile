@@ -131,7 +131,7 @@ clean:
 	-rm -f $(LOGNAME)
 
 cleanall: clean
-	-rm -f $(TARGETS)
+	-rm -f $(BINDIR)*
 	-rm -f $(LIBDIR)*.so
 	-rm -f $(LIBDIR)*.a
 
