@@ -1,6 +1,4 @@
 #include <mypoll.h>
-#include <stdlib.h>
-#include <poll.h>
 
 static int size = START_SIZE;
 

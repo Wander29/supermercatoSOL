@@ -1,5 +1,4 @@
 #include <parser_writer.h>
-#include "../include/parser_writer.h"
 
 int get_params_from_file(param_t *ptr, char *filepath) {
     FILE *f;

@@ -1,5 +1,4 @@
 #include <pool.h>
-#include "../lib-include/pool.h"
 
 int pool_start(pool_set_t *arg) {
     if(arg == NULL) {

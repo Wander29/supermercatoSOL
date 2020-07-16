@@ -1,5 +1,4 @@
 #include <myutils.h>
-#include "../lib-include/myutils.h"
 
 /* tratto da “Advanced Programming In the UNIX Environment”
  * by W. Richard Stevens and Stephen A. Rago, 2013, 3rd Edition, Addison-Wesley

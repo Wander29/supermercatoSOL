@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2020.5.10)  15 JUL 2020 23:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2020.5.10)  15 JUL 2020 23:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -417,7 +417,7 @@ LaTeX Info: Redefining \nameref on input line 25.
 \tf@toc=\write4
 \openout4 = `prova.toc'.
 
-<images/unipi.png, id=85, 287.0725pt x 293.095pt>
+<images/unipi.png, id=90, 287.0725pt x 293.095pt>
 File: images/unipi.png Graphic file (type png)
 <use images/unipi.png>
 Package pdftex.def Info: images/unipi.png  used on input line 57.
@@ -443,41 +443,38 @@ been already used, duplicate ignored
 l.102 \section
               {Supermercato} [1
 
-] [2] [3]
-<images/cassa.png, id=125, 478.78876pt x 343.2825pt>
+] [2]
+<images/cassa.png, id=126, 478.78876pt x 343.2825pt>
 File: images/cassa.png Graphic file (type png)
 <use images/cassa.png>
-Package pdftex.def Info: images/cassa.png  used on input line 186.
-(pdftex.def)             Requested size: 383.03152pt x 274.62636pt.
- [4 <./images/cassa.png>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 213.
- [5]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 213.
-
-(./prova.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 213.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 213.
+Package pdftex.def Info: images/cassa.png  used on input line 164.
+(pdftex.def)             Requested size: 359.09068pt x 257.46123pt.
 
 
-Package rerunfilecheck Warning: File `prova.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-Package rerunfilecheck Info: Checksums for `prova.out':
-(rerunfilecheck)             Before: 8007EDBF9E8FE7EC045E680E4EC377F6;993
-(rerunfilecheck)             After:  573ACB52D2BCB30F2428142221020203;1065.
+[3] [4 <./images/cassa.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 195--196
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+ []
 
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 210.
+[5]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 210.
+ (./prova.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 210.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 210.
+Package rerunfilecheck Info: File `prova.out' has not changed.
+(rerunfilecheck)             Checksum: FE62B40A9CC05359818A5FE85B011995;1065.
  ) 
 Here is how much of TeX's memory you used:
- 7858 strings out of 492167
- 108840 string characters out of 6131558
- 234455 words of memory out of 5000000
- 12089 multiletter control sequences out of 15000+600000
+ 7859 strings out of 492167
+ 108861 string characters out of 6131558
+ 234450 words of memory out of 5000000
+ 12090 multiletter control sequences out of 15000+600000
  22264 words of font info for 50 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 31i,8n,37p,789b,401s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 31i,8n,37p,789b,455s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/font
 s/type1/public/cm-super/sfbx1000.pfb></usr/share/texmf-dist/fonts/type1/public/
@@ -494,10 +491,10 @@ r/sfrm1440.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1728.pfb>
 </usr/share/texmf-dist/fonts/type1/public/cm-super/sfti1095.pfb></usr/share/tex
 mf-dist/fonts/type1/public/cm-super/sfti1200.pfb></usr/share/texmf-dist/fonts/t
 ype1/public/cm-super/sfti1440.pfb>
-Output written on prova.pdf (6 pages, 371080 bytes).
+Output written on prova.pdf (6 pages, 377655 bytes).
 PDF statistics:
- 202 PDF objects out of 1000 (max. 8388607)
- 170 compressed objects within 2 object streams
+ 206 PDF objects out of 1000 (max. 8388607)
+ 174 compressed objects within 2 object streams
  25 named destinations out of 1000 (max. 500000)
- 139 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 147 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -155,15 +155,37 @@ Il \textit{manager} può modificare \textit{jobs} dei 2 pool nel seguente modo:
 \item \textbf{clienti}	ogni E clienti che escono dal supermercato vengono resi disponibili E lavori (\textit{jobs += E})
 \item \textbf{casse}	quando riceve la comunicazione dal direttore di aprire una cassa, incrementa di 1 \textit{jobs}
 \end{itemize}
-
-
+\subsection{Cassiere}
+Inizialmente non tutte le casse sono aperte pertanto ogni cassa attende un lavoro. Appena aprono fanno partire un thread \textit{notificatore} associato di supporto che svolgerà la comunicazione ad intervalli regolari col direttore.\\
+Se la cassa viene chiusa dal direttore avvisa gli eventuali clienti in coda settando il loro stato di attesa in \textit{CASSA\_IN\_CHIUSURA} e li sveglia. Se il supermercato sta terminando setta il loro stato in \textit{SM\_IN\_CHIUSURA} svegliandoli.
+L'argomento passato ad ogni cassiere ha questa gerarchia (la figura ha attributi di una vecchia versione):
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.75]{cassa.png}
+	\label{fig:cassa}
+\end{figure}
+\textit{shared} è condiviso fra tutte le casse mentre \textit{cassa\_set} è specifico per ogni cassa
+la scelta di  usare un'ulteriore struttura dati è 
+per garantire maggiore incapsulamente e riservatezza, poichè i clienti dovranno accedere a delle informazioni sulle casse volevo che queste fossero il meno sensibili possibile.
+\subsubsection{Notificatore}
+Avvisa il direttore ad intervalli regolari di ampiezza A riguardo il numero di clienti in coda alla relativa cassa. Invia un tipo messaggio \textit{CASSIERE\_NUM\_CLIENTI} seguito dai parametri: indice della coda e numero clienti in coda.\\
+Se la cassa viene chiusa si mette in attesa sulla var. di condizione della cassa.\\
+Aspettano STABILIZATION\_TIME (impostabile con una define, di default 300ms) prima di iniziare ad inviare notifiche al direttore ogni qualvolta la cassa si riapre (o viene aperta per la prima volta) per evitare che la cassa venga subito richiusa a causa dei suoi iniziali 0 clienti.
+\subsubsection{Concorrenza}
+Nel cassiere le variabili accedute in lettura e scrittura da più thread sono:
+\begin{itemize}
+\item \textbf{q (coda cassa)}
+\item \textbf{stato cassa}
+\end{itemize}
+Per accedere sia in lettura che in scrittura a tali dati è necessario acquisire la lock della cassa.
+Ho reputato migliore utilizzare una sola lock comune e non 2 differenti dato il tipo di operazioni che si dovranno effettuare: pressochè tutte hanno bisogno di accedere sia allo stato della cassa che alla coda e hanno bisogno di conoscere le 2 informazioni garantendo che nessuna delle 2 cambi.
 \subsection{Cliente}
-PUSH: prende 2 lock
+La vita del cliente è quella descritta nelle specifiche del progetto: per un maggior dettaglio si invita a consultare i commenti nel codice.
+Durante l'attesa del servizio vengnono acquisite 2 lock, quella della cassa e quella dell'elemento, perchè un cassiere potrebbe effettuare in quel momento una POP cambiando lo stato sa IN ATTESA a SERVIZIO IN CORSO (quindi prende la lock sulla coda) o potrebbe cambiare lo stato di attesa da SERVIZIO IN CORSO a SERVITO (prendendo quindi la lock sull'elemento). Per poter essere certo di controllare lo stato ho quindi bisogno di entrambe lo lock. 
 \subsubsection{Cambio cassa}
-Ho reputato opportuno impostare un limite di 10 cambi cassa per cliente. Può accadere (raramente dalle mie osservazioni) che un cliente decida di cambiare cassa ogni S ms, causando più overhead che guadagno. Se la cassa viene chiusa cambierà comunque cassa anche se lo ha già fatto 10 o più volte.
-
-Ho utilizzato i \textit{pthread\_spin\_lock}
-
+\textit{Si prega di controllare i commenti nel codice della funzione per il funzionamento della selta}
+Ho reputato opportuno impostare un limite di 10 cambi cassa per cliente. Può accadere (raramente dalle mie osservazioni) che un cliente decida di cambiare cassa ogni S ms, causando più overhead che guadagno. Se la cassa viene chiusa cambierà comunque cassa anche se lo ha già fatto 10 o più volte.\\
+Ho utilizzato i \textit{pthread\_spin\_lock} sperando di guadagnare qualcosa in termini di efficienza in quanto le sezioni critiche sono tutte molto brevi e molto accedute.\\
 L'algoritmo non è ottimo, se trova una cassa posso solo dire che è migliore della mia. Non ho implementato una soluzione ottima dato che i vincoli principali da rispettare sono l'efficienza e il non causare deadlock:\\
 se un cliente in coda ogni S millisecondi (con S=20/30) si sveglia e volesse controllare tutte le casse dovrebbe acquisire la lock di tutte le casse! Ma ogni client vorrebbe farlo, quindi si creerebbero deadlock. 
 Quindi un cliente si sveglia, acquisisce la lock sulla sua cassa, controlla la sua posizione e controlla quanto vale lo stato della cassa\textit{min\_queue}. 
@@ -171,34 +193,8 @@ Quindi un cliente si sveglia, acquisisce la lock sulla sua cassa, controlla la s
 \begin{itemize}
 \item elem: \textbf{stato\_attesa}
 \item \textbf{permesso\_uscita} scritto solamente dal Manager e letto dal rispettivo cliente; reinizializzato dal cliente\\
-=> \hspace{10mm} va acquisita la risorsa attraverso \textit{lock(cond\_cliente)} 
-
 \end{itemize}
-
-
-\subsection{Cassiere}
-Inizialmente non tutte le casse sono aperte pertanto ogni cassa attende un lavoro. Appena aprono fanno partire un thread \textit{notificatore} associato di supporto che svolgerà la comunicazione ad intervalli regolari col direttore.
-Se la cassa viene chiusa dal direttore avvisa gli eventuali clienti in coda settando il loro stato di attesa in \textit{CASSA\_IN\_CHIUSURA} e li sveglia. Se il supermercato sta terminando setta il loro stato in \textit{SM\_IN\_CHIUSURA} svegliandoli.
-\subsubsection{Notificatore}
-Aspettano STABILIZATION\_TIME (impostabile con una define, di default 300ms) prima di iniziare ad inviare notifiche al direttore ogni qualvolta la cassa si riapre (o viene aperta per la prima volta) per evitare che la cassa venga subito richiusa a casua dei suoi iniziali 0 clienti.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=0.8]{cassa.png}
-	\label{fig:cassa}
-\end{figure}
-
-\textit{shared} è condiviso fra tutte le casse mentre \textit{cassa\_set} è specifico per ogni cassa
-la scelta di  usare un'ulteriore struttura dati è 
-per  incapsulamente e riservatezza dei dati 
-delle che dovranno essere letti dai clienti 
-\subsubsection{Concorrenza}
-Nel cassiere le variabili accedute in lettura e scrittura da più thread sono:
-\begin{itemize}
-\item q
-\item stato
-\end{itemize}
-
+Per potervi accedere è necessario acquisire le rispettive lock.
 \section{Utilizzo}
 Il makefile presente nel progetto contiene il necessario per compilare e testare il programma, usare:
 \begin{itemize}

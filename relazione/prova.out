@@ -8,10 +8,10 @@
 \BOOKMARK [2][-]{subsection.3.2}{Chiusura}{section.3}% 8
 \BOOKMARK [2][-]{subsection.3.3}{Thread Pool}{section.3}% 9
 \BOOKMARK [3][-]{subsubsection.3.3.1}{Concorrenza}{subsection.3.3}% 10
-\BOOKMARK [2][-]{subsection.3.4}{Cliente}{section.3}% 11
-\BOOKMARK [3][-]{subsubsection.3.4.1}{Cambio cassa}{subsection.3.4}% 12
+\BOOKMARK [2][-]{subsection.3.4}{Cassiere}{section.3}% 11
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Notificatore}{subsection.3.4}% 12
 \BOOKMARK [3][-]{subsubsection.3.4.2}{Concorrenza}{subsection.3.4}% 13
-\BOOKMARK [2][-]{subsection.3.5}{Cassiere}{section.3}% 14
-\BOOKMARK [3][-]{subsubsection.3.5.1}{Notificatore}{subsection.3.5}% 15
+\BOOKMARK [2][-]{subsection.3.5}{Cliente}{section.3}% 14
+\BOOKMARK [3][-]{subsubsection.3.5.1}{Cambio cassa}{subsection.3.5}% 15
 \BOOKMARK [3][-]{subsubsection.3.5.2}{Concorrenza}{subsection.3.5}% 16
 \BOOKMARK [1][-]{section.4}{Utilizzo}{}% 17

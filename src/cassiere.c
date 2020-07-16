@@ -1,4 +1,4 @@
-#include "../include/cassiere.h"
+#include <cassiere.h>
 
 static int      cassiere_attesa_lavoro(pool_set_t *P);
 static int      cassiere_pop_cliente(cassa_public_t *C, ret_pop_t *val);
@@ -254,8 +254,10 @@ static int cassiere_pop_cliente(cassa_public_t *C, ret_pop_t *val) {
         }
 
         val->ptr->stato_attesa = SERVIZIO_IN_CORSO;
+
     nelems = q->nelems;
     } PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+
     /* ho fatto la POP, controllo se la mia coda ora è la piú conveniente */
     MENO1LIB( testset_min_queue(C, nelems), -1)
 
@@ -268,10 +270,6 @@ static int cassiere_sveglia_clienti(cassa_public_t *C, attesa_t stato) {
     queue_t *q = C->q;
 
     PTHLIB(err, pthread_mutex_lock(&(C->mtx_cassa))) {
-#ifdef DEBUG
-        printf("! Sto per avvertire che: %s\n", stato == CASSA_IN_CHIUSURA ? "CASSA_IN_CHIUSURA" : "SM_IN_CHIUSURA");
-        print_queue_clients(C);
-#endif
         while( (curr = (queue_elem_t *) get_from_queue(q)) != NULL ) {
             MENO1LIB(set_stato_attesa(curr, stato), -1)
             PTHLIB(err, pthread_cond_signal(&(curr->cond_cl_q)))

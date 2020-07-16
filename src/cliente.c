@@ -64,18 +64,15 @@ void *cliente(void *arg) {
     for(;;) {
         /* attende il lavoro */
         if ((err = cliente_attesa_lavoro(P)) == 1) { // termina
-#ifdef DEBUG_TERM
-            printf("[CLIENTE %d] terminato per chiusura supermercato, ero sulla JOBS!\n", C->index);
-#endif
             goto terminazione_cliente;
         } else if (err < 0)
             fprintf(stderr, "Errore durante l'attesa di un lavoro per il Cliente [%d]\n", C->index);
 
         /* lavoro ottenuto! */
         type_msg = CLIENTE_ENTRATA;
-        pipe_write(&type_msg, 0);
+        MENO1LIB(pipe_write(&type_msg, 0), (void *) -1)
 
-        /* reinizializzazione valori */
+                /* reinizializzazione valori */
         log_cl = NULL; /* vorrei evitare qualsiasi ottimizzazione del compilatore */
         log_cl = calloc(1, sizeof(cliente_log_t));
 
@@ -103,9 +100,7 @@ void *cliente(void *arg) {
          */
         log_cl->num_prodotti_acquistati     = rand_r(&seedp) % (C->shared->P + 1);
         log_cl->tempo_acquisti              = (rand_r(&seedp) % (C->shared->T - MIN_TEMPO_ACQUISTI + 1)) + MIN_TEMPO_ACQUISTI;
-#ifdef DEBUG_RAND
-        printf("[CLIENTE %d] p: [%d]\tt: [%d]\n",C->index, p, t);
-#endif
+
     /**************************************
      * INIZIO ACQUISTI
      * - prendo il tempo:
@@ -117,9 +112,6 @@ void *cliente(void *arg) {
         MENO1(millisleep(log_cl->tempo_acquisti))
 
         if (get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
-#ifdef DEBUG_TERM
-            printf("[CLIENTE %d] terminato per chiusura supermercato, dopo acquisti!\n", C->index);
-#endif
             free(log_cl);
             goto terminazione_cliente;
         }
@@ -131,16 +123,10 @@ void *cliente(void *arg) {
              *          (completa di indice cliente)
              *      e si mette in attesa di una risposta
              **********************************************************/
-    #ifdef DEBUG_CLIENTE
-            printf("[CLIENTE %d] Non ho fatto acquisti, voglio uscire!\n", C->index);
-    #endif
             type_msg = CLIENTE_RICHIESTA_PERMESSO;
-            MENO1(pipe_write(&type_msg, 1, &(C->index)))
+            MENO1LIB(pipe_write(&type_msg, 1, &(C->index)), (void *) -1)
 
             if( cliente_attendi_permesso_uscita(C) == 1 ) { /* termina */
-#ifdef DEBUG_TERM
-                printf("[CLIENTE %d] terminato per chiusura supermercato, dopo attesa richiesta uscita!\n", C->index);
-#endif
                 free(log_cl);
                 goto terminazione_cliente;
             }
@@ -172,9 +158,6 @@ void *cliente(void *arg) {
                     }
 
                     if(get_stato_supermercato() == CHIUSURA_IMMEDIATA) {
-#ifdef DEBUG_TERM
-                        printf("[CLIENTE %d] terminato per chiusura supermercato, durante scelta cassa!\n", C->index);
-#endif
                         free(log_cl);
                         goto terminazione_cliente;
                     }
@@ -191,9 +174,6 @@ void *cliente(void *arg) {
                     return (void *) -1;
                 }
                 else if(stato_att  == SM_IN_CHIUSURA) {
-#ifdef DEBUG_TERM
-                    printf("[CLIENTE %d] terminato per chiusura supermercato, ero in CODA!\n", C->index);
-#endif
                     free(log_cl);
                     goto terminazione_cliente;
                 }
@@ -218,22 +198,15 @@ void *cliente(void *arg) {
 
         TIMEVAL_DIFF(&result, &uscita, &entrata_supermercato)
         log_cl->tempo_permanenza =  result.tv_sec * sTOmsMULT + result.tv_usec / msTOusMULT;/* in ms */
-#ifdef DEBUG_TIMERS
-        printf("[CLIENTE %d] attesa [%d]ms\tpermanenza [%d]ms\n", \
-                log_cl->id_cliente, log_cl->tempo_attesa, log_cl->tempo_permanenza);
-#endif
         running = 0;
 
     /* LOG: aggiungo il record alla LOG_squeue del thread cliente */
         MENO1LIB(insert_into_queue(log_queue, log_cl), (void *)-1)
 
         type_msg = CLIENTE_USCITA;
-        pipe_write(&type_msg, 0);
+        MENO1LIB(pipe_write(&type_msg, 0), (void *) -1)
 
         if(get_stato_supermercato() != APERTO) {
-#ifdef DEBUG_TERM
-            printf("[CLIENTE %d] Sono stato servito, vado a casa ora!\n", C->index);
-#endif
             break;
         }
     }
@@ -241,12 +214,9 @@ void *cliente(void *arg) {
 terminazione_cliente:
     if(running == 1) {
         type_msg = CLIENTE_USCITA;
-        pipe_write(&type_msg, 0);
+        MENO1LIB(pipe_write(&type_msg, 0), (void *) -1)
     }
 
-#ifdef DEBUG_TERM
-    printf("[CLIENTE %d] TERMINATO CORRETTAMENTE\n", C->index);
-#endif
     return ((void *)NULL);
 }
 
@@ -255,9 +225,6 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
 
     PTHLIB(err, pthread_mutex_lock(&(P->mtx)))
     while(P->jobs == 0) {
-#ifdef DEBUG_WAIT
-        printf("[CLIENTE] sto andando in wait JOBS!\n");
-#endif
         PTHLIB(err, pthread_cond_wait(&(P->cond), &(P->mtx)))
         PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
         /* se è stato svegliato perchè il supermercato è in chiusura => deve terminare */
@@ -267,9 +234,6 @@ static int cliente_attesa_lavoro(pool_set_t *P) {
         PTHLIB(err, pthread_mutex_lock(&(P->mtx)))
     }
     P->jobs--;
-#ifdef DEBUG_WAIT
-    printf("[CLIENTE] JOBS [%d]!\n", P->jobs);
-#endif
     PTHLIB(err, pthread_mutex_unlock(&(P->mtx)))
 
     return 0;
@@ -280,30 +244,30 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
     struct timespec ts;
     MENO1(millitimespec(&ts, timeout_ms))
 
-    PTH(err, pthread_mutex_lock(&(C->mtx_cassa))) {
-        PTH(err, pthread_mutex_lock(&(e->mtx_cl_q))) {
+    PTHLIB(err, pthread_mutex_lock(&(C->mtx_cassa))) {
+        PTHLIB(err, pthread_mutex_lock(&(e->mtx_cl_q))) {
 
             while(e->stato_attesa != SERVITO) {
                 switch(e->stato_attesa) {
                     case SM_IN_CHIUSURA:
-                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
-                        PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                        PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                         return e->stato_attesa;
 
                     case CASSA_IN_CHIUSURA:
                         e->stato_attesa = IN_ATTESA;
-                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
-                        PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                        PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                         return CASSA_IN_CHIUSURA;
 
                     case SERVIZIO_IN_CORSO: /* potrà solo andare a SERVITO(il cliente corrente viene sempre servito) */
-                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
-                        PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
-                        PTH(err, pthread_mutex_lock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
+                        PTHLIB(err, pthread_mutex_lock(&(e->mtx_cl_q)))
                         break;
 
                     case IN_ATTESA:
-                        PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
                     /*******************************************************************
                      * CONTROLLO CAMBIO CASSA
                      * si può cambiare cassa un massimo di 10 volte (compresi i cambi per chiusura)
@@ -326,7 +290,7 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                             queue_position_t curr_pos = queue_get_position(C->q, (void *) e);
                             if(curr_pos.pos == -1) {
                                 fprintf(stderr, "ERRORE: queue_get_position\n");
-                                PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                                 return -1;
                             }
 
@@ -336,17 +300,17 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
                                 if (minq.num >= 0 && minq.num <= ((curr_pos.pos) * (PERC_CHQUEUE))) {
                                     if (queue_remove_specific_elem(C->q, curr_pos.ptr_in_queue) == -1) {
                                         fprintf(stderr, "ERRORE CLIENT: queue_remove_specific_elem\n");
-                                        PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                        PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                                         return (attesa_t) -1;
                                     }
 
-                                    PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                    PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                                     ret_minq = cliente_push(minq.ptr_q, e);
                                     switch (ret_minq) {
                                         case APERTA: /* mi sono spostato nella coda più conveniente, prendo il lock, per la wait */
                                             C = minq.ptr_q;
                                             (*cnt_cambi)++;
-                                            PTH(err, pthread_mutex_lock(&(C->mtx_cassa)))
+                                            PTHLIB(err, pthread_mutex_lock(&(C->mtx_cassa)))
                                             break;
 
                                         case CHIUSA: /* mi rimetterò in fila in una delle casse aperte */
@@ -361,25 +325,25 @@ static attesa_t cliente_attendi_servizio(cassa_public_t *C, queue_elem_t *e, int
 
                             if( (err = pthread_cond_timedwait(&(e->cond_cl_q), &(C->mtx_cassa), &ts)) != 0 && err != ETIMEDOUT) {
                                 fprintf(stderr, "ERRORE CLIENT: pthread_cond_timedwait\n");
-                                PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+                                PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
                                 return (attesa_t) -1;
                             }
                         } else { /* dopo 10 cambi aspetto normalmente */
-                            PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
+                            PTHLIB(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
                         }
 #endif
 #ifndef CAMBIO_CASSA
-                        PTH(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
+                        PTHLIB(err, pthread_cond_wait(&(e->cond_cl_q), &(C->mtx_cassa)))
 #endif
-                        PTH(err, pthread_mutex_lock(&(e->mtx_cl_q)))
+                        PTHLIB(err, pthread_mutex_lock(&(e->mtx_cl_q)))
                         break;
 
                     default: ;
                 }
             }
 
-        } PTH(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
-    } PTH(err, pthread_mutex_unlock(&(C->mtx_cassa)))
+        } PTHLIB(err, pthread_mutex_unlock(&(e->mtx_cl_q)))
+    } PTHLIB(err, pthread_mutex_unlock(&(C->mtx_cassa)))
 
     return SERVITO;
 }
@@ -396,9 +360,6 @@ static int cliente_attendi_permesso_uscita(cliente_arg_t *t) {
                 return 1;
             PTHLIB(err, pthread_mutex_lock(&(t->mtx)))
         }
-#ifdef DEBUG_CLIENTE
-        printf("[CLIENTE %d] Permesso di uscita ricevuto!\n", t->index);
-#endif
     } PTHLIB(err, pthread_mutex_unlock(&(t->mtx)))
 
     return 0;
@@ -432,9 +393,9 @@ static int get_and_inc_last_id_cl(client_com_arg_t *com) {
     int err,
         ret;
 
-    PTH(err, pthread_mutex_lock(&(com->mtx_id_cl))) {
+    PTHLIB(err, pthread_mutex_lock(&(com->mtx_id_cl))) {
         ret = ++(com->current_last_id_cl);
-    } PTH(err, pthread_mutex_unlock(&(com->mtx_id_cl)))
+    } PTHLIB(err, pthread_mutex_unlock(&(com->mtx_id_cl)))
 
     return ret;
 }

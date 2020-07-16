@@ -2,11 +2,8 @@
 #define LUDOVICO_VENTURI_CONCURRENT_QUEUE_H
 
 #include <myutils.h>
-#include <mypthread.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 
 /*
  * Coda FIFO concorrente unbounded

@@ -1,4 +1,4 @@
-#include "../include/notificatore.h"
+#include <notificatore.h>
 
 static int      notificatore_attendi_apertura_cassa(cassa_arg_t *cassa);
 static int      notificatore_notifica(cassa_public_t *c, int timeout);
@@ -20,9 +20,14 @@ void *notificatore(void *arg) {
     cassa_public_t *C = Cassa_args->cassa_set;
     cassa_com_arg_t *Com = Cassa_args->shared;
 
+    int err;
+
     do {
-        if(notificatore_attendi_apertura_cassa(Cassa_args) == 1) {
+        if( (err = notificatore_attendi_apertura_cassa(Cassa_args)) == 1) {
             goto terminazione_notificatore;
+        } else if(err == -1) {
+            fprintf(stderr, "ERRORE: notificatore_attendi_apertura_cassa\n");
+            return (void *) -1;
         }
 
         MENO1(millisleep(STABILIZATION_TIME + Com->A))

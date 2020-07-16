@@ -9,11 +9,6 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#include "../include/protocollo.h"
-#include "../include/parser_writer.h"
-#include "../lib/lib-include/mypoll.h"
-#include "../lib/lib-include/myutils.h"
-
 /**********************************************************************************************************
  * LOGICA DEL SUPERMERCATO
  *  - egge parametri di configurazione

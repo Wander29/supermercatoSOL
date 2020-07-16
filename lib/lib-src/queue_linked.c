@@ -1,11 +1,4 @@
-/*
- * CODA FIFO CONCORRENTE, unbounded, produttori-consumatori
- * politica:
-*
- * Mutua esclusione sia fra consumatori che fra produttori
- */
 #include <queue_linked.h>
-#include "../lib-include/queue_linked.h"
 
 queue_t *start_queue(void) {
     queue_t *Q = calloc(1, sizeof(queue_t));
